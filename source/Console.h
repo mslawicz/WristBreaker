@@ -32,11 +32,14 @@ public:
     static Console& getInstance();
     Console(Console const&) = delete;   // copy constructor removed for singleton
     void operator=(Console const&) = delete;
+    Console(Console&&) = delete;
+    void operator=(Console&&) = delete;
     void handler();
     void registerCommand(std::string command, std::string helpText, Callback<void(CommandVector)> commandCallback);
     void displayHelp(CommandVector cv);
 private:
-    Console() {} // private constructor definition
+    Console() = default; // private constructor definition
+    ~Console() = default;
     void executeCommand();
     CommandVector commandElements;
     std::map<std::string, CommandContainer> commands;

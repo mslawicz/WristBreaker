@@ -17,11 +17,13 @@
 #include "Console.h"
 #include "Statistics.h"
 #include <mbed.h>
+#include <iostream>
 
 
 int main()
 {
     printf("WristBreaker v1\r\n");
+    std::cout << "WristBreaker v1\n"; //XXX check this!
 
     // create and start console thread
     Thread consoleThread(osPriority_t::osPriorityLow4, OS_STACK_SIZE, nullptr, "console");
