@@ -14,7 +14,7 @@
 #error "Stats not enabled"
 #endif
 
-void listThreads(CommandVector cv)
+void listThreads(const CommandVector&  /*cv*/)
 {
     auto* stats = new mbed_stats_thread_t[MAX_THREAD_STATS];    // NOLINT(cppcoreguidelines-owning-memory)
     int numberOfThreads = mbed_stats_thread_get_each(stats, MAX_THREAD_STATS);

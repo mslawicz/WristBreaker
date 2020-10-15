@@ -12,6 +12,6 @@
 
 #define MAX_THREAD_STATS    0x8
 
-void listThreads(CommandVector cv);
+void listThreads(const CommandVector&);
 
 #endif /* STATISTICS_H_ */
