@@ -7,8 +7,9 @@
 
 #include "Console.h"
 #include "mbed.h"
+#include <iostream>
 
-Console& Console::getInstance()
+Console& Console::getInstance() // NOLINT(modernize-use-trailing-return-type)
 {
     static Console instance;    // Guaranteed to be destroyed, instantiated on first use
     return instance;
@@ -20,13 +21,13 @@ Console& Console::getInstance()
 void Console::handler()
 {
     // start console execution with a delay
-    ThisThread::sleep_for(500ms);
+    ThisThread::sleep_for(500ms);   // NOLINT
 
-    int ch;
+    int ch = 0;
     while(true)
     {
         std::string inputLine;
-        printf("\r>");
+        std::cout << "\r>";
         fflush(stdout);
 
         do
@@ -34,8 +35,8 @@ void Console::handler()
             ch = getchar();
             switch(ch)
             {
-            case 8:
-            case 127:
+            case static_cast<int>(KeyCode::Backspace):
+            case static_cast<int>(KeyCode::Delete):
                 if(!inputLine.empty())
                 {
                     putchar(static_cast<int>(KeyCode::Backspace));
@@ -46,7 +47,7 @@ void Console::handler()
                 }
                 break;
             default:
-                if((ch >= 32) && (ch < 127))
+                if((ch >= static_cast<int>(KeyCode::Space)) && (ch < static_cast<int>(KeyCode::Delete)))
                 {
                     inputLine.push_back(static_cast<char>(ch));
                     putchar(ch);
@@ -54,11 +55,11 @@ void Console::handler()
                 }
                 break;
             }
-        } while((ch != (int)KeyCode::LF) && (ch != (int)KeyCode::CR));
+        } while((ch != static_cast<int>(KeyCode::LF)) && (ch != static_cast<int>(KeyCode::CR)));
 
         commandElements.clear();
         size_t currentPosition = 0;
-        size_t nextSpacePosition;
+        size_t nextSpacePosition = 0;
         do
         {
             nextSpacePosition = inputLine.find(' ', currentPosition);
@@ -70,7 +71,7 @@ void Console::handler()
             }
         } while(nextSpacePosition != std::string::npos);
 
-        printf("\r\n");
+        std::cout << "\n";
         executeCommand();
     }
 }
@@ -78,7 +79,7 @@ void Console::handler()
 /*
  * register new command in the Console command map
  */
-void Console::registerCommand(std::string command, std::string helpText,
+void Console::registerCommand(const std::string& command, const std::string& helpText,
         Callback<void(CommandVector)> commandCallback)
 {
     commands.emplace(command, CommandContainer{helpText, commandCallback});
@@ -87,11 +88,11 @@ void Console::registerCommand(std::string command, std::string helpText,
 /*
  * list all registered commands
  */
-void Console::displayHelp(CommandVector cv)
+void Console::displayHelp(CommandVector  /*cv*/)
 {
     for(auto& command : commands)
     {
-        printf("%s - %s\r\n", command.first.c_str(), command.second.first.c_str());
+        std::cout << command.first.c_str() << " - " << command.second.first.c_str() << std::endl;
     }
 }
 
@@ -113,7 +114,7 @@ void Console::executeCommand()
         else
         {
             // unknown command
-            printf("unknown command: %s\r\n", commandElements[0].c_str());
+            std::cout << "unknown command: " << commandElements[0].c_str() << std::endl;
         }
     }
 }

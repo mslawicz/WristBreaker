@@ -20,7 +20,9 @@ enum class KeyCode : int
     CR = 13,
     Escape = 27,
     Tilde = 126,
-    Backspace = 8
+    Backspace = 8,
+    Delete = 127,
+    Space = 32
 };
 
 using CommandVector = std::vector<std::string>;
@@ -29,13 +31,13 @@ using CommandContainer = std::pair<std::string, Callback<void(CommandVector)>>;
 class Console
 {
 public:
-    static Console& getInstance();
+    static Console& getInstance();  // NOLINT(modernize-use-trailing-return-type)
     Console(Console const&) = delete;   // copy constructor removed for singleton
     void operator=(Console const&) = delete;
     Console(Console&&) = delete;
     void operator=(Console&&) = delete;
     void handler();
-    void registerCommand(std::string command, std::string helpText, Callback<void(CommandVector)> commandCallback);
+    void registerCommand(const std::string& command, const std::string& helpText, Callback<void(CommandVector)> commandCallback);
     void displayHelp(CommandVector cv);
 private:
     Console() = default; // private constructor definition

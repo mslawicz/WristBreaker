@@ -20,7 +20,7 @@
 #include <iostream>
 
 
-int main() // NOLINT
+int main() // NOLINT(modernize-use-trailing-return-type)
 {
     std::cout << "WristBreaker v1\n";
 
