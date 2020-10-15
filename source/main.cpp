@@ -20,10 +20,9 @@
 #include <iostream>
 
 
-int main()
+int main() // NOLINT
 {
-    printf("WristBreaker v1\r\n");
-    std::cout << "WristBreaker v1\n"; //XXX check this!
+    std::cout << "WristBreaker v1\n";
 
     // create and start console thread
     Thread consoleThread(osPriority_t::osPriorityLow4, OS_STACK_SIZE, nullptr, "console");
@@ -34,7 +33,8 @@ int main()
     Console::getInstance().registerCommand("lt", "list threads", callback(listThreads));
 
     // main event queue
-    events::EventQueue mainEventQueue;
+    const int MaxEvents = 32;
+    events::EventQueue mainEventQueue(MaxEvents * EVENTS_EVENT_SIZE, nullptr);
 
     // create main object
 
