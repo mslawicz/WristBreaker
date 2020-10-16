@@ -9,14 +9,18 @@
 #define COMMANDER_H_
 
 #include "mbed.h"
+#include <chrono>
 
 class Commander
 {
 public:
-    explicit Commander(const events::EventQueue& eventQueue);
+    explicit Commander(events::EventQueue& eventQueue);     // NOLINT(google-runtime-references)
 private:
-    const events::EventQueue& eventQueue;       // event queue of the Commander's thread
-    //DigitalOut heartBeatLed;                  // Commander heartbeat LED
+    void handler();
+    events::EventQueue& eventQueue;             // event queue of the Commander's thread
+    DigitalOut heartBeatLed;                    // Commander heartbeat LED
+    const std::chrono::milliseconds HandlerPeriod{10, nullptr};     // period of the handler calls
+    uint32_t handlerCallCounter{0};             // counter of the handler calls 
 };
 
 #endif /* COMMANDER_H_ */
