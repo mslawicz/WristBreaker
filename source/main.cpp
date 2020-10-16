@@ -16,6 +16,7 @@
 
 #include "Console.h"
 #include "Statistics.h"
+#include "Commander.h"
 #include <mbed.h>
 #include <iostream>
 
@@ -37,7 +38,7 @@ int main() // NOLINT(modernize-use-trailing-return-type)
     events::EventQueue mainEventQueue(MaxEvents * EVENTS_EVENT_SIZE, nullptr);
 
     // create main object
-
+    Commander commander(mainEventQueue);
 
     // process the event queue
     mainEventQueue.dispatch_forever();
