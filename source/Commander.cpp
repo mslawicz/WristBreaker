@@ -11,5 +11,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
 
 void Commander::handler()
 {
-    heartBeatLed.write((handlerCallCounter++ / 50) & 1);    // NOLINT XXX test
+    // heart beat
+    const uint8_t HeartBeatPattern = 0x50U;
+    heartBeatLed = static_cast<int>((handlerCallCounter++ & HeartBeatPattern) == HeartBeatPattern);
 }
