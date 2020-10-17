@@ -20,14 +20,14 @@ MultiHID::MultiHID(uint16_t vendorId, uint16_t productId, uint16_t productReleas
     if (blocking)
     {
         std::cout << std::hex << setfill('0') << setw(4) << "Connecting USB HID joystick device (VID=0x" << vendorId << ", PID=0x" << productId;
-        std::cout << std::dec << ", VER=" << productRelease << ") in non-blocking mode\n";
+        std::cout << std::dec << ", VER=" << productRelease << ") in blocking mode\n";
         USBDevice::connect();
         wait_ready();
     }
     else
     {
         std::cout << std::hex << setfill('0') << setw(4) << "Initializing USB HID joystick device (VID=0x" << vendorId << ", PID=0x" << productId;
-        std::cout << std::dec << ", VER=" << productRelease << ") in blocking mode\n";
+        std::cout << std::dec << ", VER=" << productRelease << ") in non-blocking mode\n";
         init();
     }
 }
