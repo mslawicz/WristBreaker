@@ -3,7 +3,8 @@
 
 Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
-    heartBeatLed(LED1)
+    heartBeatLed(LED1)//,
+    //PCLink(USB_PID, USB_VID, USB_VER)
 {
     std::cout << "Commander object created\n";
     eventQueue.call_every(HandlerPeriod, this, &Commander::handler);
