@@ -7,7 +7,7 @@
 
 #include "USB.h"
 #include "usb_phy_api.h"
-USBJoystick::USBJoystick(uint16_t vendorId, uint16_t productId, uint16_t productRelease, bool blocking) :
+MultiHID::MultiHID(uint16_t vendorId, uint16_t productId, uint16_t productRelease, bool blocking) :
     USBHID(get_usb_phy(), 0, 0, vendorId, productId, productRelease)
 {
     if (blocking)
@@ -23,12 +23,12 @@ USBJoystick::USBJoystick(uint16_t vendorId, uint16_t productId, uint16_t product
     }
 }
 
-USBJoystick::~USBJoystick()
+MultiHID::~MultiHID()
 {
     deinit();
 }
 
-const uint8_t* USBJoystick::report_desc()
+const uint8_t* MultiHID::report_desc()
 {
     static const uint8_t report_descriptor[] =
     {
@@ -91,7 +91,7 @@ const uint8_t* USBJoystick::report_desc()
                                + (1 * HID_DESCRIPTOR_LENGTH) \
                                + (2 * ENDPOINT_DESCRIPTOR_LENGTH))
 
-const uint8_t* USBJoystick::configuration_desc(uint8_t index)
+const uint8_t* MultiHID::configuration_desc(uint8_t index)
 {
     if (index != 0)
     {
@@ -157,12 +157,12 @@ const uint8_t* USBJoystick::configuration_desc(uint8_t index)
 *
 * @returns pointer to the string product descriptor
 */
-const uint8_t* USBJoystick::string_iproduct_desc()
+const uint8_t* MultiHID::string_iproduct_desc()
 {
     static const uint8_t OverriddenStringIproductDescriptor[] = {
-        0x18,                                                       //bLength
+        0x1A,                                                       //bLength
         STRING_DESCRIPTOR,                                          //bDescriptorType 0x03
-        'N', 0, 'u', 0, 'c', 0, 'l', 0, 'e', 0, 'o', 0, ' ', 0, 'Y', 0, 'o', 0, 'k', 0, 'e', 0 //bString iProduct - HID device
+        'W', 0, 'r', 0, 'i', 0, 's', 0, 't', 0, 'B', 0, 'r', 0, 'e', 0, 'a', 0, 'k', 0, 'e', 0, 'r', 0 //bString iProduct - HID device
     };
     return OverriddenStringIproductDescriptor;
 }
@@ -170,7 +170,7 @@ const uint8_t* USBJoystick::string_iproduct_desc()
 /*
  * sends HID joystick report to PC
  */
-bool USBJoystick::sendReport(JoystickData& joystickData)
+bool MultiHID::sendReport(JoystickData& joystickData)
 {
     HID_REPORT report;
     uint8_t index = 0;

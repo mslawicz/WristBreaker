@@ -25,11 +25,11 @@ struct JoystickData
     uint32_t buttons;
 };
 
-class USBJoystick : public USBHID
+class MultiHID : public USBHID
 {
 public:
-    USBJoystick(uint16_t vendorId, uint16_t productId, uint16_t productRelease, bool blocking = false);
-    virtual ~USBJoystick();
+    MultiHID(uint16_t vendorId, uint16_t productId, uint16_t productRelease, bool blocking = false);
+    virtual ~MultiHID();
     const uint8_t* report_desc() override; // returns pointer to the report descriptor; Warning: this method must store the length of the report descriptor in reportLength
     bool sendReport(JoystickData& joystickData);
 protected:

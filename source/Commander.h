@@ -22,8 +22,7 @@ private:
     DigitalOut heartBeatLed;                    // Commander heartbeat LED
     const std::chrono::milliseconds HandlerPeriod{10, nullptr};     // period of the handler calls
     uint32_t handlerCallCounter{0};             // counter of the handler calls 
-    //MultiHID PCLink;                            // USB link to PC
-    USBJoystick PCLink;
+    MultiHID PCLink;                            // USB link to PC
 };
 
 #endif /* COMMANDER_H_ */
