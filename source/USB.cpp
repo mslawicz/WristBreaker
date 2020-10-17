@@ -35,7 +35,7 @@ MultiHID::~MultiHID()
 
 const uint8_t* MultiHID::report_desc()
 {
-    static const uint8_t report_descriptor[] =
+    static const uint8_t reportDescriptor[] =   // NOLINT
     {
         0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
         0x09, 0x04,                    // USAGE (Joystick)
@@ -86,8 +86,8 @@ const uint8_t* MultiHID::report_desc()
         0xc0                           // END_COLLECTION
     };
 
-    reportLength = sizeof(report_descriptor);
-    return report_descriptor;
+    reportLength = sizeof(reportDescriptor);
+    return static_cast<const uint8_t*>(reportDescriptor);
 }
 
 #define DEFAULT_CONFIGURATION (1)
