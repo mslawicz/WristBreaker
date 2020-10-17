@@ -21,8 +21,22 @@ Commander::Commander(events::EventQueue& eventQueue) :
 
 void Commander::handler()
 {
-
     // heart beat
     const uint8_t HeartBeatPattern = 0x50U;
     heartBeatLed = static_cast<int>((handlerCallCounter++ & HeartBeatPattern) == HeartBeatPattern);
+
+    //XXX test of joystick data
+    int16_t testVal = (handlerCallCounter << 6) & 0xFFFF; // NOLINT
+    joystickData.X = testVal;
+    joystickData.Y = testVal;
+    testVal = (handlerCallCounter << 4) & 0x7FFF; // NOLINT
+    joystickData.dial = testVal;
+    joystickData.slider = testVal;
+    testVal = (handlerCallCounter >> 4) % 9; // NOLINT
+    joystickData.hat = testVal;
+    testVal = (handlerCallCounter >> 4) & 0xFFFF; // NOLINT
+    joystickData.buttons = testVal | (testVal << 16U); // NOLINT
+
+    // send joystick data to PC
+    PCLink.sendReport(joystickData);
 }
