@@ -14,7 +14,7 @@
 class Commander
 {
 public:
-    explicit Commander(events::EventQueue& eventQueue);     // NOLINT(google-runtime-references)
+    explicit Commander(events::EventQueue& eventQueue);
 private:
     void handler();
     events::EventQueue& eventQueue;             // event queue of the Commander's thread

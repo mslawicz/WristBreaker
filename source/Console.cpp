@@ -8,8 +8,9 @@
 #include "Console.h"
 #include "mbed.h"
 #include <iostream>
+#include <chrono>
 
-Console& Console::getInstance() // NOLINT(modernize-use-trailing-return-type)
+Console& Console::getInstance()
 {
     static Console instance;    // Guaranteed to be destroyed, instantiated on first use
     return instance;
@@ -21,7 +22,8 @@ Console& Console::getInstance() // NOLINT(modernize-use-trailing-return-type)
 void Console::handler()
 {
     // start console execution with a delay
-    ThisThread::sleep_for(500ms);   // NOLINT
+    const std::chrono::milliseconds ConsoleDelay{500};
+    ThisThread::sleep_for(ConsoleDelay);
 
     int ch = 0;
     while(true)

@@ -31,7 +31,7 @@ using CommandContainer = std::pair<std::string, Callback<void(const CommandVecto
 class Console
 {
 public:
-    static Console& getInstance();  // NOLINT(modernize-use-trailing-return-type)
+    static Console& getInstance();
     Console(Console const&) = delete;   // copy constructor removed for singleton
     void operator=(Console const&) = delete;
     Console(Console&&) = delete;
