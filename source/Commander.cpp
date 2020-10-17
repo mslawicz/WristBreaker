@@ -1,6 +1,10 @@
 #include "Commander.h"
 #include <iostream>
 
+#define USB_VID     0x0483 //STElectronics
+#define USB_PID     0x5710 //joystick in FS mode
+#define USB_VER     0x0001 //Nucleo Yoke IMU ver. 1
+
 Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
     heartBeatLed(LED2),
