@@ -41,7 +41,7 @@ protected:
     const uint8_t* string_iproduct_desc() override;      // Get string product descriptor
 private:
     static const uint8_t ConfigurationDescriptorSize = 41;
-    uint8_t configurationDescriptor[ConfigurationDescriptorSize];   // NOLINT
+    uint8_t configurationDescriptor[ConfigurationDescriptorSize]{0};   // NOLINT
 };
 
 #endif /* USB_H_ */
