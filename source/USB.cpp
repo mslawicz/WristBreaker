@@ -10,6 +10,9 @@
 #include <iostream>
 #include <iomanip>
 
+#define LO8(x)  ((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
+#define HI8(x)  (((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
+
 MultiHID::MultiHID(uint16_t vendorId, uint16_t productId, uint16_t productRelease, bool blocking) :
     USBHID(get_usb_phy(), 0, 0, vendorId, productId, productRelease)
 {
@@ -179,22 +182,22 @@ bool MultiHID::sendReport(JoystickData& joystickData)
 {
     HID_REPORT report;
     uint8_t index = 0;
-    report.data[index++] = LSB(joystickData.X);
-    report.data[index++] = MSB(joystickData.X);
-    report.data[index++] = LSB(joystickData.Y);
-    report.data[index++] = MSB(joystickData.Y);
-    report.data[index++] = LSB(joystickData.Z);
-    report.data[index++] = MSB(joystickData.Z);
-    report.data[index++] = LSB(joystickData.Rz);
-    report.data[index++] = MSB(joystickData.Rz);
-    report.data[index++] = LSB(joystickData.Rx);
-    report.data[index++] = MSB(joystickData.Rx);
-    report.data[index++] = LSB(joystickData.Ry);
-    report.data[index++] = MSB(joystickData.Ry);
-    report.data[index++] = LSB(joystickData.slider);
-    report.data[index++] = MSB(joystickData.slider);
-    report.data[index++] = LSB(joystickData.dial);
-    report.data[index++] = MSB(joystickData.dial);
+    report.data[index++] = LO8(joystickData.X);
+    report.data[index++] = HI8(joystickData.X);
+    report.data[index++] = LO8(joystickData.Y);
+    report.data[index++] = HI8(joystickData.Y);
+    report.data[index++] = LO8(joystickData.Z);
+    report.data[index++] = HI8(joystickData.Z);
+    report.data[index++] = LO8(joystickData.Rz);
+    report.data[index++] = HI8(joystickData.Rz);
+    report.data[index++] = LO8(joystickData.Rx);
+    report.data[index++] = HI8(joystickData.Rx);
+    report.data[index++] = LO8(joystickData.Ry);
+    report.data[index++] = HI8(joystickData.Ry);
+    report.data[index++] = LO8(joystickData.slider);
+    report.data[index++] = HI8(joystickData.slider);
+    report.data[index++] = LO8(joystickData.dial);
+    report.data[index++] = HI8(joystickData.dial);
     report.data[index++] = joystickData.hat;
     report.data[index++] = joystickData.buttons & 0xFF;
     report.data[index++] = (joystickData.buttons >> 8) & 0xFF;
