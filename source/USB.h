@@ -10,6 +10,7 @@
 
 #include <mbed.h>
 #include "USBHID.h"
+#include <vector>
 
 struct JoystickData
 {
@@ -35,7 +36,8 @@ public:
     MultiHID(MultiHID const&&) = delete;
     void operator=(MultiHID const&&) = delete;
     const uint8_t* report_desc() override; // returns pointer to the report descriptor; Warning: this method must store the length of the report descriptor in reportLength
-    bool sendReport(JoystickData& joystickData);
+    bool sendReport(JoystickData& joystickData);    // sends joystick report
+    bool sendReport(std::vector<uint8_t>& dataToSend);    // sends general data report
 protected:
     const uint8_t* configuration_desc(uint8_t index) override;   // Get configuration descriptor; returns pointer to the configuration descriptor
     const uint8_t* string_iproduct_desc() override;      // Get string product descriptor

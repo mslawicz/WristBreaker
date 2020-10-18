@@ -9,7 +9,6 @@
 #include "usb_phy_api.h"
 #include <iostream>
 #include <iomanip>
-#include <vector>
 
 #define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
 #define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
@@ -127,7 +126,7 @@ const uint8_t* MultiHID::configuration_desc(uint8_t index)
         INTERFACE_DESCRIPTOR,               // bDescriptorType
         0x00,                               // bInterfaceNumber
         0x00,                               // bAlternateSetting
-        0x01,                               // bNumEndpoints
+        0x02,                               // bNumEndpoints
         HID_CLASS,                          // bInterfaceClass
         HID_SUBCLASS_NONE,                  // bInterfaceSubClass
         HID_PROTOCOL_NONE,                  // bInterfaceProtocol
@@ -215,5 +214,17 @@ bool MultiHID::sendReport(JoystickData& joystickData)
 
     memcpy(static_cast<void*>(report.data), reportData.data(), reportData.size());
     report.length = reportData.size();
+    return send(&report);
+}
+
+/*
+ * sends HID general data report to PC
+ */
+bool MultiHID::sendReport(std::vector<uint8_t>& dataToSend)
+{
+    HID_REPORT report;
+    report.data[0] = 2; // report id 2
+    memcpy(static_cast<void*>(&report.data[1]), dataToSend.data(), dataToSend.size());
+    report.length = dataToSend.size() + 1;
     return send(&report);
 }
