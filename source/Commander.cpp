@@ -26,17 +26,26 @@ void Commander::handler()
     heartBeatLed = static_cast<int>((handlerCallCounter++ & HeartBeatPattern) == HeartBeatPattern);
 
     //XXX test of joystick data
-    int16_t testVal = (handlerCallCounter << 6) & 0xFFFF; // NOLINT
-    joystickData.X = testVal;
-    joystickData.Y = testVal;
-    testVal = (handlerCallCounter << 4) & 0x7FFF; // NOLINT
-    joystickData.dial = testVal;
-    joystickData.slider = testVal;
-    testVal = (handlerCallCounter >> 4) % 9; // NOLINT
-    joystickData.hat = testVal;
-    testVal = (handlerCallCounter >> 4) & 0xFFFF; // NOLINT
-    joystickData.buttons = testVal | (testVal << 16U); // NOLINT
+    if(handlerCallCounter & 1) //NOLINT
+    {
+        int16_t testVal = (handlerCallCounter << 6) & 0xFFFF; // NOLINT
+        joystickData.X = testVal;
+        joystickData.Y = testVal;
+        testVal = (handlerCallCounter << 4) & 0x7FFF; // NOLINT
+        joystickData.dial = testVal;
+        joystickData.slider = testVal;
+        testVal = (handlerCallCounter >> 4) % 9; // NOLINT
+        joystickData.hat = testVal;
+        testVal = (handlerCallCounter >> 4) & 0xFFFF; // NOLINT
+        joystickData.buttons = testVal | (testVal << 16U); // NOLINT
+        PCLink.sendReport(joystickData);
+    }
+    else
+    {
+        std::vector<uint8_t> testData{1, 2, 3, 4, 5};   // NOLINT
+        PCLink.sendReport(testData);
+    }
 
     // send joystick data to PC
-    PCLink.sendReport(joystickData);
+    //XXX disabled for test PCLink.sendReport(joystickData);
 }
