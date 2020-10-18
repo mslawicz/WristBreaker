@@ -170,12 +170,13 @@ const uint8_t* MultiHID::configuration_desc(uint8_t index)
 */
 const uint8_t* MultiHID::string_iproduct_desc()
 {
-    static const uint8_t OverriddenStringIproductDescriptor[] = {
+    static const uint8_t OverriddenStringIproductDescriptor[] =     // NOLINT
+    {
         0x1A,                                                       //bLength
         STRING_DESCRIPTOR,                                          //bDescriptorType 0x03
         'W', 0, 'r', 0, 'i', 0, 's', 0, 't', 0, 'B', 0, 'r', 0, 'e', 0, 'a', 0, 'k', 0, 'e', 0, 'r', 0 //bString iProduct - HID device
     };
-    return OverriddenStringIproductDescriptor;
+    return static_cast<const uint8_t*>(OverriddenStringIproductDescriptor);
 }
 
 /*
