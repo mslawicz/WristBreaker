@@ -9,6 +9,7 @@
 #include "usb_phy_api.h"
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 #define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
 #define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
@@ -185,29 +186,32 @@ const uint8_t* MultiHID::string_iproduct_desc()
 bool MultiHID::sendReport(JoystickData& joystickData)
 {
     HID_REPORT report;
-    uint8_t index = 0;
-    report.data[index++] = LO8(joystickData.X);
-    report.data[index++] = HI8(joystickData.X);
-    report.data[index++] = LO8(joystickData.Y);
-    report.data[index++] = HI8(joystickData.Y);
-    report.data[index++] = LO8(joystickData.Z);
-    report.data[index++] = HI8(joystickData.Z);
-    report.data[index++] = LO8(joystickData.Rz);
-    report.data[index++] = HI8(joystickData.Rz);
-    report.data[index++] = LO8(joystickData.Rx);
-    report.data[index++] = HI8(joystickData.Rx);
-    report.data[index++] = LO8(joystickData.Ry);
-    report.data[index++] = HI8(joystickData.Ry);
-    report.data[index++] = LO8(joystickData.slider);
-    report.data[index++] = HI8(joystickData.slider);
-    report.data[index++] = LO8(joystickData.dial);
-    report.data[index++] = HI8(joystickData.dial);
-    report.data[index++] = joystickData.hat;
-    report.data[index++] = joystickData.buttons & 0xFF;
-    report.data[index++] = (joystickData.buttons >> 8) & 0xFF;
-    report.data[index++] = (joystickData.buttons >> 16) & 0xFF;
-    report.data[index++] = (joystickData.buttons >> 24) & 0xFF;
+    std::vector<uint8_t> reportData
+    {
+        LO8(joystickData.X),
+        HI8(joystickData.X),
+        LO8(joystickData.Y),
+        HI8(joystickData.Y),
+        LO8(joystickData.Z),
+        HI8(joystickData.Z),
+        LO8(joystickData.Rz),
+        HI8(joystickData.Rz),
+        LO8(joystickData.Rx),
+        HI8(joystickData.Rx),
+        LO8(joystickData.Ry),
+        HI8(joystickData.Ry),
+        LO8(joystickData.slider),
+        HI8(joystickData.slider),
+        LO8(joystickData.dial),
+        HI8(joystickData.dial),
+        joystickData.hat,
+        static_cast<uint8_t>(joystickData.buttons & 0xFF),   // NOLINT
+        static_cast<uint8_t>((joystickData.buttons >> 8) & 0xFF),   // NOLINT
+        static_cast<uint8_t>((joystickData.buttons >> 16) & 0xFF),   // NOLINT
+        static_cast<uint8_t>((joystickData.buttons >> 24) & 0xFF)    // NOLINT
+    };
 
-    report.length = index;
+    memcpy(static_cast<void*>(report.data), reportData.data(), reportData.size());
+    report.length = reportData.size();
     return send(&report);
 }
