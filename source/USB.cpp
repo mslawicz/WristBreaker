@@ -10,8 +10,8 @@
 #include <iostream>
 #include <iomanip>
 
-#define LO8(x)  ((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
-#define HI8(x)  (((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
+#define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
+#define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
 
 MultiHID::MultiHID(uint16_t vendorId, uint16_t productId, uint16_t productRelease, bool blocking) :
     USBHID(get_usb_phy(), 0, 0, vendorId, productId, productRelease)
@@ -93,12 +93,6 @@ const uint8_t* MultiHID::report_desc()
     return static_cast<const uint8_t*>(reportDescriptor);
 }
 
-#define DEFAULT_CONFIGURATION (1)
-#define TOTAL_DESCRIPTOR_LENGTH ((1 * CONFIGURATION_DESCRIPTOR_LENGTH) \
-                               + (1 * INTERFACE_DESCRIPTOR_LENGTH) \
-                               + (1 * HID_DESCRIPTOR_LENGTH) \
-                               + (2 * ENDPOINT_DESCRIPTOR_LENGTH))
-
 const uint8_t* MultiHID::configuration_desc(uint8_t index)
 {
     if (index != 0)
@@ -106,16 +100,25 @@ const uint8_t* MultiHID::configuration_desc(uint8_t index)
         return nullptr;
     }
 
-    uint8_t configurationDescriptorTemp[] =
+    const uint8_t DefaultConfiguration = 1;
+    const uint16_t TotalDescriptorLength = CONFIGURATION_DESCRIPTOR_LENGTH + INTERFACE_DESCRIPTOR_LENGTH
+                                         + HID_DESCRIPTOR_LENGTH + 2 * ENDPOINT_DESCRIPTOR_LENGTH;
+    constexpr uint8_t BmAttributes = (1U << 6U) | (1U << 7U);
+    const uint16_t HidVersion = HID_VERSION_1_11;
+    uint16_t reportDescriptorLength = report_desc_length();
+    const uint16_t MaxHIDReportSize = MAX_HID_REPORT_SIZE;
+    const uint8_t PollInterval = 1;     // host polling interval [ms]
+
+    uint8_t configurationDescriptorTemp[] =     // NOLINT
     {
         CONFIGURATION_DESCRIPTOR_LENGTH,    // bLength
         CONFIGURATION_DESCRIPTOR,           // bDescriptorType
-        LSB(TOTAL_DESCRIPTOR_LENGTH),       // wTotalLength (LSB)
-        MSB(TOTAL_DESCRIPTOR_LENGTH),       // wTotalLength (MSB)
+        LO8(TotalDescriptorLength),         // wTotalLength (LO8)
+        HI8(TotalDescriptorLength),         // wTotalLength (HI8)
         0x01,                               // bNumInterfaces
-        DEFAULT_CONFIGURATION,              // bConfigurationValue
+        DefaultConfiguration,               // bConfigurationValue
         0x00,                               // iConfiguration
-        C_RESERVED | C_SELF_POWERED,        // bmAttributes
+        BmAttributes,                       // bmAttributes
         C_POWER(0),                         // bMaxPower
         /************** Descriptor of joystick interface ****************/
         INTERFACE_DESCRIPTOR_LENGTH,        // bLength
@@ -130,34 +133,34 @@ const uint8_t* MultiHID::configuration_desc(uint8_t index)
 
         HID_DESCRIPTOR_LENGTH,              // bLength
         HID_DESCRIPTOR,                     // bDescriptorType
-        LSB(HID_VERSION_1_11),              // bcdHID (LSB)
-        MSB(HID_VERSION_1_11),              // bcdHID (MSB)
+        LO8(HidVersion),                    // bcdHID (LO8)
+        HI8(HidVersion),                    // bcdHID (HI8)
         0x00,                               // bCountryCode
         0x01,                               // bNumDescriptors
         REPORT_DESCRIPTOR,                  // bDescriptorType
-        (uint8_t) (LSB(report_desc_length())), // wDescriptorLength (LSB)
-        (uint8_t) (MSB(report_desc_length())), // wDescriptorLength (MSB)
+        LO8(reportDescriptorLength),        // wDescriptorLength (LO8)
+        HI8(reportDescriptorLength),        // wDescriptorLength (HI8)
 
         ENDPOINT_DESCRIPTOR_LENGTH,         // bLength
         ENDPOINT_DESCRIPTOR,                // bDescriptorType
         _int_in,                            // bEndpointAddress
         E_INTERRUPT,                        // bmAttributes
-        LSB(MAX_HID_REPORT_SIZE),           // wMaxPacketSize (LSB)
-        MSB(MAX_HID_REPORT_SIZE),           // wMaxPacketSize (MSB)
-        1,                                  // bInterval (milliseconds)
+        LO8(MaxHIDReportSize),              // wMaxPacketSize (LO8)
+        HI8(MaxHIDReportSize),              // wMaxPacketSize (HI8)
+        PollInterval,                       // bInterval (milliseconds)
 
         ENDPOINT_DESCRIPTOR_LENGTH,         // bLength
         ENDPOINT_DESCRIPTOR,                // bDescriptorType
         _int_out,                           // bEndpointAddress
         E_INTERRUPT,                        // bmAttributes
-        LSB(MAX_HID_REPORT_SIZE),           // wMaxPacketSize (LSB)
-        MSB(MAX_HID_REPORT_SIZE),           // wMaxPacketSize (MSB)
-        1                                  // bInterval (milliseconds)
+        LO8(MaxHIDReportSize),              // wMaxPacketSize (LO8)
+        HI8(MaxHIDReportSize),              // wMaxPacketSize (HI8)
+        PollInterval                        // bInterval (milliseconds)
     };
 
     MBED_ASSERT(sizeof(configurationDescriptorTemp) == sizeof(configurationDescriptor));
-    memcpy(configurationDescriptor, configurationDescriptorTemp, sizeof(configurationDescriptor));
-    return configurationDescriptor;
+    memcpy(static_cast<void*>(configurationDescriptor), static_cast<void*>(configurationDescriptorTemp), sizeof(configurationDescriptor));
+    return static_cast<const uint8_t*>(configurationDescriptor);
 }
 
 /*
