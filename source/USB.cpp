@@ -6,12 +6,10 @@
  */
 
 #include "USB.h"
+#include "Convert.h"
 #include "usb_phy_api.h"
 #include <iostream>
 #include <iomanip>
-
-#define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
-#define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
 
 MultiHID::MultiHID(uint16_t vendorId, uint16_t productId, uint16_t productRelease, bool blocking) :
     USBHID(get_usb_phy(), 0, 0, vendorId, productId, productRelease)
@@ -181,49 +179,12 @@ const uint8_t* MultiHID::string_iproduct_desc()
 }
 
 /*
- * sends HID joystick report to PC
+ * sends HID data report to PC
  */
-bool MultiHID::sendReport(JoystickData& joystickData)
+bool MultiHID::sendReport(uint8_t reportID, std::vector<uint8_t>& dataToSend)
 {
     HID_REPORT report;
-    std::vector<uint8_t> reportData
-    {
-        0x01,   // report id 1
-        LO8(joystickData.X),
-        HI8(joystickData.X),
-        LO8(joystickData.Y),
-        HI8(joystickData.Y),
-        LO8(joystickData.Z),
-        HI8(joystickData.Z),
-        LO8(joystickData.Rz),
-        HI8(joystickData.Rz),
-        LO8(joystickData.Rx),
-        HI8(joystickData.Rx),
-        LO8(joystickData.Ry),
-        HI8(joystickData.Ry),
-        LO8(joystickData.slider),
-        HI8(joystickData.slider),
-        LO8(joystickData.dial),
-        HI8(joystickData.dial),
-        joystickData.hat,
-        static_cast<uint8_t>(joystickData.buttons & 0xFF),   // NOLINT
-        static_cast<uint8_t>((joystickData.buttons >> 8) & 0xFF),   // NOLINT
-        static_cast<uint8_t>((joystickData.buttons >> 16) & 0xFF),   // NOLINT
-        static_cast<uint8_t>((joystickData.buttons >> 24) & 0xFF)    // NOLINT
-    };
-
-    memcpy(static_cast<void*>(report.data), reportData.data(), reportData.size());
-    report.length = reportData.size();
-    return send(&report);
-}
-
-/*
- * sends HID general data report to PC
- */
-bool MultiHID::sendReport(std::vector<uint8_t>& dataToSend)
-{
-    HID_REPORT report;
-    report.data[0] = 2; // report id 2
+    report.data[0] = reportID; // report id
     memcpy(static_cast<void*>(&report.data[1]), dataToSend.data(), dataToSend.size());
     report.length = dataToSend.size() + 1;
     return send(&report);

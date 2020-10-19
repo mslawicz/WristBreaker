@@ -12,6 +12,20 @@
 #include "USB.h"
 #include <chrono>
 
+struct JoystickData
+{
+    int16_t X;
+    int16_t Y;
+    int16_t Z;
+    int16_t Rx;
+    int16_t Ry;
+    int16_t Rz;
+    int16_t slider;
+    int16_t dial;
+    uint8_t hat;
+    uint32_t buttons;
+};
+
 class Commander
 {
 public:

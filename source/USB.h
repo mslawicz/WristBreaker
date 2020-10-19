@@ -12,20 +12,6 @@
 #include "USBHID.h"
 #include <vector>
 
-struct JoystickData
-{
-    int16_t X;
-    int16_t Y;
-    int16_t Z;
-    int16_t Rx;
-    int16_t Ry;
-    int16_t Rz;
-    int16_t slider;
-    int16_t dial;
-    uint8_t hat;
-    uint32_t buttons;
-};
-
 class MultiHID : public USBHID
 {
 public:
@@ -36,8 +22,7 @@ public:
     MultiHID(MultiHID const&&) = delete;
     void operator=(MultiHID const&&) = delete;
     const uint8_t* report_desc() override; // returns pointer to the report descriptor; Warning: this method must store the length of the report descriptor in reportLength
-    bool sendReport(JoystickData& joystickData);    // sends joystick report
-    bool sendReport(std::vector<uint8_t>& dataToSend);    // sends general data report
+    bool sendReport(uint8_t reportID, std::vector<uint8_t>& dataToSend);    // sends data report
 protected:
     const uint8_t* configuration_desc(uint8_t index) override;   // Get configuration descriptor; returns pointer to the configuration descriptor
     const uint8_t* string_iproduct_desc() override;      // Get string product descriptor
