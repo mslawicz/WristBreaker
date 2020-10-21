@@ -9,7 +9,7 @@
 Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
     heartBeatLed(LED2),
-    PCLink(USB_PID, USB_VID, USB_VER)
+    PCLink(USB_VID, USB_PID, USB_VER)
 {
     std::cout << "Commander object created\n";
 
