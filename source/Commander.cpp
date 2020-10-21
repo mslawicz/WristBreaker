@@ -63,15 +63,8 @@ void Commander::handler()
         static_cast<uint8_t>((joystickData.buttons >> 24) & 0xFF)    // NOLINT
     };
 
-    //XXX test of joystick data
-    if(handlerCallCounter & 1) //NOLINT
-    {
-        PCLink.sendReport(1, joystickReportData);
-    }
-    else
-    {
-        std::vector<uint8_t> testData{1, 2, 3, 4, 5};   // NOLINT
-        PCLink.sendReport(2, testData);
-    }
+    PCLink.sendReport(1, joystickReportData);
+    std::vector<uint8_t> testData{1, 2, 3, 4, 5};   // NOLINT
+    PCLink.sendReport(2, testData);
 
 }
