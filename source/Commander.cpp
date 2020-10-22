@@ -26,6 +26,12 @@ void Commander::handler()
     const uint8_t HeartBeatPattern = 0x50U;
     heartBeatLed = static_cast<int>((handlerCallCounter++ & HeartBeatPattern) == HeartBeatPattern);
 
+    // read USB HID report from PC and parse received simulation data
+    while(PCLink.readReport(receivedReport))
+    {
+        parseReportData();
+    }
+
     //XXX test of joystick data
     int16_t testVal = (handlerCallCounter << 6) & 0xFFFF; // NOLINT
     joystickData.X = testVal;
@@ -67,4 +73,17 @@ void Commander::handler()
     std::vector<uint8_t> testData{1, 2, 3, 4, 5};   // NOLINT
     PCLink.sendReport(2, testData);
 
+}
+
+/*
+* parse report data received from PC
+*/
+void Commander::parseReportData()
+{
+    // XXX test
+    for(size_t i=0; i<receivedReport.size() && i<10; i++)   // NOLINT
+    {
+        std::cout << receivedReport[i] << ",";
+    }
+    std::cout << std::endl;
 }

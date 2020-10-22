@@ -197,12 +197,34 @@ const uint8_t* MultiHID::string_iproduct_desc()
 
 /*
  * sends HID data report to PC
+ * return true if successfully sent
  */
 bool MultiHID::sendReport(uint8_t reportID, std::vector<uint8_t>& dataToSend)
 {
-    HID_REPORT report;
-    report.data[0] = reportID; // report id
-    memcpy(static_cast<void*>(&report.data[1]), dataToSend.data(), dataToSend.size());
-    report.length = dataToSend.size() + 1;
-    return send(&report);
+    if(!configured())
+    {
+        return false;
+    }
+    reportToSend.data[0] = reportID; // report id
+    memcpy(static_cast<void*>(&reportToSend.data[1]), dataToSend.data(), dataToSend.size());
+    reportToSend.length = dataToSend.size() + 1;
+    return send(&reportToSend);
+}
+
+/*
+ * reads HID data report from PC
+ * returns true if a new report received
+ */
+bool MultiHID::readReport(std::vector<uint8_t>& receivedData)
+{
+    if(!configured())
+    {
+        return false;
+    }
+    auto isReportReceived = read_nb(&receivedReport);
+    if(isReportReceived)
+    {
+        receivedData.assign(&receivedReport.data[0], &receivedReport.data[0] + receivedReport.length);  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    }
+    return isReportReceived;
 }
