@@ -70,8 +70,12 @@ void Commander::handler()
     };
 
     PCLink.sendReport(1, joystickReportData);
-    std::vector<uint8_t> testData{1, 2, 3, 4, 5};   // NOLINT
-    PCLink.sendReport(2, testData);
+    if(handlerCallCounter % 20 == 0) // NOLINT
+    {
+        std::vector<uint8_t> testData{1, 2, 3, 4, 5};   // NOLINT
+        testData.resize(63);    // NOLINT
+        PCLink.sendReport(2, testData);
+    }
 
 }
 
