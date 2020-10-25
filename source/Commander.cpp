@@ -1,6 +1,7 @@
 #include "Commander.h"
 #include "Convert.h"
 #include <iostream>
+#include <iomanip>
 
 #define USB_VID     0x0483 //STElectronics
 #define USB_PID     0x5712 //joystick in FS mode +2
@@ -16,6 +17,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     // connect USB HID device
     PCLink.connect();
 
+    Console::getInstance().registerCommand("rr", "display latest received report data from PC", callback(this, &Commander::displayIncomingReport));
     eventQueue.call_every(HandlerPeriod, this, &Commander::handler);
 }
 
@@ -85,9 +87,22 @@ void Commander::handler()
 void Commander::parseReportData()
 {
     // XXX test
-    for(size_t i=0; i<receivedReport.size() && i<10; i++)   // NOLINT
+    std::cout << "i" << std::flush;
+
+}
+
+/*
+ * display latest data received from PC
+ */
+void Commander::displayIncomingReport(const CommandVector& /*cv*/)
+{
+    const uint8_t ItemsPerLine = 16;
+    for(size_t index=0; index < receivedReport.size(); index++)
     {
-        std::cout << receivedReport[i] << ",";
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(receivedReport[index]) << " ";
+        if(index % ItemsPerLine == (ItemsPerLine - 1))
+        {
+            std::cout << std::endl;
+        }
     }
-    std::cout << std::endl;
 }

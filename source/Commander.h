@@ -10,6 +10,7 @@
 
 #include "mbed.h"
 #include "USB.h"
+#include "Console.h"
 #include <chrono>
 #include <vector>
 
@@ -31,6 +32,7 @@ class Commander
 {
 public:
     explicit Commander(events::EventQueue& eventQueue);
+    void displayIncomingReport(const CommandVector& /*cv*/);
 private:
     void handler();
     void parseReportData();                     // parse received report data
