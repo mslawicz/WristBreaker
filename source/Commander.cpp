@@ -83,7 +83,7 @@ void Commander::handler()
 /*
 * parse report data received from PC
 */
-void Commander::parseReportData()
+void Commander::parseReportData()   //NOLINT XXX remove when function is done
 {
     // XXX test
     std::cout << "i" << std::flush;
