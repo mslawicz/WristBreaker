@@ -1,5 +1,6 @@
 #include "Commander.h"
 #include "Convert.h"
+#include "Encoder.h"
 #include <iostream>
 #include <iomanip>
 
@@ -10,7 +11,8 @@
 Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
     heartBeatLed(LED2),
-    PCLink(USB_VID, USB_PID, USB_VER)
+    PCLink(USB_VID, USB_PID, USB_VER),
+    throttleLever(new AS5600, 0.1F, 0.9F)   //NOLINTreadability-magic-numbers) XXX test
 {
     std::cout << "Commander object created\n";
 

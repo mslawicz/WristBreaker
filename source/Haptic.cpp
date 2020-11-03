@@ -24,3 +24,11 @@ HapticDevice::~HapticDevice()
 {
     delete pEncoder;
 }
+
+// set motor torque vector
+// magnitude - torque vector magnitude 0..1 (PWM wave multiplier)
+// direction - -1 maximum reverse, 0 hold position, 1 maximum forward
+void HapticDevice::setTorqueVector(float  /*magnitude*/, float  /*direction*/)
+{
+    positionSens = pEncoder->getValue();
+}

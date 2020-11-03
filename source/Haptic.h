@@ -27,6 +27,7 @@ public:
     HapticDevice(HapticDevice&&) = delete;
     void operator=(HapticDevice&&) = delete;
     float getPositionNorm() const { return scale<float, float>(positionMin, positionMax, positionSens, 0, 1.0F); }
+    void setTorqueVector(float magnitude, float direction);
 private:
     Encoder* pEncoder;      // motor position encoder
     float positionSens{0};  // motor position read from encoder

@@ -13,7 +13,25 @@
 class Encoder
 {
 public:
-    float getValue() { return 0; }  //NOLINT XXX
+    Encoder() =default;
+    virtual ~Encoder() =default;
+    Encoder(Encoder const&) = default;
+    Encoder& operator=(Encoder const&) = default;
+    Encoder(Encoder&&) = default;
+    Encoder& operator=(Encoder&&) = default;
+    virtual float getValue() =0;
+};
+
+class AS5600 : public Encoder
+{
+public:
+    float getValue() override { return 0; }
+};
+
+class AS5480 : public Encoder
+{
+public:
+    float getValue() override { return 0; }
 };
 
 #endif /* ENCODER_H_ */

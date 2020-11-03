@@ -11,6 +11,7 @@
 #include "mbed.h"
 #include "USB.h"
 #include "Console.h"
+#include "Haptic.h"
 #include <chrono>
 #include <vector>
 
@@ -43,6 +44,7 @@ private:
     MultiHID PCLink;                            // USB link to PC
     JoystickData joystickData{0};               // structure of joystick data to be sent to PC
     std::vector<uint8_t> receivedReport;        // received report data from PC
+    HapticDevice throttleLever;                 // throttle lever object
 };
 
 #endif /* COMMANDER_H_ */
