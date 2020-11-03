@@ -43,7 +43,6 @@ private:
     MultiHID PCLink;                            // USB link to PC
     JoystickData joystickData{0};               // structure of joystick data to be sent to PC
     std::vector<uint8_t> receivedReport;        // received report data from PC
-    AnalogIn encoderTest;   //XXX magnetic encoder test input
 };
 
 #endif /* COMMANDER_H_ */

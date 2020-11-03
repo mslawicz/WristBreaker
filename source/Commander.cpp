@@ -10,8 +10,7 @@
 Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
     heartBeatLed(LED2),
-    PCLink(USB_VID, USB_PID, USB_VER),
-    encoderTest(PA_3)
+    PCLink(USB_VID, USB_PID, USB_VER)
 {
     std::cout << "Commander object created\n";
 
@@ -78,13 +77,6 @@ void Commander::handler()
         std::vector<uint8_t> testData{1, 2, 3, 4, 5};   // NOLINT
         testData.resize(63);    // NOLINT
         PCLink.sendReport(2, testData);
-    }
-
-    //XXX ecoder test
-    if(handlerCallCounter % 25 == 0)    //NOLINT
-    {
-        float encoderValue = encoderTest.read();
-        std::cout << "e=" << encoderValue << std::endl;
     }
 }
 
