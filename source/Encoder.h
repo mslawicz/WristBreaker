@@ -12,6 +12,8 @@
 
 class Encoder
 {
+public:
+    float getValue() { return 0; }  //NOLINT XXX
 };
 
 #endif /* ENCODER_H_ */

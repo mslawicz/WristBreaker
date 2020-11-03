@@ -10,17 +10,25 @@
 
 #include <mbed.h>
 #include "Convert.h"
+#include "Encoder.h"
 
 class HapticDevice
 {
 public:
     HapticDevice
     (
+        Encoder* pEncoder,      // pointer to motor position encoder object
         float positionMin,      // minimal value of motor position
         float positionMax      // maximum value of motor position
     );
+    ~HapticDevice();
+    HapticDevice(HapticDevice const&) = delete;
+    void operator=(HapticDevice const&) = delete;
+    HapticDevice(HapticDevice&&) = delete;
+    void operator=(HapticDevice&&) = delete;
     float getPositionNorm() const { return scale<float, float>(positionMin, positionMax, positionSens, 0, 1.0F); }
 private:
+    Encoder* pEncoder;      // motor position encoder
     float positionSens{0};  // motor position read from encoder
     float positionMin;      // minimal value of motor position
     float positionMax;      // maximum value of motor position

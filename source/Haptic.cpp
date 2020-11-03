@@ -9,11 +9,18 @@
 
 HapticDevice::HapticDevice
 (
+        Encoder* pEncoder,      // pointer to motor position encoder object
         float positionMin,      // minimal value of motor position
         float positionMax      // maximum value of motor position
 ) :
+    pEncoder(pEncoder),
     positionMin(positionMin),
     positionMax(positionMax)
 {
 
+}
+
+HapticDevice::~HapticDevice()
+{
+    delete pEncoder;
 }
