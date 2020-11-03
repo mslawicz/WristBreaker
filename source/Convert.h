@@ -11,4 +11,21 @@
 #define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
 #define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
 
+template<typename iType, typename oType> oType scale(iType iMin, iType iMax, iType input, oType oMin, oType oMax, bool limit = true)
+{
+    auto result = static_cast<oType>(1.0F * (input-iMin) / (iMax-iMin) * (oMax-oMin) + oMin);
+    if(limit)
+    {
+        if(result < oMin)
+        {
+            result = oMin;
+        }
+        else if(result > oMax)
+        {
+            result = oMax;
+        }
+    }
+    return result;
+}
+
 #endif /* CONVERT_H_ */

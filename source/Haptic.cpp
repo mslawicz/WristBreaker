@@ -6,3 +6,14 @@
  */
 
 #include "Haptic.h"
+
+HapticDevice::HapticDevice
+(
+        float positionMin,      // minimal value of motor position
+        float positionMax      // maximum value of motor position
+) :
+    positionMin(positionMin),
+    positionMax(positionMax)
+{
+
+}
