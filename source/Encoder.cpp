@@ -6,3 +6,8 @@
  */
 
 #include "Encoder.h"
+
+AS5600::AS5600(PinName input) :
+    analogInput(input)
+{
+}

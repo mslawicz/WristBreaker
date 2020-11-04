@@ -25,7 +25,10 @@ public:
 class AS5600 : public Encoder
 {
 public:
-    float getValue() override { return 0; }
+    explicit AS5600(PinName input);
+    float getValue() override { return analogInput.read(); }
+private:
+    AnalogIn analogInput;
 };
 
 class AS5480 : public Encoder
