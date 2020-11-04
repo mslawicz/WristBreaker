@@ -12,7 +12,13 @@
 
 class MotorBLDC
 {
-
+public:
+    MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable);
+private:
+    PwmOut phaseA;
+    PwmOut phaseB;
+    PwmOut phaseC;
+    DigitalOut enable;
 };
 
 #endif /* BLDC_H_ */

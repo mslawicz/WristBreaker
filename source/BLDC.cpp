@@ -6,3 +6,12 @@
  */
 
 #include "BLDC.h"
+
+MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable) :
+    phaseA(outA),
+    phaseB(outB),
+    phaseC(outC),
+    enable(enable)
+{
+    this->enable = 0;
+}
