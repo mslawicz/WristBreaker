@@ -15,6 +15,7 @@ class MotorBLDC
 {
 public:
     MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable);
+    void setFieldVector(float direction, float magnitude);
 private:
     float fastSineD(float argument);
     PwmOut phaseA;
