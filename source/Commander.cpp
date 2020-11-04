@@ -1,5 +1,6 @@
 #include "Commander.h"
 #include "Convert.h"
+#include "BLDC.h"
 #include "Encoder.h"
 #include <iostream>
 #include <iomanip>
@@ -12,7 +13,13 @@ Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
     heartBeatLed(LED2),
     PCLink(USB_VID, USB_PID, USB_VER),
-    throttleLever(new AS5600(PA_3), 0.1F, 0.9F)   //NOLINTreadability-magic-numbers) XXX test
+    throttleLever   //XXX test
+    (
+        new MotorBLDC(PE_9, PE_11, PE_13, PE_14),
+        new AS5600(PA_3),
+        0.1F,   //NOLINTreadability-magic-numbers)
+        0.9F    //NOLINTreadability-magic-numbers)
+    )
 {
     std::cout << "Commander object created\n";
 
