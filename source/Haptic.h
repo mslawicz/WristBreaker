@@ -29,13 +29,15 @@ public:
     HapticDevice(HapticDevice&&) = delete;
     void operator=(HapticDevice&&) = delete;
     float getPositionNorm() const { return scale<float, float>(positionMin, positionMax, positionSens, 0, 1.0F); }
-    void setTorqueVector(float magnitude, float direction);
+    void setTorqueVector(float direction, float magnitude);
 private:
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
     float positionSens{0};  // motor position read from encoder
     float positionMin;      // minimal value of motor position
     float positionMax;      // maximum value of motor position
+    float positionPeriod{1.0F};   // position segment size of electric 360 degrees cycle
+    float electricCyclePhaseShift{0.0F};    // measured electric cycle phase shift
 };
 
 #endif /* HAPTIC_H_ */

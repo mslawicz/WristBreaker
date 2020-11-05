@@ -28,9 +28,15 @@ HapticDevice::~HapticDevice()
 }
 
 // set motor torque vector
-// magnitude - torque vector magnitude 0..1 (PWM wave multiplier)
 // direction - -1 maximum reverse, 0 hold position, 1 maximum forward
-void HapticDevice::setTorqueVector(float  /*magnitude*/, float  /*direction*/)
+// magnitude - torque vector magnitude 0..1 (PWM wave multiplier)
+void HapticDevice::setTorqueVector(float  direction, float  magnitude)
 {
-    positionSens = pEncoder->getValue();
+    static const float FullCycle = 360.0F;      // full electric cycle in degrees
+    static const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
+    positionSens = pEncoder->getValue();        // read motor position from encoder
+    float targetElectricAngle = fmodf(positionSens, positionPeriod) * FullCycle // encoder position cycle phase (0..360 degrees)
+        + electricCyclePhaseShift   // constant phase shift between encoder and motor cycle phase (0..360 degrees)
+        + direction * QuarterCycle; // additional phase shift for desired torque vector (-90 .. 90 degrees)
+    pMotor->setFieldVector(targetElectricAngle, magnitude); // set motor stator magnetic field vector
 }
