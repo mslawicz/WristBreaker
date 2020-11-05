@@ -13,7 +13,11 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable) :
     phaseC(outC),
     enable(enable)
 {
+    static const int PwmPeriodUs = 100;
     this->enable = 0;
+    this->phaseA.period_us(PwmPeriodUs);
+    this->phaseB.period_us(PwmPeriodUs);
+    this->phaseC.period_us(PwmPeriodUs);
 }
 
 // returns sine(argument)
@@ -57,9 +61,9 @@ float MotorBLDC::fastSineD(float argument)
 }
 
 // set motor stator magnetic field vector
-// direction of stator magnetic field vector in degrees (== static rotor position)
+// electricAngle - angle of stator magnetic field vector in degrees (== requested rotor position within electric cycle)
 // magnitude 0..1
-void MotorBLDC::setFieldVector(float direction, float magnitude)
+void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
 {
     static const float OneThirdCycle = 120.0F;
     if(magnitude < 0)
@@ -71,12 +75,14 @@ void MotorBLDC::setFieldVector(float direction, float magnitude)
         magnitude = 1.0F;
     }
 
-    // calculate normalized voltages (0..1) of stator windings
-    float voltageA = 0.5F + 0.5F * fastSineD(direction);
-    float voltageB = 0.5F + 0.5F * fastSineD(direction + OneThirdCycle);
-    float voltageC = 1.5F - voltageA - voltageB;
+    // calculate normalized voltage level (0..1) of stator windings
+    static const float VoltageMeanLevel = 0.5F;
+    static const float VoltageMaxLevel = 3 * VoltageMeanLevel;
+    float voltageA = VoltageMeanLevel + VoltageMeanLevel * fastSineD(electricAngle);
+    float voltageB = VoltageMeanLevel + VoltageMeanLevel * fastSineD(electricAngle + OneThirdCycle);
+    float voltageC = VoltageMaxLevel - voltageA - voltageB;
 
-    // drive PWM outputs with calculated voltages
+    // drive PWM outputs with calculated voltage levels
     phaseA.write(magnitude * voltageA);
     phaseB.write(magnitude * voltageB);
     phaseC.write(magnitude * voltageC);
