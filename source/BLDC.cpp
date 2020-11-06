@@ -7,6 +7,9 @@
 
 #include "BLDC.h"
 
+//XXX global variables for monitoring
+float voltA, voltB, voltC;
+
 MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable) :
     phaseA(outA),
     phaseB(outB),
@@ -86,4 +89,9 @@ void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
     phaseA.write(magnitude * voltageA);
     phaseB.write(magnitude * voltageB);
     phaseC.write(magnitude * voltageC);
+
+    //XXX test
+    voltA = magnitude * voltageA;
+    voltB = magnitude * voltageB;
+    voltC = magnitude * voltageC;
 }

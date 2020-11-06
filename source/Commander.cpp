@@ -87,6 +87,9 @@ void Commander::handler()
         testData.resize(63);    // NOLINT
         PCLink.sendReport(2, testData);
     }
+
+    //XXX test
+    throttleLever.setTorqueVector(0.1F, 1.0F); //NOLINT XXX test
 }
 
 /*

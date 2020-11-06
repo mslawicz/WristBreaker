@@ -34,9 +34,9 @@ void HapticDevice::setTorqueVector(float  direction, float  magnitude)
 {
     static const float FullCycle = 360.0F;      // full electric cycle in degrees
     static const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
-    positionSens = pEncoder->getValue();        // read motor position from encoder
-    float targetElectricAngle = fmodf(positionSens, positionPeriod) * FullCycle // encoder position cycle phase (0..360 degrees)
+    float targetElectricAngle = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod// encoder position cycle phase (0..360 degrees)
         + electricCyclePhaseShift   // constant phase shift between encoder and motor cycle phase (0..360 degrees)
         + direction * QuarterCycle; // additional phase shift for desired torque vector (-90 .. 90 degrees)
     pMotor->setFieldVector(targetElectricAngle, magnitude); // set motor stator magnetic field vector
+    positionSens += 0.005F; //NOLINT XXX test
 }
