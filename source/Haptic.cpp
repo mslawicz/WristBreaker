@@ -6,6 +6,7 @@
  */
 
 #include "Haptic.h"
+#include <iostream> //XXX
 
 HapticDevice::HapticDevice
 (
@@ -34,6 +35,14 @@ void HapticDevice::setTorqueVector(float  direction, float  magnitude)
 {
     static const float FullCycle = 360.0F;      // full electric cycle in degrees
     static const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
+
+    static int cnt = 0;
+    positionSens = pEncoder->getValue();
+    if(cnt++ % 100 == 0)
+    {
+        std::cout << magnitude << "  " << positionSens << std::endl;
+    }
+
     float targetElectricAngle = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod// encoder position cycle phase (0..360 degrees)
         + electricCyclePhaseShift   // constant phase shift between encoder and motor cycle phase (0..360 degrees)
         + direction * QuarterCycle; // additional phase shift for desired torque vector (-90 .. 90 degrees)

@@ -15,11 +15,12 @@ Commander::Commander(events::EventQueue& eventQueue) :
     PCLink(USB_VID, USB_PID, USB_VER),
     throttleLever   //XXX test
     (
-        new MotorBLDC(PE_9, PE_11, PE_13, PE_14),
-        new AS5600(PA_3),
+        new MotorBLDC(PE_8, PE_10, PE_12, PE_7),
+        new AS5600(PC_5),
         0.1F,   //NOLINTreadability-magic-numbers)
         0.9F    //NOLINTreadability-magic-numbers)
-    )
+    ),
+    testPot(PA_3)   //XXX test
 {
     std::cout << "Commander object created\n";
 
@@ -87,6 +88,10 @@ void Commander::handler()
         testData.resize(63);    // NOLINT
         PCLink.sendReport(2, testData);
     }
+
+    //XXX test of haptic device
+    float pot = testPot.read();
+    throttleLever.setTorqueVector(0, pot);
 }
 
 /*

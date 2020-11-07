@@ -16,6 +16,7 @@ class MotorBLDC
 public:
     MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable);
     void setFieldVector(float electricAngle, float magnitude);
+    void setEnablePin(int state) { enable = state; }
 private:
     float fastSineD(float argument);
     PwmOut phaseA;

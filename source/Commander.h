@@ -45,6 +45,7 @@ private:
     JoystickData joystickData{0};               // structure of joystick data to be sent to PC
     std::vector<uint8_t> receivedReport;        // received report data from PC
     HapticDevice throttleLever;                 // throttle lever object
+    AnalogIn testPot;                           // XXX test potentiometer
 };
 
 #endif /* COMMANDER_H_ */
