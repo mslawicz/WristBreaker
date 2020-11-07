@@ -20,7 +20,7 @@ HapticDevice::HapticDevice
     positionMin(positionMin),
     positionMax(positionMax)
 {
-
+    pMotor->setEnablePin(1);
 }
 
 HapticDevice::~HapticDevice()
@@ -38,9 +38,10 @@ void HapticDevice::setTorqueVector(float  direction, float  magnitude)
 
     static int cnt = 0;
     positionSens = pEncoder->getValue();
+    pMotor->setFieldVector(0, magnitude);
     if(cnt++ % 100 == 0)
     {
-        std::cout << magnitude << "  " << positionSens << std::endl;
+        //std::cout << magnitude << "  " << positionSens << std::endl;
     }
 
     float targetElectricAngle = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod// encoder position cycle phase (0..360 degrees)
