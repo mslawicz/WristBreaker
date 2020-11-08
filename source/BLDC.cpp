@@ -6,7 +6,6 @@
  */
 
 #include "BLDC.h"
-#include <iostream> //XXX test
 
 MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable) :
     phaseA(outA),
@@ -78,17 +77,10 @@ void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
 
     // calculate normalized voltage level (0..1) of stator windings
     static const float VoltageMeanLevel = 0.5F;
-    static const float VoltageMaxLevel = 3 * VoltageMeanLevel;
+    static const float TripleVoltageMeanLevel = 3 * VoltageMeanLevel;
     float voltageA = VoltageMeanLevel + VoltageMeanLevel * fastSineD(electricAngle);
     float voltageB = VoltageMeanLevel + VoltageMeanLevel * fastSineD(electricAngle + OneThirdCycle);
-    float voltageC = VoltageMaxLevel - voltageA - voltageB;
-
-    //XXX
-    static int cnt=0;
-    if(cnt++ % 127 == 0)
-    {
-        std::cout << "mag=" << magnitude << "  " << magnitude * voltageA << "  " << magnitude * voltageB << "  " << magnitude * voltageC << std::endl;
-    }
+    float voltageC = TripleVoltageMeanLevel - voltageA - voltageB;
 
     // drive PWM outputs with calculated voltage levels
     phaseA.write(magnitude * voltageA);

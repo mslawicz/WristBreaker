@@ -38,9 +38,9 @@ void HapticDevice::setTorqueVector(float  direction, float  magnitude)
 
     static int cnt = 0;
     positionSens = pEncoder->getValue();
-    if(cnt++ % 120 == 0)
+    if(cnt++ % 127 == 0)
     {
-        //std::cout << magnitude << "  " << positionSens << std::endl;
+        std::cout << magnitude << "  " << positionSens << std::endl;
     }
     pMotor->setFieldVector(0, magnitude);
 
