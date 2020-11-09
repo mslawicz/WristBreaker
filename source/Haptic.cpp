@@ -40,23 +40,25 @@ void HapticDevice::setTorqueVector(float  direction, float  magnitude)
     static int cnt = 0;
     positionSens = pEncoder->getValue();
     electricCyclePhaseShift = 290.0F;
-    direction = 0.0F;
 
     float targetElectricAngle = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod    // encoder position cycle phase (0..360 degrees)
         - electricCyclePhaseShift   // constant phase shift between encoder and motor cycle phase (0..360 degrees)
-        + direction * QuarterCycle; // additional phase shift for desired torque vector (-90 .. 90 degrees)
+        ;//+ direction * QuarterCycle; // additional phase shift for desired torque vector (-90 .. 90 degrees)
     static float testTargetAngle = 0;
-    testTargetAngle += 10.0F;
-    if(testTargetAngle > 360.0F)
+    testTargetAngle += direction * QuarterCycle;
+    if(testTargetAngle > FullCycle)
     {
-        testTargetAngle -= 360.0F;
+        testTargetAngle -= FullCycle;
     }
-    pMotor->setFieldVector(testTargetAngle, magnitude);
+    else if(testTargetAngle < 0)
+    {
+        testTargetAngle += FullCycle;
+    }
+    pMotor->setFieldVector(testTargetAngle, 0.5F);
     if(cnt++ % 127 == 0)
     {
-        std::cout << magnitude << "  " << positionSens;
-        std::cout << " sea=" << fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod;
-        std::cout << " tea=" << testTargetAngle << std::endl;
+        std::cout << "dir=" << direction << "  pos=" << positionSens;
+        std::cout << " pha=" << fmodf(positionSens, positionPeriod) - fmodf(testTargetAngle / 360.0F / 7.0F, positionPeriod) << std::endl;
     }
     //pMotor->setFieldVector(targetElectricAngle, magnitude); // set motor stator magnetic field vector
 }
