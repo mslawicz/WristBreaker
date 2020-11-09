@@ -36,7 +36,7 @@ private:
     float positionSens{0};  // motor position read from encoder
     float positionMin;      // minimal value of motor position
     float positionMax;      // maximum value of motor position
-    float positionPeriod{1.0F};   // position segment size of electric 360 degrees cycle
+    float positionPeriod;   // position segment size of electric 360 degrees cycle
     float electricCyclePhaseShift{0.0F};    // measured electric cycle phase shift
 };
 

@@ -15,7 +15,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     PCLink(USB_VID, USB_PID, USB_VER),
     throttleLever   //XXX test
     (
-        new MotorBLDC(PA_0, PB_10, PB_11, PE_7),
+        new MotorBLDC(PA_0, PB_10, PB_11, PE_7, 7),     //NOLINTreadability-magic-numbers)
         new AS5600(PC_5),
         0.1F,   //NOLINTreadability-magic-numbers)
         0.9F    //NOLINTreadability-magic-numbers)

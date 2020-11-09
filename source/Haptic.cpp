@@ -21,6 +21,7 @@ HapticDevice::HapticDevice
     positionMax(positionMax)
 {
     pMotor->setEnablePin(1);
+    positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
 }
 
 HapticDevice::~HapticDevice()
@@ -33,18 +34,19 @@ HapticDevice::~HapticDevice()
 // magnitude - torque vector magnitude 0..1 (PWM wave multiplier)
 void HapticDevice::setTorqueVector(float  direction, float  magnitude)
 {
-    static const float FullCycle = 360.0F;      // full electric cycle in degrees
     static const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
+    static const float FullCycle = 360.0F;      // full electric cycle in degrees
 
     static int cnt = 0;
     positionSens = pEncoder->getValue();
     if(cnt++ % 127 == 0)
     {
-        std::cout << magnitude << "  " << positionSens << std::endl;
+        std::cout << magnitude << "  " << positionSens;
+        std::cout << " ea=" << fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod << std::endl;
     }
     pMotor->setFieldVector(0, magnitude);
 
-    float targetElectricAngle = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod// encoder position cycle phase (0..360 degrees)
+    float targetElectricAngle = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod    // encoder position cycle phase (0..360 degrees)
         + electricCyclePhaseShift   // constant phase shift between encoder and motor cycle phase (0..360 degrees)
         + direction * QuarterCycle; // additional phase shift for desired torque vector (-90 .. 90 degrees)
     //XXX disabled for test pMotor->setFieldVector(targetElectricAngle, magnitude); // set motor stator magnetic field vector

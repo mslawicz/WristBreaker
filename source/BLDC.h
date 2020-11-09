@@ -14,9 +14,10 @@
 class MotorBLDC
 {
 public:
-    MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable);
+    MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, uint8_t noOfPoles);
     void setFieldVector(float electricAngle, float magnitude);
     void setEnablePin(int state) { enable = state; }
+    uint8_t getNoOfPoles() const { return noOfPoles; }
 private:
     float fastSineD(float argument);
     PwmOut phaseA;
@@ -46,6 +47,7 @@ private:
         0.996194698091746F, 0.997564050259824F, 0.998629534754574F, 0.999390827019096F, 0.999847695156391F,
         1.0F
     };
+    uint8_t noOfPoles;  // motor number of electric poles
 };
 
 #endif /* BLDC_H_ */

@@ -7,11 +7,12 @@
 
 #include "BLDC.h"
 
-MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable) :
+MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, uint8_t noOfPoles) :
     phaseA(outA),
     phaseB(outB),
     phaseC(outC),
-    enable(enable)
+    enable(enable),
+    noOfPoles(noOfPoles)
 {
     static const int PwmPeriodUs = 100;
     this->enable = 0;
