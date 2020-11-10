@@ -29,36 +29,42 @@ HapticDevice::~HapticDevice()
     delete pEncoder;
 }
 
-// set motor torque vector
-// direction - -1 maximum reverse, 0 hold position, 1 maximum forward
-// magnitude - torque vector magnitude 0..1 (PWM wave multiplier)
-void HapticDevice::setTorqueVector(float  direction, float  magnitude)
+// set motor torque
+// torque: -1 maximum reverse, 0 hold position, 1 maximum forward
+void HapticDevice::setTorque(float torque)
 {
     static const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     static const float FullCycle = 360.0F;      // full electric cycle in degrees
+    static const float HalfPositionRange = 0.5F;    // half of the full encoder range
 
-    static int cnt = 0;
-    positionSens = pEncoder->getValue();
-    electricCyclePhaseShift = 290.0F;
+    static int cnt = 0; //XXX test
+    float newPositionSens = pEncoder->getValue();
+    float deltaPositionSens = newPositionSens - positionSens;
+    if(deltaPositionSens < -HalfPositionRange)
+    {
+        deltaPositionSens += 1.0F;
+    }
+    else if(deltaPositionSens > HalfPositionRange)
+    {
+        deltaPositionSens -= 1.0F;
+    }
+    currentPhase += deltaPositionSens * FullCycle / positionPeriod;
+    if(currentPhase < 0)
+    {
+        currentPhase += FullCycle;
+    }
+    else if(currentPhase > FullCycle)
+    {
+        currentPhase -= FullCycle;
+    }
 
-    float targetElectricAngle = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod    // encoder position cycle phase (0..360 degrees)
-        - electricCyclePhaseShift   // constant phase shift between encoder and motor cycle phase (0..360 degrees)
-        ;//+ direction * QuarterCycle; // additional phase shift for desired torque vector (-90 .. 90 degrees)
-    static float testTargetAngle = 0;
-    testTargetAngle += direction * QuarterCycle;
-    if(testTargetAngle > FullCycle)
-    {
-        testTargetAngle -= FullCycle;
-    }
-    else if(testTargetAngle < 0)
-    {
-        testTargetAngle += FullCycle;
-    }
-    pMotor->setFieldVector(testTargetAngle, 0.5F);
+
     if(cnt++ % 127 == 0)
     {
-        std::cout << "dir=" << direction << "  pos=" << positionSens;
-        std::cout << " pha=" << fmodf(positionSens, positionPeriod) - fmodf(testTargetAngle / 360.0F / 7.0F, positionPeriod) << std::endl;
+        std::cout << "pos=" << positionSens << "  " << newPositionSens << "  " << deltaPositionSens ;
+        std::cout << "   Phase=" << currentPhase << "  trq=" << torque << std::endl;
     }
-    //pMotor->setFieldVector(targetElectricAngle, magnitude); // set motor stator magnetic field vector
+
+    positionSens = newPositionSens;
+    pMotor->setFieldVector(0, fabs(torque)); // set motor stator magnetic field vector
 }

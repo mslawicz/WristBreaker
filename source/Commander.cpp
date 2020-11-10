@@ -91,7 +91,7 @@ void Commander::handler()
 
     //XXX test of haptic device
     float pot = testPot.read();
-    throttleLever.setTorqueVector(2.0F * pot - 1.0F, 0);
+    throttleLever.setTorque(2.0F * pot - 1.0F);
 }
 
 /*
