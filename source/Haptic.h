@@ -30,6 +30,7 @@ public:
     void operator=(HapticDevice&&) = delete;
     float getPositionNorm() const { return scale<float, float>(positionMin, positionMax, positionSens, 0, 1.0F); }
     void setTorque(float torque);
+    void calibrationRequest();
 private:
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
@@ -37,7 +38,10 @@ private:
     float positionMin;      // minimal value of motor position
     float positionMax;      // maximum value of motor position
     float positionPeriod;   // position segment size of electric 360 degrees cycle
-    float currentPhase{0};  // current electric phase 0-360 degrees
+    bool isCalibrated{false};   // true if the device has been calibrated
+    float phaseShift{0};    // phase shift between motor electrical phase and sensor phase 
+    bool calibrationDirection{true};    // true==up, false==down
+    uint8_t calibrationCounter{0};      // counts calibration steps
 };
 
 #endif /* HAPTIC_H_ */

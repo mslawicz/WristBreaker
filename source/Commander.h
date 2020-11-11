@@ -46,6 +46,7 @@ private:
     std::vector<uint8_t> receivedReport;        // received report data from PC
     HapticDevice throttleLever;                 // throttle lever object
     AnalogIn testPot;                           // XXX test potentiometer
+    DigitalIn systemPushbutton;                 // Nucleo board blue button
 };
 
 #endif /* COMMANDER_H_ */

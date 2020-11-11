@@ -17,10 +17,11 @@ Commander::Commander(events::EventQueue& eventQueue) :
     (
         new MotorBLDC(PA_0, PB_10, PB_11, PE_7, 7),     //NOLINTreadability-magic-numbers)
         new AS5600(PC_5),
-        0.1F,   //NOLINTreadability-magic-numbers)
-        0.9F    //NOLINTreadability-magic-numbers)
+        0.2F,   //NOLINTreadability-magic-numbers)
+        0.8F    //NOLINTreadability-magic-numbers)
     ),
-    testPot(PA_3)   //XXX test
+    testPot(PA_3),   //XXX test
+    systemPushbutton(USER_BUTTON)
 {
     std::cout << "Commander object created\n";
 
@@ -92,6 +93,11 @@ void Commander::handler()
     //XXX test of haptic device
     float pot = testPot.read();
     throttleLever.setTorque(2.0F * pot - 1.0F);
+
+    if(systemPushbutton.read() == 1)
+    {
+        throttleLever.calibrationRequest();
+    }
 }
 
 /*
