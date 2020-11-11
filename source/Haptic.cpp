@@ -46,9 +46,15 @@ void HapticDevice::setTorque(float torque)
 
     static int cnt = 0; //XXX test
 
+    // get motor shaft position from encoder (0..1)
+    positionSens = pEncoder->getValue();
+    // calculate relative electric phase from motor shaft position (shifted from the real position)
+    float phaseSens = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod;
+
     if(isCalibrated)
     {
-        pMotor->setFieldVector(currentPhase, 0); // XXX temp
+        float targetPhase = phaseSens + phaseShift + (torque > 0 ? QuarterCycle : -QuarterCycle); 
+        pMotor->setFieldVector(targetPhase, fabs(torque));
     }
     else
     {
@@ -56,7 +62,6 @@ void HapticDevice::setTorque(float torque)
         static const uint8_t NoOfCalibrationSteps = 100;
         static const float CalibrationPhaseStep = 10.0F;
         static const float CalibrationVectorMagnitude = 0.6F;
-        positionSens = pEncoder->getValue();
         float positionNorm = getPositionNorm();
         if(positionNorm > CalUpperLimit)
         {
@@ -71,7 +76,6 @@ void HapticDevice::setTorque(float torque)
         {
             if(calibrationCounter != 0)
             {
-                float phaseSens = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod;
                 phaseShift += cropAngle<float>(currentPhase - phaseSens);
             }
 
@@ -92,12 +96,9 @@ void HapticDevice::setTorque(float torque)
 
     if(cnt++ % 127 == 0)
     {
-        //std::cout << "pos=";
+        std::cout << "torque=" << torque << std::endl;
         //std::cout << "   Phase=" << std::endl;
     }
-
-
-    //pMotor->setFieldVector(targetPhase, fabs(torque)); // set motor stator magnetic field vector
 }
 
 // request calibration process
