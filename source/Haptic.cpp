@@ -6,19 +6,24 @@
  */
 
 #include "Haptic.h"
+#include "Convert.h"
+#include <cmath>
 #include <iostream> //XXX
+#include <utility>
 
 HapticDevice::HapticDevice
 (
     MotorBLDC* pMotor,      // pointer to BLDC motor object
     Encoder* pEncoder,      // pointer to motor position encoder object
     float positionMin,      // minimal value of motor position
-    float positionMax      // maximum value of motor position
+    float positionMax,      // maximum value of motor position
+    std::string name        // name of the device
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
     positionMin(positionMin),
-    positionMax(positionMax)
+    positionMax(positionMax),
+    name(std::move(name))
 {
     pMotor->setEnablePin(1);
     positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -43,7 +48,7 @@ void HapticDevice::setTorque(float torque)
 
     if(isCalibrated)
     {
-
+        pMotor->setFieldVector(currentPhase, 0); // XXX temp
     }
     else
     {
@@ -64,24 +69,31 @@ void HapticDevice::setTorque(float torque)
 
         if((positionNorm > CalLowerLimit) && (positionNorm < CalUpperLimit))
         {
-            if(++calibrationCounter == NoOfCalibrationSteps)
+            if(calibrationCounter != 0)
+            {
+                float phaseSens = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod;
+                phaseShift += cropAngle<float>(currentPhase - phaseSens);
+            }
+
+            if(calibrationCounter++ == NoOfCalibrationSteps)
             {
                 // calibration completed
                 isCalibrated = true;
-                std::cout << "calibration completed" << std::endl;
+                phaseShift /= NoOfCalibrationSteps;
+                std::cout << name.c_str() << " phase shift = " << phaseShift << std::endl;
             }
         }
 
-        phaseShift += calibrationDirection ? CalibrationPhaseStep : -CalibrationPhaseStep;
-        pMotor->setFieldVector(phaseShift, CalibrationVectorMagnitude); // move motor to next position
+        currentPhase = cropAngle<float>(currentPhase + (calibrationDirection ? CalibrationPhaseStep : -CalibrationPhaseStep));
+        pMotor->setFieldVector(currentPhase, CalibrationVectorMagnitude); // move motor to next position
     }
 
 
 
     if(cnt++ % 127 == 0)
     {
-        std::cout << "pos=";
-        std::cout << "   Phase=" << std::endl;
+        //std::cout << "pos=";
+        //std::cout << "   Phase=" << std::endl;
     }
 
 
@@ -93,4 +105,5 @@ void HapticDevice::calibrationRequest()
 {
     calibrationCounter = 0;
     isCalibrated = false;
+    phaseShift = 0;
 }

@@ -28,4 +28,18 @@ template<typename iType, typename oType> oType scale(iType iMin, iType iMax, iTy
     return result;
 }
 
+template<typename Type> Type cropAngle(Type angle)
+{
+    const Type FullAngle = static_cast<Type>(360);
+    while(angle < 0)
+    {
+        angle += FullAngle;
+    };
+    while(angle > FullAngle)
+    {
+        angle -= FullAngle;
+    }
+    return angle;
+}
+
 #endif /* CONVERT_H_ */

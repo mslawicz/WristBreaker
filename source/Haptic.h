@@ -12,6 +12,7 @@
 #include "Convert.h"
 #include "BLDC.h"
 #include "Encoder.h"
+#include <string>
 
 class HapticDevice
 {
@@ -21,7 +22,8 @@ public:
         MotorBLDC* pMotor,      // pointer to BLDC motor object
         Encoder* pEncoder,      // pointer to motor position encoder object
         float positionMin,      // minimal value of motor position
-        float positionMax      // maximum value of motor position
+        float positionMax,      // maximum value of motor position
+        std::string name        // name of the device
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -42,6 +44,8 @@ private:
     float phaseShift{0};    // phase shift between motor electrical phase and sensor phase 
     bool calibrationDirection{true};    // true==up, false==down
     uint8_t calibrationCounter{0};      // counts calibration steps
+    float currentPhase{0};
+    std::string name;       // the name of this haptic device
 };
 
 #endif /* HAPTIC_H_ */
