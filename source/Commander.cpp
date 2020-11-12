@@ -92,8 +92,10 @@ void Commander::handler()
     }
 
     //XXX test of haptic device
-    float pot = testPot.read();
-    throttleLever.setTorque(2.0F * pot - 1.0F);
+    float referencePosition = testPot.read();
+    float positionNorm = throttleLever.getPositionNorm();
+    float error = (referencePosition - positionNorm) * 2.0F;  //NOLINT
+    throttleLever.setTorque(error);
 
     if(systemPushbutton.read() == 1)
     {
