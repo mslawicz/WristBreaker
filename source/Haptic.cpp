@@ -8,6 +8,7 @@
 #include "Haptic.h"
 #include "Convert.h"
 #include <cmath>
+#include <iostream>
 #include <utility>
 
 HapticDevice::HapticDevice
@@ -84,6 +85,7 @@ void HapticDevice::setTorque(float torque)
                 // calibration completed
                 isCalibrated = true;
                 phaseShift /= NoOfCalibrationSteps; // calculate mean phase shift
+                std::cout << name.c_str() << " calibrated (ps=" << phaseShift << ")\n";
             }
         }
 
