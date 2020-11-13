@@ -23,7 +23,9 @@ public:
         Encoder* pEncoder,      // pointer to motor position encoder object
         float positionMin,      // minimal value of motor position
         float positionMax,      // maximum value of motor position
-        std::string name        // name of the device
+        std::string name,       // name of the device
+        float Kp,               // proportional coefficient of the PD controller
+        float Kd                // derivative coefficient of the PD controller
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -31,9 +33,10 @@ public:
     HapticDevice(HapticDevice&&) = delete;
     void operator=(HapticDevice&&) = delete;
     float getPositionNorm() const { return scale<float, float>(positionMin, positionMax, positionSens, 0, 1.0F); }
-    void setTorque(float torque);
     void calibrationRequest();
+    void handler(float referencePosition);
 private:
+    void setTorque(float torque);
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
     float positionSens{0};  // motor position read from encoder
@@ -46,6 +49,10 @@ private:
     uint8_t calibrationCounter{0};      // counts calibration steps
     float currentPhase{0};
     std::string name;       // the name of this haptic device
+    float Kp;               // proportional coefficient of the PD controller
+    float Kd;               // derivative coefficient of the PD controller
+    float lastError{0};     // last position error used by the PD controller
+    float positionNorm{0};  // normalized position of calibration range
 };
 
 #endif /* HAPTIC_H_ */

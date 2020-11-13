@@ -19,7 +19,9 @@ Commander::Commander(events::EventQueue& eventQueue) :
         new AS5600(PC_5),
         0.2F,   //NOLINTreadability-magic-numbers)
         0.8F,   //NOLINTreadability-magic-numbers)
-        "throttle lever"
+        "throttle lever",
+        1.0F,
+        1.5F    //NOLINTreadability-magic-numbers)
     ),
     testPot(PA_3),   //XXX test
     systemPushbutton(USER_BUTTON)
@@ -92,46 +94,13 @@ void Commander::handler()
     }
 
     //XXX test of haptic device
-    static const float Kp = 1.0F;
-    static const float Ki = 0.0F;
-    static const float Kd = 1.5F;
-    static const float dt = 0.01F;  // this should be measured
-    static const float IntegralErrorLimit = 0.3F;
-    static float integralError = 0;
-    static float lastError = 0;
     float pot = testPot.read();
     float referencePosition = pot;
-    float positionNorm = throttleLever.getPositionNorm();
-    float error = referencePosition - positionNorm;
-    integralError += error * dt;
-    if(integralError > IntegralErrorLimit)
-    {
-        integralError = IntegralErrorLimit;
-    }
-    else if(integralError < -IntegralErrorLimit)
-    {
-        integralError = -IntegralErrorLimit;
-    }
-    float proportional = Kp * error;
-    float integral = Ki * integralError;
-    float derivative = Kd * (error - lastError);
-    lastError = error;
-    float torque = proportional + integral + derivative;
-    throttleLever.setTorque(torque);
+    throttleLever.handler(referencePosition);
 
     if(systemPushbutton.read() == 1)
     {
         throttleLever.calibrationRequest();
-    }
-
-    static uint32_t cnt = 0;
-    if(cnt++ % 100 == 0)
-    {
-        std::cout << pot;
-        std::cout << " P=" << proportional;
-        std::cout << " I=" << integral;
-        std::cout << " D=" << derivative;
-        std::cout << std::endl;
     }
 }
 

@@ -17,13 +17,17 @@ HapticDevice::HapticDevice
     Encoder* pEncoder,      // pointer to motor position encoder object
     float positionMin,      // minimal value of motor position
     float positionMax,      // maximum value of motor position
-    std::string name        // name of the device
+    std::string name,       // name of the device
+    float Kp,               // proportional coefficient of the PD controller
+    float Kd                // derivative coefficient of the PD controller
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
     positionMin(positionMin),
     positionMax(positionMax),
-    name(std::move(name))
+    name(std::move(name)),
+    Kp(Kp),
+    Kd(Kd)
 {
     pMotor->setEnablePin(1);
     positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -61,7 +65,6 @@ void HapticDevice::setTorque(float torque)
         static const uint8_t NoOfCalibrationSteps = 100;    // number of calibration steps
         static const float CalibrationPhaseStep = 10.0F;    // angle of electric phase movement between steps
         static const float CalibrationVectorMagnitude = 0.6F;   // field vector magnitude during calibration
-        float positionNorm = getPositionNorm();     // read normalized position for calibration range
         if(positionNorm > CalUpperLimit)
         {
             calibrationDirection = false;
@@ -101,4 +104,17 @@ void HapticDevice::calibrationRequest()
     calibrationCounter = 0;
     isCalibrated = false;
     phaseShift = 0;
+}
+
+// haptic device application handler
+void HapticDevice::handler(float referencePosition)
+{
+    positionNorm = getPositionNorm();     // read normalized position of the device
+
+    float error = referencePosition - positionNorm;     // error of the current position
+    float proportional = Kp * error;
+    float derivative = Kd * (error - lastError);
+    lastError = error;
+    float torque = proportional + derivative;
+    setTorque(torque);
 }
