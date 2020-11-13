@@ -92,13 +92,15 @@ void Commander::handler()
     }
 
     //XXX test of haptic device
-    static const float Kp = 1.5F;
-    static const float Ki = 1.0F;
+    static const float Kp = 1.0F;
+    static const float Ki = 0.0F;
+    static const float Kd = 1.5F;
     static const float dt = 0.01F;  // this should be measured
     static const float IntegralErrorLimit = 0.3F;
     static float integralError = 0;
+    static float lastError = 0;
     float pot = testPot.read();
-    float referencePosition = 0.5F;//pot;
+    float referencePosition = pot;
     float positionNorm = throttleLever.getPositionNorm();
     float error = referencePosition - positionNorm;
     integralError += error * dt;
@@ -111,8 +113,10 @@ void Commander::handler()
         integralError = -IntegralErrorLimit;
     }
     float proportional = Kp * error;
-    float integral = pot * 2.0F * integralError;
-    float torque = proportional + integral;
+    float integral = Ki * integralError;
+    float derivative = Kd * (error - lastError);
+    lastError = error;
+    float torque = proportional + integral + derivative;
     throttleLever.setTorque(torque);
 
     if(systemPushbutton.read() == 1)
@@ -126,6 +130,7 @@ void Commander::handler()
         std::cout << pot;
         std::cout << " P=" << proportional;
         std::cout << " I=" << integral;
+        std::cout << " D=" << derivative;
         std::cout << std::endl;
     }
 }
