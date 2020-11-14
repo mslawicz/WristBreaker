@@ -18,8 +18,9 @@ HapticDevice::HapticDevice
     float positionMin,      // minimal value of motor position
     float positionMax,      // maximum value of motor position
     std::string name,       // name of the device
-    float Kp,               // proportional coefficient of the PD controller
-    float Kd                // derivative coefficient of the PD controller
+    float Kp,               // proportional coefficient of the PID controller
+    float Ki,               // integral coefficient of the PID controller
+    float Kd                // derivative coefficient of the PID controller
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
@@ -27,6 +28,7 @@ HapticDevice::HapticDevice
     positionMax(positionMax),
     name(std::move(name)),
     Kp(Kp),
+    Ki(Ki),
     Kd(Kd)
 {
     pMotor->setEnablePin(1);
@@ -120,7 +122,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticMode::Spring:    // spring with variable reference position
         {
             float error = hapticData.referencePosition - positionNorm;     // error of the current position
-            float torque = getPdOutput(error);
+            float torque = getPID(error);
             direction = torque > 0 ? 1 : -1;    // vector full right or full left
             magnitude = fabs(torque);
         }
@@ -143,7 +145,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             // }
             float error = lastPositionNorm - positionNorm;
             float alpha = hapticData.referencePosition;
-            //float torque = getPdOutput(error);
+            //float torque = getPID(error);
             float torque = 10.0F * alpha * error;
             direction = torque;// > 0 ? 1 : -1;    // vector full right or full left
             magnitude = 5.0F * fabs(torque);
@@ -159,11 +161,13 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     setTorqueVector(direction, magnitude);
 }
 
-// get PD controller output
-float HapticDevice::getPdOutput(float error)
+// get PID controller output
+float HapticDevice::getPID(float error)
 {
+    integralError += error;
     float proportional = Kp * error;
+    float integral = Ki * integralError;
     float derivative = Kd * (error - lastError);
     lastError = error;
-    return proportional + derivative;
+    return proportional + integral + derivative;
 }

@@ -21,6 +21,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.8F,   //NOLINTreadability-magic-numbers)
         "throttle lever",
         1.0F,
+        0.0F,
         1.5F    //NOLINTreadability-magic-numbers)
     ),
     testPot(PA_3),   //XXX test
@@ -96,7 +97,7 @@ void Commander::handler()
     //XXX test of haptic device
     float pot = testPot.read();
     HapticData data{.referencePosition = pot};
-    throttleLever.handler(HapticMode::Free, data);
+    throttleLever.handler(HapticMode::Spring, data);
 
     if(systemPushbutton.read() == 1)
     {
