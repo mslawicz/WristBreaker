@@ -120,10 +120,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticMode::Spring:    // spring with variable reference position
         {
             float error = hapticData.referencePosition - positionNorm;     // error of the current position
-            float proportional = Kp * error;
-            float derivative = Kd * (error - lastError);
-            lastError = error;
-            float torque = proportional + derivative;
+            float torque = getPdOutput(error);
             direction = torque > 0 ? 1 : -1;    // vector full right or full left
             magnitude = fabs(torque);
         }
@@ -145,12 +142,12 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             //     magnitude = fabs((positionNorm - BrakeZone) / BrakeZone);
             // }
             float error = lastPositionNorm - positionNorm;
-            float proportional = Kp * error;
-            float derivative = Kd * (error - lastError);
-            lastError = error;
-            float torque = proportional + derivative;
-            direction = torque > 0 ? 1 : -1;    // vector full right or full left
-            magnitude = fabs(torque);
+            float alpha = hapticData.referencePosition;
+            //float torque = getPdOutput(error);
+            float torque = 10.0F * alpha * error;
+            direction = torque;// > 0 ? 1 : -1;    // vector full right or full left
+            magnitude = 5.0F * fabs(torque);
+            //lastPositionNorm = lastPositionNorm * (1.0F - alpha) + positionNorm * alpha;
             lastPositionNorm = positionNorm;
         }
         break;
@@ -160,4 +157,13 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     }
 
     setTorqueVector(direction, magnitude);
+}
+
+// get PD controller output
+float HapticDevice::getPdOutput(float error)
+{
+    float proportional = Kp * error;
+    float derivative = Kd * (error - lastError);
+    lastError = error;
+    return proportional + derivative;
 }

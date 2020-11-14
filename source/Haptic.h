@@ -48,6 +48,7 @@ public:
     void handler(HapticMode hapticMode, HapticData& hapticData);
 private:
     void setTorqueVector(float direction, float magnitude);
+    float getPdOutput(float error);     // get PD controller output
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
     float positionSens{0};  // motor position read from encoder
