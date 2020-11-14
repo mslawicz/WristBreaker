@@ -107,14 +107,32 @@ void HapticDevice::calibrationRequest()
 }
 
 // haptic device application handler
-void HapticDevice::handler(float referencePosition)
+void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
+    float torque = 0;
     positionNorm = getPositionNorm();     // read normalized position of the device
 
-    float error = referencePosition - positionNorm;     // error of the current position
-    float proportional = Kp * error;
-    float derivative = Kd * (error - lastError);
-    lastError = error;
-    float torque = proportional + derivative;
+    switch(hapticMode)
+    {
+        case HapticMode::Spring:    // spring with variable reference position
+        {
+            float error = hapticData.referencePosition - positionNorm;     // error of the current position
+            float proportional = Kp * error;
+            float derivative = Kd * (error - lastError);
+            lastError = error;
+            torque = proportional + derivative;
+        }
+        break;
+
+        case HapticMode::Free:      // free lever with optional detent position
+        {
+
+        }
+        break;
+
+        default:
+        break;
+    }
+
     setTorque(torque);
 }

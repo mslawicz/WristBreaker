@@ -14,6 +14,17 @@
 #include "Encoder.h"
 #include <string>
 
+enum class HapticMode
+{
+    Spring,
+    Free
+};
+
+union HapticData
+{
+    float referencePosition;    // reference position of the device
+};
+
 class HapticDevice
 {
 public:
@@ -34,7 +45,7 @@ public:
     void operator=(HapticDevice&&) = delete;
     float getPositionNorm() const { return scale<float, float>(positionMin, positionMax, positionSens, 0, 1.0F); }
     void calibrationRequest();
-    void handler(float referencePosition);
+    void handler(HapticMode hapticMode, HapticData& hapticData);
 private:
     void setTorque(float torque);
     MotorBLDC* pMotor;      // BLDC motor

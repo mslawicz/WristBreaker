@@ -95,8 +95,8 @@ void Commander::handler()
 
     //XXX test of haptic device
     float pot = testPot.read();
-    float referencePosition = pot;
-    throttleLever.handler(referencePosition);
+    HapticData data{.referencePosition = pot};
+    throttleLever.handler(HapticMode::Free, data);
 
     if(systemPushbutton.read() == 1)
     {
