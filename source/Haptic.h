@@ -20,7 +20,7 @@ enum class HapticMode
     Free
 };
 
-union HapticData
+struct HapticData
 {
     float referencePosition;    // reference position of the device
 };
@@ -64,6 +64,7 @@ private:
     float Kd;               // derivative coefficient of the PD controller
     float lastError{0};     // last position error used by the PD controller
     float positionNorm{0};  // normalized position of calibration range
+    float lastPositionNorm{0};  // previous normalized position
 };
 
 #endif /* HAPTIC_H_ */

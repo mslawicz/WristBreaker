@@ -90,6 +90,7 @@ void HapticDevice::setTorqueVector(float direction, float magnitude)
                 isCalibrated = true;
                 phaseShift /= NoOfCalibrationSteps; // calculate mean phase shift
                 std::cout << name.c_str() << " calibrated (ps=" << phaseShift << ")\n";
+                lastPositionNorm = getPositionNorm();
             }
         }
 
@@ -130,7 +131,27 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
         case HapticMode::Free:      // free lever with optional detent position
         {
-
+            // static const float BrakeZone = 0.1F;
+            // if(positionNorm >= 1.0F - BrakeZone)
+            // {
+            //     // brake at right end
+            //     direction = -1.0F;
+            //     magnitude = (positionNorm + BrakeZone - 1.0F) / BrakeZone;
+            // }
+            // else if(positionNorm <= BrakeZone)
+            // {
+            //     // brake at left end
+            //     direction = 1.0F;
+            //     magnitude = fabs((positionNorm - BrakeZone) / BrakeZone);
+            // }
+            float error = lastPositionNorm - positionNorm;
+            float proportional = Kp * error;
+            float derivative = Kd * (error - lastError);
+            lastError = error;
+            float torque = proportional + derivative;
+            direction = torque > 0 ? 1 : -1;    // vector full right or full left
+            magnitude = fabs(torque);
+            lastPositionNorm = positionNorm;
         }
         break;
 
