@@ -39,9 +39,10 @@ HapticDevice::~HapticDevice()
     delete pEncoder;
 }
 
-// set motor torque
-// torque: -1 maximum reverse, 0 hold position, 1 maximum forward
-void HapticDevice::setTorque(float torque)
+// set motor torque vector
+// direction: -1 maximum left, 0 hold position, 1 maximum right
+// magnitude <0,1>
+void HapticDevice::setTorqueVector(float direction, float magnitude)
 {
     static const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     static const float FullCycle = 360.0F;      // full electric cycle in degrees
@@ -56,8 +57,8 @@ void HapticDevice::setTorque(float torque)
     if(isCalibrated)
     {
         // additional 90 degrees phase shift for generating torque
-        float targetPhase = phaseSens + phaseShift + (torque > 0 ? QuarterCycle : -QuarterCycle); 
-        pMotor->setFieldVector(targetPhase, fabs(torque));
+        float targetPhase = phaseSens + phaseShift + direction * QuarterCycle; 
+        pMotor->setFieldVector(targetPhase, magnitude);
     }
     else
     {
@@ -109,7 +110,8 @@ void HapticDevice::calibrationRequest()
 // haptic device application handler
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
-    float torque = 0;
+    float direction = 0;    // requested torque vector direction <-1,1>
+    float magnitude = 0;    // requested torque vector magnitude <0,1>
     positionNorm = getPositionNorm();     // read normalized position of the device
 
     switch(hapticMode)
@@ -120,7 +122,9 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             float proportional = Kp * error;
             float derivative = Kd * (error - lastError);
             lastError = error;
-            torque = proportional + derivative;
+            float torque = proportional + derivative;
+            direction = torque > 0 ? 1 : -1;    // vector full right or full left
+            magnitude = fabs(torque);
         }
         break;
 
@@ -134,5 +138,5 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         break;
     }
 
-    setTorque(torque);
+    setTorqueVector(direction, magnitude);
 }

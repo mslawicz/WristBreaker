@@ -47,7 +47,7 @@ public:
     void calibrationRequest();
     void handler(HapticMode hapticMode, HapticData& hapticData);
 private:
-    void setTorque(float torque);
+    void setTorqueVector(float direction, float magnitude);
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
     float positionSens{0};  // motor position read from encoder
