@@ -100,7 +100,7 @@ void Commander::handler()
     HapticData data{};
     data.torqueMap.emplace(0.3F, TorqueVector{-1.0F, 0.0F});
     data.torqueMap.emplace(0.5F, TorqueVector{-1.0F, 1.0F});
-    data.torqueMap.emplace(0.501F, TorqueVector{1.0F, -1.0F});
+    data.torqueMap.emplace(0.501F, TorqueVector{1.0F, 1.0F});
     data.torqueMap.emplace(0.7F, TorqueVector{1.0F, 0.0F});
     throttleLever.handler(HapticMode::Map, data);
 

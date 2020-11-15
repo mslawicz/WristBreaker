@@ -165,6 +165,12 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 magnitude = previousMagnitude;
             }
 
+            static int cnt = 0;
+            if(cnt++ %100 == 0)
+            {
+                std::cout << positionNorm << "  d=" << direction << "  m=" << magnitude << std::endl;
+            }
+
         }
         break;
 
