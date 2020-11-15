@@ -13,6 +13,10 @@
 #include "BLDC.h"
 #include "Encoder.h"
 #include <string>
+#include <map>
+
+using TorqueVector = std::pair<float, float>;
+using TorqueMap = std::map<float, TorqueVector>;
 
 enum class HapticMode
 {
@@ -23,6 +27,7 @@ enum class HapticMode
 struct HapticData
 {
     float referencePosition;    // reference position of the device
+    TorqueMap torqueMap;        // map of the torque function points
 };
 
 class HapticDevice

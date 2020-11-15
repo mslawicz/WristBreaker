@@ -130,27 +130,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
         case HapticMode::Free:      // free lever with optional detent position
         {
-            // static const float BrakeZone = 0.1F;
-            // if(positionNorm >= 1.0F - BrakeZone)
-            // {
-            //     // brake at right end
-            //     direction = -1.0F;
-            //     magnitude = (positionNorm + BrakeZone - 1.0F) / BrakeZone;
-            // }
-            // else if(positionNorm <= BrakeZone)
-            // {
-            //     // brake at left end
-            //     direction = 1.0F;
-            //     magnitude = fabs((positionNorm - BrakeZone) / BrakeZone);
-            // }
-            float error = lastPositionNorm - positionNorm;
-            float alpha = hapticData.referencePosition;
-            //float torque = getPID(error);
-            float torque = 10.0F * alpha * error;
-            direction = torque;// > 0 ? 1 : -1;    // vector full right or full left
-            magnitude = 5.0F * fabs(torque);
-            //lastPositionNorm = lastPositionNorm * (1.0F - alpha) + positionNorm * alpha;
-            lastPositionNorm = positionNorm;
+
         }
         break;
 
