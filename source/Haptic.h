@@ -21,7 +21,7 @@ using TorqueMap = std::map<float, TorqueVector>;
 enum class HapticMode
 {
     Spring,
-    Free
+    Map
 };
 
 struct HapticData
