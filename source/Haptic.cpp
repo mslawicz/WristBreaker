@@ -142,7 +142,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
             for(auto const& [positionMap, torqueVectorMap] : hapticData.torqueMap)  //NOLINT
             {
-                if(positionNorm <= positionMap)
+                if(positionNorm < positionMap)
                 {
                     // positionNorm is between this and previous points - interpolate values
                     // calculate relative position in this segment <0,1>
