@@ -72,7 +72,7 @@ private:
     float Kd;               // derivative coefficient of the PID controller
     float lastError{0};     // last position error used by the PID controller
     float integralError{0}; // integral error value used by the PID controller
-    float positionNorm{0};  // normalized position of calibration range
+    float positionNorm{0};  // normalized position <0,1>
     float lastPositionNorm{0};  // previous normalized position
 };
 
