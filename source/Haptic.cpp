@@ -16,16 +16,12 @@ HapticDevice::HapticDevice
     MotorBLDC* pMotor,      // pointer to BLDC motor object
     Encoder* pEncoder,      // pointer to motor position encoder object
     std::string name,       // name of the device
-    float Kp,               // proportional coefficient of the PID controller
-    float Ki,               // integral coefficient of the PID controller
-    float Kd                // derivative coefficient of the PID controller
+    float torqueGain        // torque proportional gain
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
     name(std::move(name)),
-    Kp(Kp),
-    Ki(Ki),
-    Kd(Kd)
+    torqueGain(torqueGain)
 {
     pMotor->setEnablePin(1);
     positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -117,7 +113,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticMode::Spring:    // spring with variable reference position
         {
             float error = hapticData.referencePosition - positionSens;     // error of the current position
-            float torque = Kp * error;
+            float torque = torqueGain * error;
             direction = torque;
             magnitude = fabs(torque);
         }
@@ -174,15 +170,4 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     }
 
     setTorqueVector(direction, magnitude);
-}
-
-// get PID controller output
-float HapticDevice::getPID(float error)
-{
-    integralError += error;
-    float proportional = Kp * error;
-    float integral = Ki * integralError;
-    float derivative = Kd * (error - lastError);
-    lastError = error;
-    return proportional + integral + derivative;
 }

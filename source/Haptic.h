@@ -38,9 +38,7 @@ public:
         MotorBLDC* pMotor,      // pointer to BLDC motor object
         Encoder* pEncoder,      // pointer to motor position encoder object
         std::string name,       // name of the device
-        float Kp,               // proportional coefficient of the PID controller
-        float Ki,               // integral coefficient of the PID controller
-        float Kd                // derivative coefficient of the PID controller
+        float torqueGain        // torque proportional gain
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -51,7 +49,6 @@ public:
     void handler(HapticMode hapticMode, HapticData& hapticData);
 private:
     void setTorqueVector(float direction, float magnitude);
-    float getPID(float error);     // get PID controller output
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
     float positionSens{0};  // motor position read from encoder
@@ -62,11 +59,7 @@ private:
     uint8_t calibrationCounter{0};      // counts calibration steps
     float currentPhase{0};
     std::string name;       // the name of this haptic device
-    float Kp;               // proportional coefficient of the PID controller
-    float Ki;               // integral coefficient of the PID controller
-    float Kd;               // derivative coefficient of the PID controller
-    float lastError{0};     // last position error used by the PID controller
-    float integralError{0}; // integral error value used by the PID controller
+    float torqueGain;       // torque proportional gain
 };
 
 #endif /* HAPTIC_H_ */
