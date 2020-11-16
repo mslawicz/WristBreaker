@@ -94,16 +94,21 @@ void Commander::handler()
     float pot = testPot.read();
     HapticData data{.referencePosition = pot}; // for Spring
     //HapticData data{};
-    data.torqueMap.emplace(0, TorqueVector{1.0F, 1.0F});
-    data.torqueMap.emplace(0.1F, TorqueVector{0.0F, 0.0F});
-    data.torqueMap.emplace(0.399F, TorqueVector{0.0F, 0.0F});
-    data.torqueMap.emplace(0.4F, TorqueVector{1.0F, 0.5F});
-    data.torqueMap.emplace(0.5F, TorqueVector{0.0F, 0.0F});
-    data.torqueMap.emplace(0.6F, TorqueVector{-1.0F, 0.5F});
-    data.torqueMap.emplace(0.601F, TorqueVector{0.0F, 0.0F});
-    data.torqueMap.emplace(0.9F, TorqueVector{0.0F, 0.0F});
-    data.torqueMap.emplace(1.0F, TorqueVector{-1.0F, 1.0F});
-    throttleLever.handler(HapticMode::Spring, data);
+    // data.torqueMap.emplace(0, TorqueVector{1.0F, 1.0F});
+    // data.torqueMap.emplace(0.1F, TorqueVector{0.0F, 0.0F});
+    // data.torqueMap.emplace(0.399F, TorqueVector{0.0F, 0.0F});
+    // data.torqueMap.emplace(0.4F, TorqueVector{1.0F, 0.5F});
+    // data.torqueMap.emplace(0.5F, TorqueVector{0.0F, 0.0F});
+    // data.torqueMap.emplace(0.6F, TorqueVector{-1.0F, 0.5F});
+    // data.torqueMap.emplace(0.601F, TorqueVector{0.0F, 0.0F});
+    // data.torqueMap.emplace(0.9F, TorqueVector{0.0F, 0.0F});
+    // data.torqueMap.emplace(1.0F, TorqueVector{-1.0F, 1.0F});
+    data.detentPositions.push_back(0.2F);
+    data.detentPositions.push_back(0.35F);
+    data.detentPositions.push_back(0.5F);
+    data.detentPositions.push_back(0.65F);
+    data.detentPositions.push_back(0.8F);
+    throttleLever.handler(HapticMode::MultiPosition, data);
 
     if(systemPushbutton.read() == 1)
     {

@@ -14,6 +14,7 @@
 #include "Encoder.h"
 #include <string>
 #include <map>
+#include <vector>
 
 using TorqueVector = std::pair<float, float>;
 using TorqueMap = std::map<float, TorqueVector>;
@@ -21,12 +22,14 @@ using TorqueMap = std::map<float, TorqueVector>;
 enum class HapticMode
 {
     Spring,
+    MultiPosition,
     Map
 };
 
 struct HapticData
 {
     float referencePosition;    // reference position of the device
+    std::vector<float> detentPositions;     // vector of detent positions
     TorqueMap torqueMap;        // map of the torque function points
 };
 

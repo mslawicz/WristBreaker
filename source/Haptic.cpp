@@ -119,6 +119,27 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         }
         break;
 
+        case HapticMode::MultiPosition:     // multi-position detents
+        {
+            float closestDetentPosition = 0;
+            float smallestDistance = 1.0F;
+            for(auto& detentPosition : hapticData.detentPositions)
+            {
+                float distance = fabs(detentPosition - positionSens);
+                if(distance < smallestDistance)
+                {
+                    closestDetentPosition = detentPosition;
+                    smallestDistance = distance;
+                }
+            }
+            float error = closestDetentPosition - positionSens;     // distance from closest detent position
+            //float torque = torqueGain * error;
+            float torque = 20 * hapticData.referencePosition * error;
+            direction = torque;
+            magnitude = fabs(torque);
+        }
+        break;
+
         case HapticMode::Map:      // mapped torque definition
         {
             if(hapticData.torqueMap.empty())
