@@ -117,8 +117,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticMode::Spring:    // spring with variable reference position
         {
             float error = hapticData.referencePosition - positionSens;     // error of the current position
-            float torque = getPID(error);
-            direction = torque > 0 ? 1 : -1;    // vector full right or full left
+            float torque = Kp * error;
+            direction = torque;
             magnitude = fabs(torque);
         }
         break;
