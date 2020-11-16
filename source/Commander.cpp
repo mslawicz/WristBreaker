@@ -96,8 +96,8 @@ void Commander::handler()
 
     //XXX test of haptic device
     float pot = testPot.read();
-    //HapticData data{.referencePosition = pot}; // for Spring
-    HapticData data{};
+    HapticData data{.referencePosition = pot}; // for Spring
+    //HapticData data{};
     data.torqueMap.emplace(0, TorqueVector{1.0F, 1.0F});
     data.torqueMap.emplace(0.1F, TorqueVector{0.0F, 0.0F});
     data.torqueMap.emplace(0.399F, TorqueVector{0.0F, 0.0F});
@@ -107,7 +107,7 @@ void Commander::handler()
     data.torqueMap.emplace(0.601F, TorqueVector{0.0F, 0.0F});
     data.torqueMap.emplace(0.9F, TorqueVector{0.0F, 0.0F});
     data.torqueMap.emplace(1.0F, TorqueVector{-1.0F, 1.0F});
-    throttleLever.handler(HapticMode::Map, data);
+    throttleLever.handler(HapticMode::Spring, data);
 
     if(systemPushbutton.read() == 1)
     {
