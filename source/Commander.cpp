@@ -17,12 +17,10 @@ Commander::Commander(events::EventQueue& eventQueue) :
     (
         new MotorBLDC(PA_0, PB_10, PB_11, PE_7, 7),     //NOLINTreadability-magic-numbers)
         new AS5600(PC_5),
-        0.2F,   //NOLINTreadability-magic-numbers)
-        0.8F,   //NOLINTreadability-magic-numbers)
         "throttle lever",
-        1.0F,
+        1.5F,
         0.0F,
-        1.5F    //NOLINTreadability-magic-numbers)
+        2.0F    //NOLINTreadability-magic-numbers)
     ),
     testPot(PA_3),   //XXX test
     systemPushbutton(USER_BUTTON)
