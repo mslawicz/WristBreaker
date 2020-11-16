@@ -106,7 +106,10 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     float magnitude = 0;    // requested torque vector magnitude <0,1>
     
     // get motor shaft position from encoder <0,1>
-    positionSens = pEncoder->getValue();
+    float filterGain = 0.0F; //hapticData.referencePosition;
+    float unfilteredPosition = pEncoder->getValue();
+    positionSens = filterGain * positionSens + (1.0F - filterGain) * unfilteredPosition;
+    float pot = 50 * hapticData.referencePosition;
 
     switch(hapticMode)
     {
@@ -134,7 +137,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             }
             float error = closestDetentPosition - positionSens;     // distance from closest detent position
             //float torque = torqueGain * error;
-            float torque = 20 * hapticData.referencePosition * error;
+            float torque = pot * error;
             direction = torque;
             magnitude = fabs(torque);
         }
@@ -177,12 +180,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 magnitude = previousMagnitude;
             }
 
-            static int cnt = 0;
-            if(cnt++ %100 == 0)
-            {
-                std::cout << positionSens << "  d=" << direction << "  m=" << magnitude << std::endl;
-            }
-
         }
         break;
 
@@ -191,4 +188,14 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     }
 
     setTorqueVector(direction, magnitude);
+
+    static int cnt = 0;
+    if(cnt++ %100 == 0)
+    {
+        std::cout << "fg=" << filterGain;
+        std::cout << "  up=" << unfilteredPosition;
+        std::cout << "  fp=" << positionSens;
+        std::cout << "  pot=" << pot;
+        std::cout << std::endl;
+    }
 }
