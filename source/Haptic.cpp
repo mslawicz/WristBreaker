@@ -15,13 +15,11 @@ HapticDevice::HapticDevice
 (
     MotorBLDC* pMotor,      // pointer to BLDC motor object
     Encoder* pEncoder,      // pointer to motor position encoder object
-    std::string name,       // name of the device
-    float torqueGain        // torque proportional gain
+    std::string name        // name of the device
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
-    name(std::move(name)),
-    torqueGain(torqueGain)
+    name(std::move(name))
 {
     pMotor->setEnablePin(1);
     positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -118,7 +116,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticMode::Spring:    // spring with variable reference position
         {
             float error = hapticData.referencePosition - filteredPosition;     // error of the current position
-            float torque = torqueGain * error;
+            float torque = hapticData.torqueGain * error;
             direction = torque;
             magnitude = fabs(torque);
         }
@@ -138,8 +136,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 }
             }
             float error = closestDetentPosition - filteredPosition;     // distance from closest detent position
-            torqueGain = 20.0F; //XXX
-            float torque = torqueGain * error;
+            float torque = hapticData.torqueGain * error;
             direction = torque;
             magnitude = fabs(torque);
         }
