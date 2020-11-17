@@ -48,7 +48,8 @@ void HapticDevice::setTorqueVector(float direction, float magnitude)
 
     if(isCalibrated)
     {
-        // additional 90 degrees phase shift for generating torque
+        // additional phase shift for generating torque (max 90 degrees)
+        direction = scale<float>(-1.0F, 1.0F, direction, -1.0F, 1.0F);
         float targetPhase = phaseSens + phaseShift + direction * QuarterCycle; 
         pMotor->setFieldVector(targetPhase, magnitude);
     }
@@ -106,16 +107,17 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     float magnitude = 0;    // requested torque vector magnitude <0,1>
     
     // get motor shaft position from encoder <0,1>
-    float filterGain = 0.0F; //hapticData.referencePosition;
-    float unfilteredPosition = pEncoder->getValue();
-    positionSens = filterGain * positionSens + (1.0F - filterGain) * unfilteredPosition;
-    float pot = 50 * hapticData.referencePosition;
+    positionSens = pEncoder->getValue();
+    // filter motor position
+    filteredPosition = FilterRatio * filteredPosition + (1.0F - FilterRatio) * positionSens;
+
+    float pot = hapticData.referencePosition;   //XXX
 
     switch(hapticMode)
     {
         case HapticMode::Spring:    // spring with variable reference position
         {
-            float error = hapticData.referencePosition - positionSens;     // error of the current position
+            float error = hapticData.referencePosition - filteredPosition;     // error of the current position
             float torque = torqueGain * error;
             direction = torque;
             magnitude = fabs(torque);
@@ -128,16 +130,16 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             float smallestDistance = 1.0F;
             for(auto& detentPosition : hapticData.detentPositions)
             {
-                float distance = fabs(detentPosition - positionSens);
+                float distance = fabs(detentPosition - filteredPosition);
                 if(distance < smallestDistance)
                 {
                     closestDetentPosition = detentPosition;
                     smallestDistance = distance;
                 }
             }
-            float error = closestDetentPosition - positionSens;     // distance from closest detent position
-            //float torque = torqueGain * error;
-            float torque = pot * error;
+            float error = closestDetentPosition - filteredPosition;     // distance from closest detent position
+            torqueGain = 20.0F; //XXX
+            float torque = torqueGain * error;
             direction = torque;
             magnitude = fabs(torque);
         }
@@ -192,10 +194,11 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     static int cnt = 0;
     if(cnt++ %100 == 0)
     {
-        std::cout << "fg=" << filterGain;
-        std::cout << "  up=" << unfilteredPosition;
-        std::cout << "  fp=" << positionSens;
+        std::cout << "pos=" << positionSens;
+        std::cout << "  df=" << positionSens - filteredPosition;
         std::cout << "  pot=" << pot;
+        std::cout << "  dir=" << direction;
+        std::cout << "  mag=" << magnitude;
         std::cout << std::endl;
     }
 }

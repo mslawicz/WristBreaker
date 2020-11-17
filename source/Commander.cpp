@@ -103,9 +103,9 @@ void Commander::handler()
     // data.torqueMap.emplace(0.601F, TorqueVector{0.0F, 0.0F});
     // data.torqueMap.emplace(0.9F, TorqueVector{0.0F, 0.0F});
     // data.torqueMap.emplace(1.0F, TorqueVector{-1.0F, 1.0F});
-    for(uint8_t k=0; k<10; k++)
+    for(uint8_t k=0; k<7; k++)
     {
-        data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 10.0F);
+        data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 6.0F);
     }
     throttleLever.handler(HapticMode::MultiPosition, data);
 

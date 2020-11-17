@@ -63,6 +63,8 @@ private:
     float currentPhase{0};
     std::string name;       // the name of this haptic device
     float torqueGain;       // torque proportional gain
+    float filteredPosition{0};  // filtered motor position
+    static constexpr float FilterRatio = 0.7F;  // 0-no filter
 };
 
 #endif /* HAPTIC_H_ */
