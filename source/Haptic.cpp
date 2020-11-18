@@ -144,7 +144,16 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
         case HapticMode::Free:
         {
-
+            static float currentReferencePosition = 0.5F;
+            float error = currentReferencePosition - filteredPosition;
+            float torque = hapticData.torqueGain * error;
+            direction = torque;
+            magnitude = fabs(torque);
+            pot = 0.1F * pot;
+            if(fabs(error) > pot)
+            {
+                currentReferencePosition -= (error > 0 ? 0.005F : -0.005F);
+            }
         }
         break;
 

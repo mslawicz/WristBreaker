@@ -102,12 +102,13 @@ void Commander::handler()
     // data.torqueMap.emplace(0.601F, TorqueVector{0.0F, 0.0F});
     // data.torqueMap.emplace(0.9F, TorqueVector{0.0F, 0.0F});
     // data.torqueMap.emplace(1.0F, TorqueVector{-1.0F, 1.0F});
-    HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
+    //HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
+    HapticData data{.referencePosition = pot, .torqueGain = 10.0F, .filterRatio = 0.7F}; // for Free
     for(uint8_t k=0; k<3; k++)
     {
         data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 2.0F);
     }
-    throttleLever.handler(HapticMode::MultiPosition, data);
+    throttleLever.handler(HapticMode::Free, data);
 
     if(systemPushbutton.read() == 1)
     {
