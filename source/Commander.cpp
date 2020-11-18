@@ -91,7 +91,7 @@ void Commander::handler()
 
     //XXX test of haptic device
     float pot = testPot.read();
-    //HapticData data{.referencePosition = pot, .torqueGain = 4.0F}; // for Spring
+    //HapticData data{.referencePosition = pot, .torqueGain = 4.0F, .filterRatio = 0.7F}; // for Spring
     //HapticData data{};
     // data.torqueMap.emplace(0, TorqueVector{1.0F, 1.0F});
     // data.torqueMap.emplace(0.1F, TorqueVector{0.0F, 0.0F});
@@ -102,7 +102,7 @@ void Commander::handler()
     // data.torqueMap.emplace(0.601F, TorqueVector{0.0F, 0.0F});
     // data.torqueMap.emplace(0.9F, TorqueVector{0.0F, 0.0F});
     // data.torqueMap.emplace(1.0F, TorqueVector{-1.0F, 1.0F});
-    HapticData data{.referencePosition = pot, .torqueGain = 6.0F}; // for MultiPosition
+    HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
     for(uint8_t k=0; k<3; k++)
     {
         data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 2.0F);

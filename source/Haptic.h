@@ -23,6 +23,7 @@ enum class HapticMode
 {
     Spring,
     MultiPosition,
+    Free,
     Map
 };
 
@@ -30,6 +31,7 @@ struct HapticData
 {
     float referencePosition;    // reference position of the device
     float torqueGain;           // proportional gain of the torque *see note below
+    float filterRatio;          // position filter ratio, 0-no filtering
     std::vector<float> detentPositions;     // vector of detent positions
     TorqueMap torqueMap;        // map of the torque function points
 };
@@ -63,7 +65,6 @@ private:
     float currentPhase{0};
     std::string name;       // the name of this haptic device
     float filteredPosition{0};  // filtered motor position
-    static constexpr float FilterRatio = 0.7F;  // 0-no filter
 };
 
 #endif /* HAPTIC_H_ */

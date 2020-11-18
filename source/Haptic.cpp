@@ -107,7 +107,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     // get motor shaft position from encoder <0,1>
     positionSens = pEncoder->getValue();
     // filter motor position
-    filteredPosition = FilterRatio * filteredPosition + (1.0F - FilterRatio) * positionSens;
+    filteredPosition = hapticData.filterRatio * filteredPosition + (1.0F - hapticData.filterRatio) * positionSens;
 
     float pot = hapticData.referencePosition;   //XXX
 
@@ -139,6 +139,12 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             float torque = hapticData.torqueGain * error;
             direction = torque;
             magnitude = fabs(torque);
+        }
+        break;
+
+        case HapticMode::Free:
+        {
+
         }
         break;
 
