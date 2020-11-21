@@ -76,4 +76,5 @@ private:
 recommended torqueGain values:
 HT2205 Spring: 4
 HT2205 MultiPosition: 2-2.5 * number of positions in <0.25-0.75> range
+HT2205 Free: 6 (tweaking needed)
 */

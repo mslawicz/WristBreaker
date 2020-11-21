@@ -97,8 +97,9 @@ void Commander::handler()
     {
         .minPosition = 0.25F,
         .maxPosition = 0.75F,
-        .torqueGain = 10.0F,
-        .filterRatio = 0.7F
+        .torqueGain = 6.0F,
+        .filterRatio = 0.7F,
+        .detentPositions{std::vector<float>{0.35F}}
     }; // for Free
     for(uint8_t k=0; k<3; k++)
     {
