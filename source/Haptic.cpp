@@ -101,8 +101,8 @@ void HapticDevice::calibrationRequest()
 // haptic device application handler
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
-    float direction = 0;    // requested torque vector direction <-1,1>
-    float magnitude = 0;    // requested torque vector magnitude <0,1>
+    float error = 0;        // current position error
+    float torque = 0;       // current calculated requested torque
     
     // get motor shaft position from encoder <0,1>
     positionSens = pEncoder->getValue();
@@ -115,10 +115,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     {
         case HapticMode::Spring:    // spring with variable reference position
         {
-            float error = hapticData.referencePosition - filteredPosition;     // error of the current position
-            float torque = hapticData.torqueGain * error;
-            direction = torque;
-            magnitude = fabs(torque);
+            error = hapticData.referencePosition - filteredPosition;     // error of the current position
+            torque = hapticData.torqueGain * error;
         }
         break;
 
@@ -135,73 +133,76 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     smallestDistance = distance;
                 }
             }
-            float error = closestDetentPosition - filteredPosition;     // distance from closest detent position
-            float torque = hapticData.torqueGain * error;
-            direction = torque;
-            magnitude = fabs(torque);
+            error = closestDetentPosition - filteredPosition;     // distance from closest detent position
+            torque = hapticData.torqueGain * error;
         }
         break;
 
         case HapticMode::Free:
         {
-            static float currentReferencePosition = 0.5F;
-            float error = currentReferencePosition - filteredPosition;
-            float torque = hapticData.torqueGain * error;
-            direction = torque;
-            magnitude = fabs(torque);
-            pot = 0.1F * pot;
-            if(fabs(error) > pot)
+            static const float FollowRatio = 0.05F;
+            error = currentReferencePosition - filteredPosition;
+            torque = hapticData.torqueGain * error;
+            if(filteredPosition < hapticData.minPosition)
             {
-                currentReferencePosition -= (error > 0 ? 0.005F : -0.005F);
+                currentReferencePosition = hapticData.minPosition;
+            }
+            else if(filteredPosition > hapticData.maxPosition)
+            {
+                currentReferencePosition = hapticData.maxPosition;
+            }
+            else
+            {
+                currentReferencePosition -= error * FollowRatio;
             }
         }
         break;
 
-        case HapticMode::Map:      // mapped torque definition
-        {
-            if(hapticData.torqueMap.empty())
-            {
-                break;
-            }
+        // case HapticMode::Map:      // mapped torque definition
+        // {
+        //     if(hapticData.torqueMap.empty())
+        //     {
+        //         break;
+        //     }
 
-            float previousPositionMap = 0;
-            float previousDirection = 0;
-            float previousMagnitude = 0;
-            bool isVectorInterpolated = false;
+        //     float previousPositionMap = 0;
+        //     float previousDirection = 0;
+        //     float previousMagnitude = 0;
+        //     bool isVectorInterpolated = false;
 
-            for(auto const& [positionMap, torqueVectorMap] : hapticData.torqueMap)  //NOLINT
-            {
-                if(positionSens < positionMap)
-                {
-                    // positionNorm is between this and previous points - interpolate values
-                    // calculate relative position in this segment <0,1>
-                    float positionInSegment = (positionSens - previousPositionMap) / (positionMap - previousPositionMap);
-                    direction = previousDirection + (torqueVectorMap.first - previousDirection) * positionInSegment;
-                    magnitude = previousMagnitude + (torqueVectorMap.second - previousMagnitude) * positionInSegment;
-                    isVectorInterpolated = true;
-                    break;
-                }
+        //     for(auto const& [positionMap, torqueVectorMap] : hapticData.torqueMap)  //NOLINT
+        //     {
+        //         if(positionSens < positionMap)
+        //         {
+        //             // positionNorm is between this and previous points - interpolate values
+        //             // calculate relative position in this segment <0,1>
+        //             float positionInSegment = (positionSens - previousPositionMap) / (positionMap - previousPositionMap);
+        //             direction = previousDirection + (torqueVectorMap.first - previousDirection) * positionInSegment;
+        //             magnitude = previousMagnitude + (torqueVectorMap.second - previousMagnitude) * positionInSegment;
+        //             isVectorInterpolated = true;
+        //             break;
+        //         }
 
-                previousPositionMap = positionMap;
-                previousDirection = torqueVectorMap.first;
-                previousMagnitude = torqueVectorMap.second;
-            }
+        //         previousPositionMap = positionMap;
+        //         previousDirection = torqueVectorMap.first;
+        //         previousMagnitude = torqueVectorMap.second;
+        //     }
 
-            if(!isVectorInterpolated)
-            {
-                // positionNorm is greater than the last point in the map - take values of this last point
-                direction = previousDirection;
-                magnitude = previousMagnitude;
-            }
+        //     if(!isVectorInterpolated)
+        //     {
+        //         // positionNorm is greater than the last point in the map - take values of this last point
+        //         direction = previousDirection;
+        //         magnitude = previousMagnitude;
+        //     }
 
-        }
-        break;
+        // }
+        // break;
 
         default:
         break;
     }
 
-    setTorqueVector(direction, magnitude);
+    setTorqueVector(torque, fabs(torque));
 
     static int cnt = 0;
     if(cnt++ %100 == 0)
@@ -209,8 +210,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         std::cout << "pos=" << positionSens;
         std::cout << "  df=" << positionSens - filteredPosition;
         std::cout << "  pot=" << pot;
-        std::cout << "  dir=" << direction;
-        std::cout << "  mag=" << magnitude;
+        std::cout << "  dir=" << torque;
+        std::cout << "  mag=" << fabs(torque);
         std::cout << std::endl;
     }
 }
