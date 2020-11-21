@@ -166,46 +166,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         }
         break;
 
-        // case HapticMode::Map:      // mapped torque definition
-        // {
-        //     if(hapticData.torqueMap.empty())
-        //     {
-        //         break;
-        //     }
-
-        //     float previousPositionMap = 0;
-        //     float previousDirection = 0;
-        //     float previousMagnitude = 0;
-        //     bool isVectorInterpolated = false;
-
-        //     for(auto const& [positionMap, torqueVectorMap] : hapticData.torqueMap)  //NOLINT
-        //     {
-        //         if(positionSens < positionMap)
-        //         {
-        //             // positionNorm is between this and previous points - interpolate values
-        //             // calculate relative position in this segment <0,1>
-        //             float positionInSegment = (positionSens - previousPositionMap) / (positionMap - previousPositionMap);
-        //             direction = previousDirection + (torqueVectorMap.first - previousDirection) * positionInSegment;
-        //             magnitude = previousMagnitude + (torqueVectorMap.second - previousMagnitude) * positionInSegment;
-        //             isVectorInterpolated = true;
-        //             break;
-        //         }
-
-        //         previousPositionMap = positionMap;
-        //         previousDirection = torqueVectorMap.first;
-        //         previousMagnitude = torqueVectorMap.second;
-        //     }
-
-        //     if(!isVectorInterpolated)
-        //     {
-        //         // positionNorm is greater than the last point in the map - take values of this last point
-        //         direction = previousDirection;
-        //         magnitude = previousMagnitude;
-        //     }
-
-        // }
-        // break;
-
         default:
         break;
     }
