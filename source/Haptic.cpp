@@ -140,10 +140,23 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
         case HapticMode::Free:
         {
-            static const float FollowRatio = 0.04F;
+            //static const float FollowRatio = 0.04F;
+            float FollowRatio = pot;
             static const float DetentRange = 0.1F;
+            static const float ErrorThreshold = 0.1F; 
             error = currentReferencePosition - filteredPosition;
             torque = hapticData.torqueGain * error;
+            if(fabs(error) > ErrorThreshold)
+            {
+                currentReferencePosition -= (error > 0 ?
+                                            (error - ErrorThreshold) * FollowRatio :
+                                            (error + ErrorThreshold) * FollowRatio);
+            }
+            else
+            {
+                currentReferencePosition -= error * 0.01F;
+            }
+
             if(filteredPosition < hapticData.minPosition)
             {
                 currentReferencePosition = hapticData.minPosition;
@@ -152,17 +165,14 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             {
                 currentReferencePosition = hapticData.maxPosition;
             }
-            else if((!hapticData.detentPositions.empty()) &&
-                    (hapticData.detentPositions[0] != 0) &&
-                    (filteredPosition < hapticData.detentPositions[0]) &&
-                    (filteredPosition > hapticData.detentPositions[0] - DetentRange))
-            {
-                currentReferencePosition = hapticData.detentPositions[0];
-            }
-            else
-            {
-                currentReferencePosition -= error * FollowRatio;
-            }
+            // else if((!hapticData.detentPositions.empty()) &&
+            //         (hapticData.detentPositions[0] != 0) &&
+            //         (filteredPosition < hapticData.detentPositions[0]) &&
+            //         (filteredPosition > hapticData.detentPositions[0] - DetentRange))
+            // {
+            //     currentReferencePosition = hapticData.detentPositions[0];
+            // }
+
         }
         break;
 
@@ -184,7 +194,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 {
                     currentReferencePosition -= (error > 0 ? 0.01F : -0.01F);
                 }
-                gain = 50.0F;
+                gain = 30.0F;
             }
             torque = gain * error;
         }

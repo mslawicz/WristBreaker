@@ -95,9 +95,10 @@ void Commander::handler()
     //HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
     HapticData data
     {
+        .referencePosition = pot,
         .minPosition = 0.25F,
         .maxPosition = 0.75F,
-        .torqueGain = 6.0F,
+        .torqueGain = 4.0F,
         .filterRatio = 0.7F,
         .detentPositions{std::vector<float>{0.35F}}
     }; // for Free
@@ -105,7 +106,7 @@ void Commander::handler()
     {
         data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 2.0F);
     }
-    throttleLever.handler(HapticMode::Fine, data);
+    throttleLever.handler(HapticMode::Free, data);
 
     if(systemPushbutton.read() == 1)
     {
