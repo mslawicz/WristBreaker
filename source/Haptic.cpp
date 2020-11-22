@@ -166,6 +166,30 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         }
         break;
 
+        case HapticMode::Fine:
+        {
+            error = currentReferencePosition - filteredPosition;
+            float gain = hapticData.torqueGain;
+            if(filteredPosition < hapticData.minPosition)
+            {
+                currentReferencePosition = hapticData.minPosition;
+            }
+            else if(filteredPosition > hapticData.maxPosition)
+            {
+                currentReferencePosition = hapticData.maxPosition;
+            }
+            else
+            {
+                if(fabs(error) > 0.01F)
+                {
+                    currentReferencePosition -= (error > 0 ? 0.01F : -0.01F);
+                }
+                gain = 50.0F;
+            }
+            torque = gain * error;
+        }
+        break;
+
         default:
         break;
     }

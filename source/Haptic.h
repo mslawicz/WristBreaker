@@ -23,7 +23,8 @@ enum class HapticMode
 {
     Spring,
     MultiPosition,
-    Free
+    Free,
+    Fine
 };
 
 struct HapticData

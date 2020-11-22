@@ -105,7 +105,7 @@ void Commander::handler()
     {
         data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 2.0F);
     }
-    throttleLever.handler(HapticMode::Free, data);
+    throttleLever.handler(HapticMode::Fine, data);
 
     if(systemPushbutton.read() == 1)
     {
