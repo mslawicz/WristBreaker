@@ -8,6 +8,7 @@
 #include "Encoder.h"
 #include <iostream>
 #include <iomanip>
+#include <chrono>
 
 AS5600::AS5600(PinName input) :
     analogInput(input)
@@ -21,17 +22,32 @@ void Encoder::program(const CommandVector& /*cv*/)
 
     I2C i2c(I2C_SDA, I2C_SCL);
     const uint8_t DeviceAddress = 0x6C;
-    const char registerAddress = 0;
+    const char AddressZMCO = 0;
+    const char AddressMANG = 0x05;
     char dataBuffer[BufferSize];       //NOLINT
-    if(i2c.write(DeviceAddress, &registerAddress, 1, true) == 0)
+    if(i2c.write(DeviceAddress, &AddressZMCO, 1, true) == 0)
     {
         //device has responded - ready to read
         if(i2c.read(DeviceAddress, static_cast<char*>(dataBuffer), BufferSize) == 0)
         {
             std::cout << "Registers: ";
-            for(size_t index = 0; index < BufferSize; index++)
+            for(char index : dataBuffer)
             {
-                std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(dataBuffer[index]) << " "; //NOLINT
+                std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(index) << " "; //NOLINT
+            }
+            std::cout << std::endl;
+
+            dataBuffer[0] = AddressMANG;
+            dataBuffer[1] = 0x0F;
+            dataBuffer[2] = 0xFF;
+            i2c.write(DeviceAddress, static_cast<char*>(dataBuffer), 3);
+            //const std::chrono::milliseconds Delay{1};
+            ThisThread::sleep_for(std::chrono::milliseconds{1});
+
+            std::cout << "Registers: ";
+            for(char index : dataBuffer)
+            {
+                std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(index) << " "; //NOLINT
             }
             std::cout << std::endl;
         }
