@@ -6,8 +6,15 @@
  */
 
 #include "Encoder.h"
+#include <iostream>
 
 AS5600::AS5600(PinName input) :
     analogInput(input)
 {
+}
+
+// program the encoder chip via I2C
+void Encoder::program(const CommandVector& /*cv*/)
+{
+    std::cout << "programming encoder\n";
 }

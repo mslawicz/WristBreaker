@@ -9,6 +9,7 @@
 #define ENCODER_H_
 
 #include <mbed.h>
+#include "Console.h"
 
 class Encoder
 {
@@ -20,6 +21,7 @@ public:
     Encoder(Encoder&&) = default;
     Encoder& operator=(Encoder&&) = default;
     virtual float getValue() =0;
+    static void program(const CommandVector& /*cv*/);
 };
 
 class AS5600 : public Encoder

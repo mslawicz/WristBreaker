@@ -28,6 +28,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     PCLink.connect();
 
     Console::getInstance().registerCommand("rr", "display latest received report data from PC", callback(this, &Commander::displayIncomingReport));
+    Console::getInstance().registerCommand("pec", "program the encoder chip", callback(&Encoder::program));
     eventQueue.call_every(HandlerPeriod, this, &Commander::handler);
 }
 
