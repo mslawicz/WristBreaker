@@ -22,7 +22,8 @@ void Encoder::program(const CommandVector& /*cv*/)
 
     I2C i2c(I2C_SDA, I2C_SCL);
     const uint8_t DeviceAddress = 0x6C;
-    const char AddressZMCO = 0;
+    const char AddressZMCO = 0x00;
+    const char AddressZPOS = 0x01;
     const char AddressMANG = 0x05;
     char dataBuffer[BufferSize];       //NOLINT
     if(i2c.write(DeviceAddress, &AddressZMCO, 1, true) == 0)
@@ -37,13 +38,16 @@ void Encoder::program(const CommandVector& /*cv*/)
             }
             std::cout << std::endl;
 
-            dataBuffer[0] = AddressMANG;
-            dataBuffer[1] = 0x0F;
-            dataBuffer[2] = 0xFF;
-            i2c.write(DeviceAddress, static_cast<char*>(dataBuffer), 3);
-            //const std::chrono::milliseconds Delay{1};
+            dataBuffer[0] = AddressZPOS;
+            dataBuffer[1] = 0x00;
+            dataBuffer[2] = 0x00;
+            dataBuffer[3] = 0x0F;
+            dataBuffer[4] = 0xFF;
+            i2c.write(DeviceAddress, static_cast<char*>(dataBuffer), 5);
             ThisThread::sleep_for(std::chrono::milliseconds{1});
 
+            i2c.write(DeviceAddress, &AddressZMCO, 1, true);
+            i2c.read(DeviceAddress, static_cast<char*>(dataBuffer), BufferSize);
             std::cout << "Registers: ";
             for(char index : dataBuffer)
             {

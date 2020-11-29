@@ -9,6 +9,7 @@
 #include "Convert.h"
 #include <cmath>
 #include <iostream>
+#include <ostream>
 #include <utility>
 
 HapticDevice::HapticDevice
@@ -206,14 +207,14 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
     setTorqueVector(torque, fabs(torque));
 
-    // static int cnt = 0;
-    // if(cnt++ %100 == 0)
-    // {
-    //     std::cout << "pos=" << positionSens;
-    //     std::cout << "  df=" << positionSens - filteredPosition;
-    //     std::cout << "  pot=" << pot;
-    //     std::cout << "  dir=" << torque;
-    //     std::cout << "  mag=" << fabs(torque);
-    //     std::cout << std::endl;
-    // }
+    static int cnt = 0;
+    if(cnt++ %100 == 0)
+    {
+        std::cout << "pos=" << positionSens;
+        // std::cout << "  df=" << positionSens - filteredPosition;
+        // std::cout << "  pot=" << pot;
+        // std::cout << "  dir=" << torque;
+        // std::cout << "  mag=" << fabs(torque);
+        std::cout << "   \r" << std::flush;
+    }
 }
