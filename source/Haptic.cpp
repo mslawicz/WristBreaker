@@ -45,6 +45,14 @@ void HapticDevice::setTorqueVector(float direction, float magnitude)
     // calculate relative electric phase from motor shaft position (shifted from the real position)
     float phaseSens = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod;
 
+    //QQQ test of motor spin
+    // static float testPhase = 0.0F;
+    // testPhase = cropAngle<float>(testPhase + direction * QuarterCycle);
+    // float testMagnitude = 0.4F + fabs(direction);
+    // pMotor->setFieldVector(testPhase, testMagnitude);    // spinning
+    //pMotor->setFieldVector(direction * FullCycle, 0.6F);    // static position
+    //return;
+
     if(isCalibrated)
     {
         // additional phase shift for generating torque (max 90 degrees)
@@ -206,13 +214,14 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     }
 
     setTorqueVector(torque, fabs(torque));
+    //setTorqueVector(pot, 0.0F); //QQQ spinning test
 
     static int cnt = 0;
     if(cnt++ %100 == 0)
     {
         std::cout << "pos=" << positionSens;
         // std::cout << "  df=" << positionSens - filteredPosition;
-        // std::cout << "  pot=" << pot;
+        std::cout << "  pot=" << pot;
         // std::cout << "  dir=" << torque;
         // std::cout << "  mag=" << fabs(torque);
         std::cout << "   \r" << std::flush;

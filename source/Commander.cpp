@@ -16,10 +16,10 @@ Commander::Commander(events::EventQueue& eventQueue) :
     throttleLever   //XXX test
     (
         new MotorBLDC(PA_0, PB_10, PB_11, PE_7, 7),     //NOLINTreadability-magic-numbers)
-        new AS5600(PC_5),
+        new AS5600(PA_6),
         "throttle lever"
     ),
-    testPot(PA_3),   //XXX test
+    testPot(PA_5),   //XXX test
     systemPushbutton(USER_BUTTON)
 {
     std::cout << "Commander object created\n";
@@ -92,22 +92,22 @@ void Commander::handler()
 
     //XXX test of haptic device
     float pot = testPot.read();
-    //HapticData data{.referencePosition = pot, .torqueGain = 4.0F, .filterRatio = 0.7F}; // for Spring
+    HapticData data{.referencePosition = 0.3F + 0.4F * pot, .torqueGain = 4.0F, .filterRatio = 0.8F}; // for Spring
     //HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
-    HapticData data
-    {
-        .referencePosition = pot,
-        .minPosition = 0.25F,
-        .maxPosition = 0.75F,
-        .torqueGain = 4.0F,
-        .filterRatio = 0.7F,
-        .detentPositions{std::vector<float>{0.35F}}
-    }; // for Free
+    // HapticData data
+    // {
+    //     .referencePosition = pot,
+    //     .minPosition = 0.25F,
+    //     .maxPosition = 0.75F,
+    //     .torqueGain = 4.0F,
+    //     .filterRatio = 0.7F,
+    //     .detentPositions{std::vector<float>{0.35F}}
+    // }; // for Free
     for(uint8_t k=0; k<3; k++)
     {
         data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 2.0F);
     }
-    throttleLever.handler(HapticMode::Free, data);
+    throttleLever.handler(HapticMode::Spring, data);
 
     if(systemPushbutton.read() == 1)
     {
