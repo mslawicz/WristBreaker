@@ -144,6 +144,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             }
             error = closestDetentPosition - filteredPosition;     // distance from closest detent position
             torque = hapticData.torqueGain * error;
+            positionIndex = closestDetentPosition;
         }
         break;
 

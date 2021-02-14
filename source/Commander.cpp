@@ -82,14 +82,6 @@ void Commander::handler()
         static_cast<uint8_t>((joystickData.buttons >> 24) & 0xFF)    // NOLINT
     };
 
-    //we do not send joystick reports in this version PCLink.sendReport(1, joystickReportData);
-    std::vector<uint8_t> testData
-    {
-        1, 2, 3, 4, 5
-    };
-    testData.resize(63);    // NOLINT
-    PCLink.sendReport(2, testData);
-
     //XXX test of haptic device
     float pot = testPot.read();
     //HapticData data{.referencePosition = 0.3F + 0.4F * pot, .torqueGain = 4.0F, .filterRatio = 0.8F}; // for Spring
@@ -113,6 +105,14 @@ void Commander::handler()
     {
         flapsLever.calibrationRequest();
     }
+
+    //we do not send joystick reports in this version PCLink.sendReport(1, joystickReportData);
+    std::vector<uint8_t> testData
+    {
+        flapsLever.getPositionIndex()
+    };
+    testData.resize(63);    // NOLINT
+    PCLink.sendReport(2, testData);
 }
 
 /*
