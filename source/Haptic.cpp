@@ -46,12 +46,12 @@ void HapticDevice::setTorqueVector(float direction, float magnitude)
     float phaseSens = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod;
 
     //QQQ test of motor spin
-    static float testPhase = 0.0F;
-    testPhase = cropAngle<float>(testPhase + direction * QuarterCycle);
-    float testMagnitude = 0.4F + fabs(direction);
-    pMotor->setFieldVector(testPhase, testMagnitude);    // spinning
+    // static float testPhase = 0.0F;
+    // testPhase = cropAngle<float>(testPhase + direction * QuarterCycle);
+    // float testMagnitude = 0.4F + fabs(direction);
+    // pMotor->setFieldVector(testPhase, testMagnitude);    // spinning
     //pMotor->setFieldVector(direction * FullCycle, 0.6F);    // static position
-    return;
+    //return;
 
     if(isCalibrated)
     {
@@ -133,18 +133,18 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         {
             float closestDetentPosition = 0;
             float smallestDistance = 1.0F;
-            for(auto& detentPosition : hapticData.detentPositions)
+            for(size_t indx = 0; indx < hapticData.detentPositions.size(); indx++)
             {
-                float distance = fabs(detentPosition - filteredPosition);
+                float distance = fabs(hapticData.detentPositions[indx] - filteredPosition);
                 if(distance < smallestDistance)
                 {
-                    closestDetentPosition = detentPosition;
+                    closestDetentPosition = hapticData.detentPositions[indx];
                     smallestDistance = distance;
+                    detentIndex = indx;
                 }
             }
             error = closestDetentPosition - filteredPosition;     // distance from closest detent position
             torque = hapticData.torqueGain * error;
-            positionIndex = closestDetentPosition;
         }
         break;
 
@@ -214,16 +214,15 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         break;
     }
 
-    //setTorqueVector(torque, fabs(torque) * 0.7F + 0.3F);
-    setTorqueVector(pot - 0.5F, 0.0F); //QQQ spinning test
+    setTorqueVector(torque, fabs(torque) * 0.7F + 0.3F);
+    //setTorqueVector(pot - 0.5F, 0.0F); //QQQ spinning test
 
     static int cnt = 0;
     if(cnt++ %100 == 0)
     {
         std::cout << "pos=" << positionSens;
-        // std::cout << "  df=" << positionSens - filteredPosition;
         std::cout << "  pot=" << pot;
-        // std::cout << "  dir=" << torque;
+        std::cout << "  pindx=" << static_cast<int>(getPositionIndex());
         // std::cout << "  mag=" << fabs(torque);
         std::cout << "   \r" << std::flush;
     }

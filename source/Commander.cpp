@@ -109,7 +109,10 @@ void Commander::handler()
     //we do not send joystick reports in this version PCLink.sendReport(1, joystickReportData);
     std::vector<uint8_t> testData
     {
-        flapsLever.getPositionIndex()
+        flapsLever.getPositionIndex(),
+        0x61,
+        0x62,
+        0x63
     };
     testData.resize(63);    // NOLINT
     PCLink.sendReport(2, testData);

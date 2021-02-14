@@ -53,7 +53,7 @@ public:
     void operator=(HapticDevice&&) = delete;
     void calibrationRequest();
     void handler(HapticMode hapticMode, HapticData& hapticData);
-    uint8_t getPositionIndex() const { return positionIndex; }
+    uint8_t getPositionIndex() const { return detentIndex; }
 private:
     void setTorqueVector(float direction, float magnitude);
     MotorBLDC* pMotor;      // BLDC motor
@@ -68,7 +68,7 @@ private:
     std::string name;       // the name of this haptic device
     float filteredPosition{0};  // filtered motor position
     float currentReferencePosition{0};  // current reference position in Free mode 
-    uint8_t positionIndex{0};       // position index in multiposition mode
+    uint8_t detentIndex{0};       // current detent index in multiposition mode
 };
 
 #endif /* HAPTIC_H_ */
