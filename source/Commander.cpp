@@ -13,7 +13,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
     heartBeatLed(LED2),
     PCLink(USB_VID, USB_PID, USB_VER),
-    throttleLever   //XXX test
+    flapsLever   //XXX test
     (
         new MotorBLDC(PA_0, PB_10, PB_11, PE_7, 7),     //NOLINTreadability-magic-numbers)
         new AS5600(PA_6),
@@ -82,36 +82,36 @@ void Commander::handler()
         static_cast<uint8_t>((joystickData.buttons >> 24) & 0xFF)    // NOLINT
     };
 
-    PCLink.sendReport(1, joystickReportData);
-    if(handlerCallCounter % 20 == 0) // NOLINT
+    //we do not send joystick reports in this version PCLink.sendReport(1, joystickReportData);
+    std::vector<uint8_t> testData
     {
-        std::vector<uint8_t> testData{1, 2, 3, 4, 5};   // NOLINT
-        testData.resize(63);    // NOLINT
-        PCLink.sendReport(2, testData);
-    }
+        1, 2, 3, 4, 5
+    };
+    testData.resize(63);    // NOLINT
+    PCLink.sendReport(2, testData);
 
     //XXX test of haptic device
     float pot = testPot.read();
-    HapticData data{.referencePosition = 0.3F + 0.4F * pot, .torqueGain = 4.0F, .filterRatio = 0.8F}; // for Spring
-    //HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
+    //HapticData data{.referencePosition = 0.3F + 0.4F * pot, .torqueGain = 4.0F, .filterRatio = 0.8F}; // for Spring
+    HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
     // HapticData data
     // {
     //     .referencePosition = pot,
-    //     .minPosition = 0.25F,
-    //     .maxPosition = 0.75F,
-    //     .torqueGain = 4.0F,
+    //     .minPosition = 0.2F,
+    //     .maxPosition = 0.8F,
+    //     .torqueGain = 6.0F,
     //     .filterRatio = 0.7F,
-    //     .detentPositions{std::vector<float>{0.35F}}
+    //     .detentPositions{std::vector<float>{0.3F + 0.4F * pot}}
     // }; // for Free
-    for(uint8_t k=0; k<3; k++)
+    for(uint8_t k=0; k<4; k++)
     {
-        data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 2.0F);
+        data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 3.0F);
     }
-    throttleLever.handler(HapticMode::Spring, data);
+    flapsLever.handler(HapticMode::MultiPosition, data);
 
     if(systemPushbutton.read() == 1)
     {
-        throttleLever.calibrationRequest();
+        flapsLever.calibrationRequest();
     }
 }
 

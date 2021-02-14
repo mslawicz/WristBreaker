@@ -46,12 +46,12 @@ void HapticDevice::setTorqueVector(float direction, float magnitude)
     float phaseSens = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod;
 
     //QQQ test of motor spin
-    // static float testPhase = 0.0F;
-    // testPhase = cropAngle<float>(testPhase + direction * QuarterCycle);
-    // float testMagnitude = 0.4F + fabs(direction);
-    // pMotor->setFieldVector(testPhase, testMagnitude);    // spinning
+    static float testPhase = 0.0F;
+    testPhase = cropAngle<float>(testPhase + direction * QuarterCycle);
+    float testMagnitude = 0.4F + fabs(direction);
+    pMotor->setFieldVector(testPhase, testMagnitude);    // spinning
     //pMotor->setFieldVector(direction * FullCycle, 0.6F);    // static position
-    //return;
+    return;
 
     if(isCalibrated)
     {
@@ -151,7 +151,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         {
             //static const float FollowRatio = 0.04F;
             float FollowRatio = pot;
-            static const float DetentRange = 0.1F;
+            static const float DetentRange = 0.05F;
             static const float ErrorThreshold = 0.1F; 
             error = currentReferencePosition - filteredPosition;
             torque = hapticData.torqueGain * error;
@@ -174,13 +174,13 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             {
                 currentReferencePosition = hapticData.maxPosition;
             }
-            // else if((!hapticData.detentPositions.empty()) &&
-            //         (hapticData.detentPositions[0] != 0) &&
-            //         (filteredPosition < hapticData.detentPositions[0]) &&
-            //         (filteredPosition > hapticData.detentPositions[0] - DetentRange))
-            // {
-            //     currentReferencePosition = hapticData.detentPositions[0];
-            // }
+            else if((!hapticData.detentPositions.empty()) &&
+                    (hapticData.detentPositions[0] != 0) &&
+                    (filteredPosition < hapticData.detentPositions[0] + DetentRange) &&
+                    (filteredPosition > hapticData.detentPositions[0] - DetentRange))
+            {
+                currentReferencePosition = hapticData.detentPositions[0];
+            }
 
         }
         break;
@@ -213,8 +213,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         break;
     }
 
-    setTorqueVector(torque, fabs(torque));
-    //setTorqueVector(pot, 0.0F); //QQQ spinning test
+    //setTorqueVector(torque, fabs(torque) * 0.7F + 0.3F);
+    setTorqueVector(pot - 0.5F, 0.0F); //QQQ spinning test
 
     static int cnt = 0;
     if(cnt++ %100 == 0)
