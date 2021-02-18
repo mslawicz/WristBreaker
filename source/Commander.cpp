@@ -121,11 +121,18 @@ void Commander::handler()
 /*
 * parse report data received from PC
 */
-void Commander::parseReportData()   //NOLINT XXX remove when function is done
+void Commander::parseReportData()
 {
-    // XXX test
-    std::cout << "i" << std::flush;
-
+    if((receivedReport[1] > 0) &&       // flaps handle positions > 0
+       (receivedReport[2] != simData.flapsHandleIndex) &&    // flaps index has been changed
+       (receivedReport[2] < receivedReport[1]))     // handle index < number of positions
+    {
+        simData.requestedFlapsHandleIndex = receivedReport[2];
+        simData.flapsHandleSetRequest = true;
+        std::cout << "flaps handle position change request " << static_cast<int>(simData.flapsHandleIndex) << "->" << static_cast<int>(receivedReport[2]) << std::endl;
+    }
+    simData.flapsNumHandlePositions = receivedReport[1];
+    simData.flapsHandleIndex = receivedReport[2];
 }
 
 /*

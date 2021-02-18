@@ -35,6 +35,13 @@ public:
     explicit Commander(events::EventQueue& eventQueue);
     void displayIncomingReport(const CommandVector& /*cv*/);
 private:
+    struct SimData
+    {
+        uint8_t flapsNumHandlePositions;
+        uint8_t flapsHandleIndex;
+        uint8_t requestedFlapsHandleIndex;
+        bool flapsHandleSetRequest;
+    };
     void handler();
     void parseReportData();                     // parse received report data
     events::EventQueue& eventQueue;             // event queue of the Commander's thread
@@ -47,6 +54,7 @@ private:
     HapticDevice flapsLever;                    // flaps lever object
     AnalogIn testPot;                           // XXX test potentiometer
     DigitalIn systemPushbutton;                 // Nucleo board blue button
+    SimData simData;                            // data received and calculated from simConnect
 };
 
 #endif /* COMMANDER_H_ */
