@@ -131,6 +131,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
         case HapticMode::MultiPosition:     // multi-position detents
         {
+            // calculate current closest position index
             float closestDetentPosition = 0;
             float smallestDistance = 1.0F;
             for(size_t indx = 0; indx < hapticData.detentPositions.size(); indx++)
@@ -143,6 +144,13 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     detentIndex = indx;
                 }
             }
+
+            // force position if required by Commander
+            if(hapticData.setPositionRequest)
+            {
+                closestDetentPosition = hapticData.detentPositions[hapticData.requestedIndex];
+            }
+
             error = closestDetentPosition - filteredPosition;     // distance from closest detent position
             torque = hapticData.torqueGain * error;
         }

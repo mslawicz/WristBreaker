@@ -85,7 +85,6 @@ void Commander::handler()
     //XXX test of haptic device
     float pot = testPot.read();
     //HapticData data{.referencePosition = 0.3F + 0.4F * pot, .torqueGain = 4.0F, .filterRatio = 0.8F}; // for Spring
-    HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
     // HapticData data
     // {
     //     .referencePosition = pot,
@@ -95,6 +94,8 @@ void Commander::handler()
     //     .filterRatio = 0.7F,
     //     .detentPositions{std::vector<float>{0.3F + 0.4F * pot}}
     // }; // for Free
+
+    HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
     for(uint8_t k=0; k<4; k++)
     {
         data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 3.0F);

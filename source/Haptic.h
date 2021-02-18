@@ -35,6 +35,8 @@ struct HapticData
     float torqueGain;           // proportional gain of the torque *see note below
     float filterRatio;          // position filter ratio, 0-no filtering
     std::vector<float> detentPositions;     // vector of detent positions
+    bool setPositionRequest;    // request setting a desired position
+    uint8_t requestedIndex;     // the requested index to be set
 };
 
 class HapticDevice
