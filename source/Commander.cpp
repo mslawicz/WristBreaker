@@ -105,15 +105,15 @@ void Commander::handler()
         .requestedIndex = simData.requestedFlapsHandleIndex
     }; // for MultiPosition
     // set position detent list
-    if(simData.flapsNumHandlePositions < 2)
+    if(simData.flapsNumHandlePositions < 1)
     {
         data.detentPositions.push_back(0.5F);   // the only detent position
     }
     else
     {
-        for(uint8_t pI = 0; pI < simData.flapsNumHandlePositions; pI++)
+        for(uint8_t pI = 0; pI <= simData.flapsNumHandlePositions; pI++)
         {
-            data.detentPositions.push_back(0.25F + 0.5F * pI / (simData.flapsNumHandlePositions - 1)); // NOLINT
+            data.detentPositions.push_back(0.25F + 0.5F * pI / simData.flapsNumHandlePositions); // NOLINT
         }
     }
 
@@ -151,7 +151,7 @@ void Commander::parseReportData()
 {
     if((receivedReport[1] > 0) &&       // flaps handle positions > 0
        (receivedReport[2] != simData.flapsHandleIndex) &&    // flaps index has been changed
-       (receivedReport[2] < receivedReport[1]))     // handle index < number of positions
+       (receivedReport[2] <= receivedReport[1]))     // handle index <= number of positions excluding position 0
     {
         simData.requestedFlapsHandleIndex = receivedReport[2];
         simData.flapsHandleSetRequest = true;

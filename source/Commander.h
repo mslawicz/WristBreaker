@@ -37,7 +37,7 @@ public:
 private:
     struct SimData
     {
-        uint8_t flapsNumHandlePositions;
+        uint8_t flapsNumHandlePositions;    // flaps handle positions excluding retracted position
         uint8_t flapsHandleIndex;
         uint8_t requestedFlapsHandleIndex;
         bool flapsHandleSetRequest;
