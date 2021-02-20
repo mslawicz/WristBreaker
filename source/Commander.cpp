@@ -95,12 +95,37 @@ void Commander::handler()
     //     .detentPositions{std::vector<float>{0.3F + 0.4F * pot}}
     // }; // for Free
 
-    HapticData data{.referencePosition = pot, .torqueGain = 6.0F, .filterRatio = 0.7F}; // for MultiPosition
-    for(uint8_t k=0; k<4; k++)
+    // multiposition setup
+    HapticData data
     {
-        data.detentPositions.push_back(0.25F + (0.75F - 0.25F) * k / 3.0F);
+        .referencePosition = pot,
+        .torqueGain = 6.0F,
+        .filterRatio = 0.7F,
+        .setPositionRequest = simData.flapsHandleSetRequest,
+        .requestedIndex = simData.requestedFlapsHandleIndex
+    }; // for MultiPosition
+    // set position detent list
+    if(simData.flapsNumHandlePositions < 2)
+    {
+        data.detentPositions.push_back(0.5F);   // the only detent position
     }
+    else
+    {
+        for(uint8_t pI = 0; pI < simData.flapsNumHandlePositions; pI++)
+        {
+            data.detentPositions.push_back(0.25F + 0.5F * pI / (simData.flapsNumHandlePositions - 1)); // NOLINT
+        }
+    }
+
     flapsLever.handler(HapticMode::MultiPosition, data);
+
+    // check if requested lever position is achieved
+    if((simData.flapsHandleSetRequest) &&
+       (flapsLever.getPositionIndex() == simData.flapsHandleIndex))
+    {
+        // request granted
+        simData.flapsHandleSetRequest = false;
+    }
 
     if(systemPushbutton.read() == 1)
     {
