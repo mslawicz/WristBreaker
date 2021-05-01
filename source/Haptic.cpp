@@ -172,7 +172,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             }
             else
             {
-                currentReferencePosition -= error * 0.01F;
+                currentReferencePosition -= error * 0.01F;  // NOLINT
             }
 
             if(filteredPosition < hapticData.minPosition)
@@ -208,11 +208,11 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             }
             else
             {
-                if(fabs(error) > 0.01F)
+                if(fabs(error) > 0.01F)     // NOLINT
                 {
-                    currentReferencePosition -= (error > 0 ? 0.01F : -0.01F);
+                    currentReferencePosition -= (error > 0 ? 0.01F : -0.01F);   // NOLINT
                 }
-                gain = 30.0F;
+                gain = 30.0F;       // NOLINT
             }
             torque = gain * error;
         }
@@ -222,11 +222,11 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         break;
     }
 
-    setTorqueVector(torque, fabs(torque) * 0.7F + 0.3F);
+    setTorqueVector(torque, fabs(torque) * 0.7F + 0.3F);    // NOLINT
     //setTorqueVector(pot - 0.5F, 0.0F); //QQQ spinning test
 
     static int cnt = 0;
-    if(cnt++ %100 == 0)
+    if(cnt++ %100 == 0) // NOLINT
     {
         std::cout << "pos=" << positionSens;
         std::cout << "  pot=" << pot;

@@ -54,7 +54,7 @@ private:
     HapticDevice flapsLever;                    // flaps lever object
     AnalogIn testPot;                           // XXX test potentiometer
     DigitalIn systemPushbutton;                 // Nucleo board blue button
-    SimData simData;                            // data received and calculated from simConnect
+    SimData simData{0};                            // data received and calculated from simConnect
 };
 
 #endif /* COMMANDER_H_ */

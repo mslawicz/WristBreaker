@@ -20,7 +20,7 @@ void Encoder::program(const CommandVector& /*cv*/)
 {
     static const size_t BufferSize = 32; 
 
-    I2C i2c(I2C_SDA, I2C_SCL);
+    I2C i2c(PB_9, PB_8);    //XXX check ports!
     const uint8_t DeviceAddress = 0x6C;
     const char AddressZMCO = 0x00;
     const char AddressZPOS = 0x01;

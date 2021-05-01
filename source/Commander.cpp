@@ -99,15 +99,15 @@ void Commander::handler()
     HapticData data
     {
         .referencePosition = pot,
-        .torqueGain = 6.0F,
-        .filterRatio = 0.7F,
+        .torqueGain = 6.0F, // NOLINT
+        .filterRatio = 0.7F,    // NOLINT
         .setPositionRequest = simData.flapsHandleSetRequest,
         .requestedIndex = simData.requestedFlapsHandleIndex
     }; // for MultiPosition
     // set position detent list
     if(simData.flapsNumHandlePositions < 1)
     {
-        data.detentPositions.push_back(0.5F);   // the only detent position
+        data.detentPositions.push_back(0.5F);   // NOLINT the only detent position
     }
     else
     {
@@ -136,9 +136,9 @@ void Commander::handler()
     std::vector<uint8_t> testData
     {
         flapsLever.getPositionIndex(),
-        0x61,
-        0x62,
-        0x63
+        0x61,   // NOLINT
+        0x62,   // NOLINT
+        0x63    // NOLINT
     };
     testData.resize(63);    // NOLINT
     PCLink.sendReport(2, testData);
