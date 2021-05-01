@@ -84,7 +84,7 @@ void Commander::handler()
 
     //XXX test of haptic device
     float pot = testPot.read();
-    //HapticData data{.referencePosition = 0.3F + 0.4F * pot, .torqueGain = 4.0F, .filterRatio = 0.8F}; // for Spring
+    HapticData data{.referencePosition = 0.3F + 0.4F * pot, .torqueGain = 4.0F, .filterRatio = 0.8F}; // NOLINT ;for Spring
     // HapticData data
     // {
     //     .referencePosition = pot,
@@ -96,41 +96,41 @@ void Commander::handler()
     // }; // for Free
 
     // multiposition setup
-    HapticData data
-    {
-        .referencePosition = pot,
-        .torqueGain = 6.0F, // NOLINT
-        .filterRatio = 0.7F,    // NOLINT
-        .setPositionRequest = simData.flapsHandleSetRequest,
-        .requestedIndex = simData.requestedFlapsHandleIndex
-    }; // for MultiPosition
+    // HapticData data
+    // {
+    //     .referencePosition = pot,
+    //     .torqueGain = 6.0F, // NOLINT
+    //     .filterRatio = 0.7F,    // NOLINT
+    //     .setPositionRequest = simData.flapsHandleSetRequest,
+    //     .requestedIndex = simData.requestedFlapsHandleIndex
+    // }; // for MultiPosition
     // set position detent list
-    if(simData.flapsNumHandlePositions < 1)
-    {
-        data.detentPositions.push_back(0.5F);   // NOLINT the only detent position
-    }
-    else
-    {
-        for(uint8_t pI = 0; pI <= simData.flapsNumHandlePositions; pI++)
-        {
-            data.detentPositions.push_back(0.25F + 0.5F * pI / simData.flapsNumHandlePositions); // NOLINT
-        }
-    }
+    // if(simData.flapsNumHandlePositions < 1)
+    // {
+    //     data.detentPositions.push_back(0.5F);   // NOLINT the only detent position
+    // }
+    // else
+    // {
+    //     for(uint8_t pI = 0; pI <= simData.flapsNumHandlePositions; pI++)
+    //     {
+    //         data.detentPositions.push_back(0.25F + 0.5F * pI / simData.flapsNumHandlePositions); // NOLINT
+    //     }
+    // }
 
-    flapsLever.handler(HapticMode::MultiPosition, data);
+    flapsLever.handler(HapticMode::Spring, data);
 
     // check if requested lever position is achieved
-    if((simData.flapsHandleSetRequest) &&
-       (flapsLever.getPositionIndex() == simData.flapsHandleIndex))
-    {
-        // request granted
-        simData.flapsHandleSetRequest = false;
-    }
+    // if((simData.flapsHandleSetRequest) &&
+    //    (flapsLever.getPositionIndex() == simData.flapsHandleIndex))
+    // {
+    //     // request granted
+    //     simData.flapsHandleSetRequest = false;
+    // }
 
-    if(systemPushbutton.read() == 1)
-    {
-        flapsLever.calibrationRequest();
-    }
+    // if(systemPushbutton.read() == 1)
+    // {
+    //     flapsLever.calibrationRequest();
+    // }
 
     //we do not send joystick reports in this version PCLink.sendReport(1, joystickReportData);
     std::vector<uint8_t> testData
