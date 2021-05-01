@@ -20,7 +20,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         "throttle lever"
     ),
     testPot(PA_5),   //XXX test
-    systemPushbutton(USER_BUTTON)
+    systemPushbutton(BUTTON1)
 {
     std::cout << "Commander object created\n";
 
