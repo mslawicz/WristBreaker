@@ -22,7 +22,7 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
 }
 
 // returns sine(argument)
-// argument: 0..90 degrees
+// argument in degrees
 float MotorBLDC::fastSineD(float argument)
 {
     static const float FullCycle = 360.0F;
@@ -51,6 +51,8 @@ float MotorBLDC::fastSineD(float argument)
     {
         argument = HalfCycle - argument;
     }
+
+    // at this stage the argument is in the range 0..90
 
     int lowerIndex = static_cast<int>(argument);
     if (lowerIndex == (SineArraySize - 1))

@@ -64,9 +64,7 @@ private:
     float positionPeriod;   // position segment size of electric 360 degrees cycle
     bool isCalibrated{false};   // true if the device has been calibrated
     float phaseShift{0};    // phase shift between motor electrical phase and sensor phase 
-    bool calibrationDirection{true};    // true==up, false==down
-    uint8_t calibrationCounter{0};      // counts calibration steps
-    float currentPhase{0};
+    float currentPhase{0};  // current electric phase of the motor
     std::string name;       // the name of this haptic device
     float filteredPosition{0};  // filtered motor position
     float currentReferencePosition{0};  // current reference position in Free mode 

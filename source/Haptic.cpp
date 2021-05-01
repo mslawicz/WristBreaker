@@ -38,71 +38,16 @@ HapticDevice::~HapticDevice()
 void HapticDevice::setTorqueVector(float direction, float magnitude)
 {
     static const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
-    static const float FullCycle = 360.0F;      // full electric cycle in degrees
-    static const float CalUpperLimit = 0.7F;    // calibration range upper limit
-    static const float CalLowerLimit = 0.3F;    // calibration range lower limit
 
-    // calculate relative electric phase from motor shaft position (shifted from the real position)
-    float phaseSens = fmodf(positionSens, positionPeriod) * FullCycle / positionPeriod;
-
-    //QQQ test of motor spin
-    // static float testPhase = 0.0F;
-    // testPhase = cropAngle<float>(testPhase + direction * QuarterCycle);
-    // float testMagnitude = 0.4F + fabs(direction);
-    // pMotor->setFieldVector(testPhase, testMagnitude);    // spinning
-    //pMotor->setFieldVector(direction * FullCycle, 0.6F);    // static position
-    //return;
-
-    if(isCalibrated)
-    {
-        // additional phase shift for generating torque (max 90 degrees)
-        direction = scale<float>(-1.0F, 1.0F, direction, -1.0F, 1.0F);
-        float targetPhase = phaseSens + phaseShift + direction * QuarterCycle; 
-        pMotor->setFieldVector(targetPhase, magnitude);
-    }
-    else
-    {
-        // calibration phase
-        static const uint8_t NoOfCalibrationSteps = 100;    // number of calibration steps
-        static const float CalibrationPhaseStep = 10.0F;    // angle of electric phase movement between steps
-        static const float CalibrationVectorMagnitude = 0.6F;   // field vector magnitude during calibration
-        if(positionSens > CalUpperLimit)
-        {
-            calibrationDirection = false;
-        }
-        else if(positionSens < CalLowerLimit)
-        {
-            calibrationDirection = true;
-        }
-
-        if((positionSens > CalLowerLimit) && (positionSens < CalUpperLimit))
-        {
-            // motor is within required position range
-            if(calibrationCounter != 0) // ignore the first step
-            {
-                // sum phase shift for all steps
-                phaseShift += cropAngle<float>(currentPhase - phaseSens);
-            }
-
-            if(calibrationCounter++ == NoOfCalibrationSteps)
-            {
-                // calibration completed
-                isCalibrated = true;
-                phaseShift /= NoOfCalibrationSteps; // calculate mean phase shift
-                std::cout << name.c_str() << " calibrated (ps=" << phaseShift << ")\n";
-            }
-        }
-
-        // move motor to next position
-        currentPhase = cropAngle<float>(currentPhase + (calibrationDirection ? CalibrationPhaseStep : -CalibrationPhaseStep));
-        pMotor->setFieldVector(currentPhase, CalibrationVectorMagnitude);
-    }
+    // additional phase shift for generating torque (max 90 degrees)
+    direction = scale<float>(-1.0F, 1.0F, direction, -1.0F, 1.0F);
+    float targetPhase = currentPhase + direction * QuarterCycle;
+    pMotor->setFieldVector(targetPhase, magnitude);
 }
 
 // request calibration process
 void HapticDevice::calibrationRequest()
 {
-    calibrationCounter = 0;
     isCalibrated = false;
     phaseShift = 0;
 }
@@ -230,7 +175,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     {
         std::cout << "pos=" << positionSens;
         std::cout << "  pot=" << pot;
-        std::cout << "  pindx=" << static_cast<int>(getPositionIndex());
         // std::cout << "  mag=" << fabs(torque);
         std::cout << "   \r" << std::flush;
     }
