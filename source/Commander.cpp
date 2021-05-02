@@ -91,7 +91,7 @@ void Commander::handler()
     //send USB HID report 2
     std::vector<uint8_t> testData
     {
-        flapsLever.getPositionIndex(),
+        0x21,   // NOLINT
         0x61,   // NOLINT
         0x62,   // NOLINT
         0x63    // NOLINT
