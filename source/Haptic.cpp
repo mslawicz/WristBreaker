@@ -67,6 +67,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     filterEMA<float>(filteredPosition, encoderPosition, hapticData.filterRatio);
 
     float pot = hapticData.referencePosition;   //XXX
+    float phaseChange; //XXX
 
     //haptic device state machine
     switch(state)
@@ -93,17 +94,21 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 relativePosition = encoderPosition - 1.0F;
             }
             float error = hapticData.midPosition - relativePosition;
-            float torque = hapticData.torqueGain * error;
-            const float TorqueLimit = 0.1F;
-            if(torque > TorqueLimit)
+
+            /*float */phaseChange = 100.0F * error;
+            const float PhaseChangeLimit = 10.0F;
+            if(phaseChange > PhaseChangeLimit)
             {
-                torque = TorqueLimit;
+                phaseChange = PhaseChangeLimit;
             }
-            else if(torque < -TorqueLimit)
+            else if(phaseChange < -PhaseChangeLimit)
             {
-                torque = -TorqueLimit;
+                phaseChange = -PhaseChangeLimit;
             }
-            setTorqueVector(torque, fabs(error) * 0.7F + 0.3F);    // NOLINT
+
+            currentPhase += phaseChange;
+
+            pMotor->setFieldVector(currentPhase, 0.6F);
             break;
         }
 
@@ -115,7 +120,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     if(cnt++ %100 == 0) // NOLINT
     {
         std::cout << "pos=" << encoderPosition;
-        std::cout << "  pot=" << pot;
+        std::cout << "  cPh=" << currentPhase;
+        std::cout << "  pCh=" << phaseChange;
         // std::cout << "  mag=" << fabs(torque);
         std::cout << "   \r" << std::flush;
     }
