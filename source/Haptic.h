@@ -59,7 +59,7 @@ private:
     void setTorqueVector(float direction, float magnitude);
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
-    float positionSens{0};  // motor position read from encoder
+    float encoderPosition{0};  // motor position read from encoder
     float positionPeriod;   // position segment size of electric 360 degrees cycle
     bool isCalibrated{false};   // true if the device has been calibrated
     float currentPhase{0};  // current electric phase of the motor

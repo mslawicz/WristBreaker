@@ -65,16 +65,44 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     }
     
     // get motor shaft position from encoder <0,1>
-    positionSens = pEncoder->getValue();
+    encoderPosition = pEncoder->getValue();
     // filter motor position
-    filteredPosition = hapticData.filterRatio * filteredPosition + (1.0F - hapticData.filterRatio) * positionSens;
+    filterEMA<float>(filteredPosition, encoderPosition, hapticData.filterRatio);
 
     float pot = hapticData.referencePosition;   //XXX
-
 
     //remaining from spring case
     error = hapticData.referencePosition - filteredPosition;     // error of the current position
     torque = hapticData.torqueGain * error;
+
+    //haptic device state machine
+    switch(state)
+    {
+        case HapticState::Start:
+        {
+            const float InitialMagnitude = 0.5F;
+            currentPhase = 0.0F;
+            pMotor->setFieldVector(currentPhase, InitialMagnitude);
+            state = HapticState::Phase0;
+            break;
+        }
+
+
+        case HapticState::Phase0:
+        {
+            state = HapticState::Move2Ref;
+            break;
+        }
+
+        case HapticState::Move2Ref:
+        {
+            state = HapticState::Move2Ref;
+            break;
+        }
+
+        default:
+            break;
+    }
 
 
     setTorqueVector(torque, fabs(torque) * 0.7F + 0.3F);    // NOLINT
@@ -83,7 +111,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     static int cnt = 0;
     if(cnt++ %100 == 0) // NOLINT
     {
-        std::cout << "pos=" << positionSens;
+        std::cout << "pos=" << encoderPosition;
         std::cout << "  pot=" << pot;
         // std::cout << "  mag=" << fabs(torque);
         std::cout << "   \r" << std::flush;
