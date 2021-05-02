@@ -52,6 +52,7 @@ void HapticDevice::calibrationRequest()
 }
 
 // haptic device application handler
+// to be called periodically
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
     float error = 0;        // current position error
