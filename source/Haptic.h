@@ -30,13 +30,8 @@ enum class HapticMode
 struct HapticData
 {
     float referencePosition;    // reference position of the device
-    float minPosition;          // minimum device position
-    float maxPosition;          // maximum device position
     float torqueGain;           // proportional gain of the torque *see note below
     float filterRatio;          // position filter ratio, 0-no filtering
-    std::vector<float> detentPositions;     // vector of detent positions
-    bool setPositionRequest;    // request setting a desired position
-    uint8_t requestedIndex;     // the requested index to be set
 };
 
 class HapticDevice
@@ -79,6 +74,4 @@ private:
 /*
 recommended torqueGain values:
 HT2205 Spring: 4
-HT2205 MultiPosition: 2-2.5 * number of positions in <0.25-0.75> range
-HT2205 Free: 6 (tweaking needed)
 */
