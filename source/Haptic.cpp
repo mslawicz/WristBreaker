@@ -48,16 +48,13 @@ void HapticDevice::setTorqueVector(float direction, float magnitude)
 // request calibration process
 void HapticDevice::calibrationRequest()
 {
-    isCalibrated = false;
+    state = HapticState::Start;
 }
 
 // haptic device application handler
 // to be called periodically
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
-    float error = 0;        // current position error
-    float torque = 0;       // current calculated requested torque
-
     //temporary solution for clang-tidy(misc-unused-parameters) warning
     if(HapticMode::Spring != hapticMode)
     {
@@ -71,42 +68,48 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
     float pot = hapticData.referencePosition;   //XXX
 
-    //remaining from spring case
-    error = hapticData.referencePosition - filteredPosition;     // error of the current position
-    torque = hapticData.torqueGain * error;
-
     //haptic device state machine
     switch(state)
     {
+        // state machine starts here and initializes variables
         case HapticState::Start:
         {
-            const float InitialMagnitude = 0.5F;
-            currentPhase = 0.0F;
-            pMotor->setFieldVector(currentPhase, InitialMagnitude);
-            state = HapticState::Phase0;
+            state = HapticState::Move2Mid;
             break;
         }
 
-
-        case HapticState::Phase0:
+        // motor moves slowly and finds the middle position
+        case HapticState::Move2Mid:
         {
-            state = HapticState::Move2Ref;
-            break;
-        }
-
-        case HapticState::Move2Ref:
-        {
-            state = HapticState::Move2Ref;
+            const float EncoderMidValue = 0.5F;
+            //relativePosition is calculated in the range mid-0.5 .. mid+0.5
+            float relativePosition = encoderPosition;
+            if(hapticData.midPosition - encoderPosition > EncoderMidValue)
+            {
+                relativePosition = 1.0F + encoderPosition;
+            }
+            else if(encoderPosition - hapticData.midPosition > EncoderMidValue)
+            {
+                relativePosition = encoderPosition - 1.0F;
+            }
+            float error = hapticData.midPosition - relativePosition;
+            float torque = hapticData.torqueGain * error;
+            const float TorqueLimit = 0.1F;
+            if(torque > TorqueLimit)
+            {
+                torque = TorqueLimit;
+            }
+            else if(torque < -TorqueLimit)
+            {
+                torque = -TorqueLimit;
+            }
+            setTorqueVector(torque, fabs(error) * 0.7F + 0.3F);    // NOLINT
             break;
         }
 
         default:
             break;
     }
-
-
-    setTorqueVector(torque, fabs(torque) * 0.7F + 0.3F);    // NOLINT
-    //setTorqueVector(pot - 0.5F, 0.0F); //QQQ spinning test
 
     static int cnt = 0;
     if(cnt++ %100 == 0) // NOLINT

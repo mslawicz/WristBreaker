@@ -29,6 +29,7 @@ enum class HapticMode
 
 struct HapticData
 {
+    float midPosition;          // middle position of the device
     float referencePosition;    // reference position of the device
     float torqueGain;           // proportional gain of the torque *see note below
     float filterRatio;          // position filter ratio, 0-no filtering
@@ -56,15 +57,13 @@ private:
     Encoder* pEncoder;      // motor position encoder
     float encoderPosition{0};  // motor position read from encoder
     float positionPeriod;   // position segment size of electric 360 degrees cycle
-    bool isCalibrated{false};   // true if the device has been calibrated
     float currentPhase{0};  // current electric phase of the motor
     std::string name;       // the name of this haptic device
     float filteredPosition{0};  // filtered motor position
     enum class HapticState
     {
         Start,
-        Phase0,
-        Move2Ref
+        Move2Mid
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
 };

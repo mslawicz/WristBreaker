@@ -84,7 +84,7 @@ void Commander::handler()
 
     //XXX test of haptic device
     float pot = testPot.read();
-    HapticData data{.referencePosition = 0.3F + 0.4F * pot, .torqueGain = 4.0F, .filterRatio = 0.8F}; // NOLINT ;for Spring
+    HapticData data{.midPosition = 0.6F, .referencePosition = 0.3F + 0.4F * pot, .torqueGain = 4.0F, .filterRatio = 0.8F}; // NOLINT ;for Spring
     flapsLever.handler(HapticMode::Spring, data);
 
     //we do not send joystick reports in this version PCLink.sendReport(1, joystickReportData);
