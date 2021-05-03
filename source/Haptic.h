@@ -31,6 +31,7 @@ struct HapticData
 {
     float midPosition;          // middle position of the device
     float referencePosition;    // reference position of the device
+    float initTorque;           // torque 0..1 applied in the sturtup procedure
     float torqueGain;           // proportional gain of the torque *see note below
     float filterRatio;          // position filter ratio, 0-no filtering
 };
@@ -56,6 +57,7 @@ private:
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
     float encoderPosition{0};  // motor position read from encoder
+    float lastEncoderPosition{0};   // remembers the last value of encoder position 
     float positionPeriod;   // position segment size of electric 360 degrees cycle
     float currentPhase{0};  // current electric phase of the motor
     std::string name;       // the name of this haptic device
