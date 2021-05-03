@@ -55,12 +55,6 @@ void HapticDevice::calibrationRequest()
 // to be called periodically
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
-    //temporary solution for clang-tidy(misc-unused-parameters) warning
-    if(HapticMode::Spring != hapticMode)
-    {
-        return;
-    }
-    
     // get motor shaft position from encoder <0,1>
     encoderPosition = pEncoder->getValue();
     // filter motor position
@@ -75,6 +69,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticState::Start:
         {
             state = HapticState::Move2Mid;
+            positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
             break;
         }
 
@@ -111,6 +106,35 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             currentPhase += PhaseStep;
 
             pMotor->setFieldVector(currentPhase, hapticData.initTorque);
+
+            //calculate mean position deviation
+            const float PosDevFilterStrength = 0.98F;
+            filterEMA<float>(positionDeviation, fabs(encoderPosition - hapticData.midPosition), PosDevFilterStrength);
+            const float PosDevThreshold = 0.01F;    //threshold for stable position
+            //check if middle position is reached and stable 
+            if(positionDeviation < PosDevThreshold)
+            {
+                currentPhase = cropAngle<float>(currentPhase);
+                std::cout << "haptic device '" << name << "' ready" << std::endl;
+                state = HapticState::HapticAction;
+            }
+
+            break;
+        }
+
+        //main haptic action
+        case HapticState::HapticAction:
+        {
+            switch(hapticMode)
+            {
+                case HapticMode::Spring:
+                case HapticMode::MultiPosition:
+                default:
+                {
+                    break;
+                }
+            }
+
             break;
         }
 
@@ -125,7 +149,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     {
         std::cout << "pos=" << encoderPosition;
         std::cout << "  cPh=" << currentPhase;
-        // std::cout << "  mag=" << fabs(torque);
+        std::cout << "  dev=" << positionDeviation;
         std::cout << "   \r" << std::flush;
     }
 }

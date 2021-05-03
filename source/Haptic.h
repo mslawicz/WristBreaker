@@ -22,9 +22,7 @@ using TorqueMap = std::map<float, TorqueVector>;
 enum class HapticMode
 {
     Spring,
-    MultiPosition,
-    Free,
-    Fine
+    MultiPosition
 };
 
 struct HapticData
@@ -65,9 +63,11 @@ private:
     enum class HapticState
     {
         Start,
-        Move2Mid
+        Move2Mid,
+        HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
+    float positionDeviation{0};     //filtered position deviation
 };
 
 #endif /* HAPTIC_H_ */
