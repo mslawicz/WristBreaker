@@ -132,6 +132,9 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     currentPhase = cropAngle<float>(currentPhase + FullCycle * (relativePosition - lastRelativePosition) / positionPeriod);
                     // calculate error from the reference position
                     float error = hapticData.referencePosition - relativePosition;
+                    //set torque proportional to the position error
+                    auto torque = scale<float>(-1.0F, 1.0F, hapticData.torqueGain * error, -1.0F, 1.0F);
+                    setTorqueVector(torque, 0.6F * fabs(torque) + 0.4F);    //NOLINTcppcoreguidelines-avoid-magic-numbers
                     break;
                 }
 

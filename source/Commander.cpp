@@ -89,7 +89,8 @@ void Commander::handler()
         .midPosition = 0.65F,    // NOLINT
         .referencePosition = 0.45F + 0.4F * pot, // NOLINT
         .initTorque = 0.6F,     // NOLINT
-        .torqueGain = 4.0F, .filterRatio = 0.8F     // NOLINT
+        .torqueGain = 4.0F,     // NOLINT
+        .filterRatio = 0.8F     // NOLINT
     };
     flapsLever.handler(HapticMode::Spring, data);
 
