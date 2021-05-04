@@ -37,8 +37,6 @@ HapticDevice::~HapticDevice()
 // magnitude <0,1>
 void HapticDevice::setTorqueVector(float direction, float magnitude)
 {
-    static const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
-
     // additional phase shift for generating torque (max 90 degrees)
     direction = scale<float>(-1.0F, 1.0F, direction, -1.0F, 1.0F);
     float targetPhase = currentPhase + direction * QuarterCycle;
@@ -57,6 +55,19 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
     // get motor shaft position from encoder <0,1>
     encoderPosition = pEncoder->getValue();
+
+    //relativePosition is calculated in the range mid-0.5 .. mid+0.5
+    const float EncoderMidValue = 0.5F;
+    float relativePosition = encoderPosition;
+    if(hapticData.midPosition - encoderPosition > EncoderMidValue)
+    {
+        relativePosition = 1.0F + encoderPosition;
+    }
+    else if(encoderPosition - hapticData.midPosition > EncoderMidValue)
+    {
+        relativePosition = encoderPosition - 1.0F;
+    }
+    
     // filter motor position
     filterEMA<float>(filteredPosition, encoderPosition, hapticData.filterRatio);
 
@@ -76,18 +87,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         // motor moves slowly and finds the middle position
         case HapticState::Move2Mid:
         {
-            const float EncoderMidValue = 0.5F;
-            float relativePosition = encoderPosition;
-            //relativePosition is calculated in the range mid-0.5 .. mid+0.5
-            if(hapticData.midPosition - encoderPosition > EncoderMidValue)
-            {
-                relativePosition = 1.0F + encoderPosition;
-            }
-            else if(encoderPosition - hapticData.midPosition > EncoderMidValue)
-            {
-                relativePosition = encoderPosition - 1.0F;
-            }
-
             // calculate error from the middle position
             float error = hapticData.midPosition - relativePosition;
 
@@ -114,7 +113,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             //check if middle position is reached and stable 
             if(positionDeviation < PosDevThreshold)
             {
-                currentPhase = cropAngle<float>(currentPhase);
                 std::cout << "haptic device '" << name << "' ready" << std::endl;
                 state = HapticState::HapticAction;
             }
@@ -127,7 +125,16 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         {
             switch(hapticMode)
             {
+                //spring action with variable reference position
                 case HapticMode::Spring:
+                {
+                    //update the current motor electric phase
+                    currentPhase = cropAngle<float>(currentPhase + FullCycle * (relativePosition - lastRelativePosition) / positionPeriod);
+                    // calculate error from the reference position
+                    float error = hapticData.referencePosition - relativePosition;
+                    break;
+                }
+
                 case HapticMode::MultiPosition:
                 default:
                 {
@@ -142,7 +149,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             break;
     }
 
-    lastEncoderPosition = encoderPosition;
+    lastRelativePosition = encoderPosition;
 
     static int cnt = 0;
     if(cnt++ %100 == 0) // NOLINT

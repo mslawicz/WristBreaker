@@ -52,10 +52,12 @@ public:
     void handler(HapticMode hapticMode, HapticData& hapticData);
 private:
     void setTorqueVector(float direction, float magnitude);
+    const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
+    const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
     float encoderPosition{0};  // motor position read from encoder
-    float lastEncoderPosition{0};   // remembers the last value of encoder position 
+    float lastRelativePosition{0};   // remembers the last value of encoder relative position 
     float positionPeriod;   // position segment size of electric 360 degrees cycle
     float currentPhase{0};  // current electric phase of the motor
     std::string name;       // the name of this haptic device
