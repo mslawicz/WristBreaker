@@ -30,6 +30,7 @@ HapticDevice::HapticDevice
 HapticDevice::~HapticDevice()
 {
     delete pEncoder;
+    delete pMotor;
 }
 
 // set motor torque vector
