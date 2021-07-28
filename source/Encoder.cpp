@@ -69,3 +69,9 @@ void AS5600::program(const CommandVector& /*cv*/)
     }
 
 }
+
+AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
+    interface(MOSI, MISO, SCLK, CS)
+{
+    // TODO(AS5048A): initialize encoder here
+}
