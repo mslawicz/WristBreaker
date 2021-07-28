@@ -15,8 +15,8 @@ AS5600::AS5600(PinName input) :
 {
 }
 
-// program the encoder chip via I2C
-void Encoder::program(const CommandVector& /*cv*/)
+// program the encoder AS5600 chip via I2C
+void AS5600::program(const CommandVector& /*cv*/)
 {
     static const size_t BufferSize = 32; 
 

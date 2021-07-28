@@ -21,19 +21,21 @@ public:
     Encoder(Encoder&&) = default;
     Encoder& operator=(Encoder&&) = default;
     virtual float getValue() =0;
-    static void program(const CommandVector& /*cv*/);
 };
 
+// 12-bit rotary magnetic encoder with analog output
 class AS5600 : public Encoder
 {
 public:
     explicit AS5600(PinName input);
     float getValue() override { return analogInput.read(); }
+    static void program(const CommandVector& /*cv*/);
 private:
     AnalogIn analogInput;
 };
 
-class AS5480 : public Encoder
+// 14-bit rotary magnetic encoder with SPI output
+class AS5048A : public Encoder
 {
 public:
     float getValue() override { return 0; }
