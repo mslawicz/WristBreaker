@@ -14,7 +14,7 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
     enable(enable),
     noOfPoles(noOfPoles)
 {
-    static const int PwmPeriodUs = 100;
+    static const int PwmPeriodUs = 60;
     this->enable = 0;
     this->phaseA.period_us(PwmPeriodUs);
     this->phaseB.period_us(PwmPeriodUs);
@@ -80,13 +80,13 @@ void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
 
     // calculate normalized voltage level (0..1) of stator windings
     static const float VoltageMeanLevel = 0.5F;
-    static const float TripleVoltageMeanLevel = 3 * VoltageMeanLevel;
-    float voltageA = VoltageMeanLevel + VoltageMeanLevel * fastSineD(electricAngle);
-    float voltageB = VoltageMeanLevel + VoltageMeanLevel * fastSineD(electricAngle + OneThirdCycle);
-    float voltageC = TripleVoltageMeanLevel - voltageA - voltageB;
+    //static const float TripleVoltageMeanLevel = 3 * VoltageMeanLevel;
+    float voltageA = VoltageMeanLevel + VoltageMeanLevel * magnitude * fastSineD(electricAngle - OneThirdCycle);
+    float voltageB = VoltageMeanLevel + VoltageMeanLevel * magnitude * fastSineD(electricAngle);
+    float voltageC = VoltageMeanLevel + VoltageMeanLevel * magnitude * fastSineD(electricAngle + OneThirdCycle);
 
     // drive PWM outputs with calculated voltage levels
-    phaseA.write(magnitude * voltageA);
-    phaseB.write(magnitude * voltageB);
-    phaseC.write(magnitude * voltageC);
+    phaseA.write(voltageA);
+    phaseB.write(voltageB);
+    phaseC.write(voltageC);
 }

@@ -87,7 +87,7 @@ void Commander::handler()
     HapticData data     //for Spring mode
     {
         .midPosition = 0.65F,    // NOLINT
-        .referencePosition = 0.45F + 0.4F * pot, // NOLINT
+        .referencePosition = pot, // NOLINT
         .initTorque = 0.6F,     // NOLINT
         .torqueGain = 4.0F,     // NOLINT
         .filterRatio = 0.8F     // NOLINT

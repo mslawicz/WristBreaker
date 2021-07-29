@@ -80,6 +80,20 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         {
             state = HapticState::Move2Mid;
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
+
+            //test of motor
+            currentPhase += 0.05F;
+            if(currentPhase > 360.0F)
+            {
+                currentPhase -= 360.0F;
+            }
+            if(currentPhase < 0.0F)
+            {
+                currentPhase += 360.0F;
+            }            
+            pMotor->setFieldVector(currentPhase, 0.2F * hapticData.referencePosition);
+            state = HapticState::Start;
+            //end of motor test
             break;
         }
 
