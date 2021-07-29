@@ -72,8 +72,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     // filter motor position
     filterEMA<float>(filteredPosition, encoderPosition, hapticData.filterRatio);
 
-    float pot = hapticData.referencePosition;   //XXX
-
     //haptic device state machine
     switch(state)
     {
@@ -159,6 +157,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     if(cnt++ %100 == 0) // NOLINT
     {
         std::cout << "pos=" << encoderPosition;
+        std::cout << "  ref=" << hapticData.referencePosition;
         std::cout << "  cPh=" << currentPhase;
         std::cout << "  dev=" << positionDeviation;
         std::cout << "   \r" << std::flush;

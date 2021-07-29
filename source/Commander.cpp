@@ -16,10 +16,10 @@ Commander::Commander(events::EventQueue& eventQueue) :
     testMotor   //XXX test
     (
         new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINTreadability-magic-numbers)
-        new AS5600(PA_6),
+        new AS5600(PC_4),
         "test motor"
     ),
-    testPot(PA_5),   //XXX test
+    testPot(PC_5),   //XXX test
     systemPushbutton(BUTTON1)
 {
     std::cout << "Commander object created\n";
