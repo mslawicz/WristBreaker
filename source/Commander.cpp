@@ -13,11 +13,11 @@ Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
     heartBeatLed(LED2),
     PCLink(USB_VID, USB_PID, USB_VER),
-    flapsLever   //XXX test
+    testMotor   //XXX test
     (
-        new MotorBLDC(PA_0, PB_10, PB_11, PE_7, 7),     //NOLINTreadability-magic-numbers)
+        new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINTreadability-magic-numbers)
         new AS5600(PA_6),
-        "throttle lever"
+        "test motor"
     ),
     testPot(PA_5),   //XXX test
     systemPushbutton(BUTTON1)
@@ -92,7 +92,7 @@ void Commander::handler()
         .torqueGain = 4.0F,     // NOLINT
         .filterRatio = 0.8F     // NOLINT
     };
-    flapsLever.handler(HapticMode::Spring, data);
+    testMotor.handler(HapticMode::Spring, data);
 
     //we do not send joystick reports in this version PCLink.sendReport(1, joystickReportData);
     //send USB HID report 2

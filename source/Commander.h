@@ -51,7 +51,7 @@ private:
     MultiHID PCLink;                            // USB link to PC
     JoystickData joystickData{0};               // structure of joystick data to be sent to PC
     std::vector<uint8_t> receivedReport;        // received report data from PC
-    HapticDevice flapsLever;                    // flaps lever object
+    HapticDevice testMotor;                     // flaps lever object
     AnalogIn testPot;                           // XXX test potentiometer
     DigitalIn systemPushbutton;                 // Nucleo board blue button
     SimData simData{0};                            // data received and calculated from simConnect
