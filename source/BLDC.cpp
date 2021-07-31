@@ -6,6 +6,7 @@
  */
 
 #include "BLDC.h"
+#include "FastPWM.h"
 
 MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, uint8_t noOfPoles) :
     phaseA(outA),
