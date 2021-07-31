@@ -20,6 +20,11 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
     this->phaseA.period_us(PwmPeriodUs);
     this->phaseB.period_us(PwmPeriodUs);
     this->phaseC.period_us(PwmPeriodUs);
+
+    //XXX test of FastPWM
+    static FastPWM fastPWM(PC_8, 1);
+    fastPWM.period_us(static_cast<int>(50));
+    fastPWM.write(0.3333);
 }
 
 // returns sine(argument)
