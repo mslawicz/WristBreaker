@@ -23,8 +23,8 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
 
     //XXX test of FastPWM
     static FastPWM fastPWM(PC_8, 1);
-    fastPWM.period_us(static_cast<int>(50));
-    fastPWM.write(0.3333);
+    fastPWM.period_us(static_cast<int>(30)); // 30 us -> 33.33 KHz
+    fastPWM.write(0.02);
 }
 
 // returns sine(argument)
