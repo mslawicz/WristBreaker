@@ -10,6 +10,7 @@
 
 #include <mbed.h>
 #include <array>
+#include "FastPWM.h"
 
 class MotorBLDC
 {
@@ -20,9 +21,9 @@ public:
     uint8_t getNoOfPoles() const { return noOfPoles; }
 private:
     float fastSineD(float argument);
-    PwmOut phaseA;
-    PwmOut phaseB;
-    PwmOut phaseC;
+    FastPWM phaseA;
+    FastPWM phaseB;
+    FastPWM phaseC;
     DigitalOut enable;
     static const size_t SineArraySize = 91;
     const std::array<float, SineArraySize> SineLUT

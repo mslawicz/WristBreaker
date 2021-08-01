@@ -16,7 +16,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     testMotor   //XXX test
     (
         //new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINTreadability-magic-numbers)
-        new MotorBLDC(PB_13, PA_9, PB_15, PE_7, 4),     //NOLINTreadability-magic-numbers) XXX for releasing Timer 4
+        new MotorBLDC(PC_8, PC_6, PC_9, PE_7, 4),     //NOLINTreadability-magic-numbers) XXX test of FastPWM for motor
         new AS5600(PC_4),
         "test motor"
     ),
