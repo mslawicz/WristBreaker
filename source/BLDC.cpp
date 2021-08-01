@@ -31,6 +31,14 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
     pwm1.write(0.4);
     pwm2.write(0.1);
     pwm3.write(0.7);
+    pwm3.write(0.45);
+    pwm3.write(0.2);
+    static FastPWM pwm11(PB_8, 1, true);
+    static FastPWM pwm12(PB_9, 1, true);
+    pwm11.period_us(static_cast<int>(40));
+    pwm12.period_us(static_cast<int>(40));
+    pwm11.write(0.5);
+    pwm12.write(0.25);
 }
 
 // returns sine(argument)

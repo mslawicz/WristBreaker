@@ -15,7 +15,8 @@ Commander::Commander(events::EventQueue& eventQueue) :
     PCLink(USB_VID, USB_PID, USB_VER),
     testMotor   //XXX test
     (
-        new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINTreadability-magic-numbers)
+        //new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINTreadability-magic-numbers)
+        new MotorBLDC(PB_13, PA_9, PB_15, PE_7, 4),     //NOLINTreadability-magic-numbers) XXX for releasing Timer 4
         new AS5600(PC_4),
         "test motor"
     ),
