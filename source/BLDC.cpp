@@ -22,9 +22,9 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
     this->phaseC.period_us(PwmPeriodUs);
 
     //XXX test of FastPWM
-    static FastPWM pwm1(PC_8, 1);
-    static FastPWM pwm2(PC_6, 1);
-    static FastPWM pwm3(PC_9, 1);
+    static FastPWM pwm1(PC_8, 1, true);     //third argument == true -> center aligned
+    static FastPWM pwm2(PC_6, 1, true);
+    static FastPWM pwm3(PC_9, 1, true);
     pwm1.period_us(static_cast<int>(30)); // 30 us -> 33.33 KHz
     pwm2.period_us(static_cast<int>(30)); // 30 us -> 33.33 KHz
     pwm3.period_us(static_cast<int>(30)); // 30 us -> 33.33 KHz
