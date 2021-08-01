@@ -6,6 +6,8 @@
  */
 
 #include "BLDC.h"
+#include <cstdint>
+#include <iostream> //XXX test
 
 MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, uint8_t noOfPoles) :
     phaseA(outA, 1, true),  //PWM center aligned
@@ -80,9 +82,9 @@ void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
 
     // calculate normalized voltage level (0..1) of stator windings
     static const float VoltageMeanLevel = 0.5F;
-    float voltageA = VoltageMeanLevel + VoltageMeanLevel * magnitude * fastSineD(electricAngle - OneThirdCycle);
-    float voltageB = VoltageMeanLevel + VoltageMeanLevel * magnitude * fastSineD(electricAngle);
-    float voltageC = VoltageMeanLevel + VoltageMeanLevel * magnitude * fastSineD(electricAngle + OneThirdCycle);
+    double voltageA = VoltageMeanLevel + VoltageMeanLevel * magnitude * fastSineD(electricAngle - OneThirdCycle);
+    double voltageB = VoltageMeanLevel + VoltageMeanLevel * magnitude * fastSineD(electricAngle);
+    double voltageC = VoltageMeanLevel + VoltageMeanLevel * magnitude * fastSineD(electricAngle + OneThirdCycle);
 
     // drive PWM outputs with calculated voltage levels
     phaseA.write(voltageA);

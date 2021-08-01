@@ -91,7 +91,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             {
                 currentPhase += 360.0F;
             }            
-            pMotor->setFieldVector(currentPhase, 0.9F/*0.2F * hapticData.referencePosition*/);
+            pMotor->setFieldVector(currentPhase, 0.5F * hapticData.referencePosition);
             state = HapticState::Start;
             //end of motor test
             break;
