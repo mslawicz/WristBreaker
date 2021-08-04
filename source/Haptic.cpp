@@ -40,8 +40,7 @@ void HapticDevice::setTorqueVector(float direction, float magnitude)
 {
     // additional phase shift for generating torque (max 90 degrees)
     direction = scale<float>(-1.0F, 1.0F, direction, -1.0F, 1.0F);
-    //float targetPhase = currentPhase + direction * QuarterCycle;
-    float targetPhase = currentPhase + (direction > 0 ? QuarterCycle : -QuarterCycle);
+    float targetPhase = currentPhase + direction * QuarterCycle;
     pMotor->setFieldVector(targetPhase, magnitude);
 }
 
@@ -144,7 +143,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     float error = hapticData.referencePosition - relativePosition;
                     //set torque proportional to the position error
                     torque = scale<float>(-1.0F, 1.0F, hapticData.torqueGain * error, -1.0F, 1.0F);
-                    setTorqueVector(torque, 0.5F * hapticData.auxData * fabs(torque));    //NOLINTcppcoreguidelines-avoid-magic-numbers
+                    setTorqueVector(torque > 0 ? 1.0F : -1.0F, 0.5F * hapticData.auxData * fabs(torque));    //NOLINTcppcoreguidelines-avoid-magic-numbers
                     break;
                 }
 
