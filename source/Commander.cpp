@@ -86,9 +86,9 @@ void Commander::handler()
     float pot = testPot.read();
     HapticData data     //for Spring mode
     {
-        .midPosition = 0.65F,    // NOLINT
+        .midPosition = 0.55F,    // NOLINT
         .referencePosition = pot, // NOLINT
-        .initTorque = 0.6F,     // NOLINT
+        .initTorque = 0.3F,     // NOLINT
         .torqueGain = 4.0F,     // NOLINT
         .filterRatio = 0.8F     // NOLINT
     };

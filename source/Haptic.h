@@ -70,6 +70,7 @@ private:
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
     float positionDeviation{0};     //filtered position deviation
+    float torque{0.0F};     // current torque of the motor
 };
 
 #endif /* HAPTIC_H_ */

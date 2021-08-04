@@ -80,20 +80,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         {
             state = HapticState::Move2Mid;
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
-
-            //test of motor
-            currentPhase += 1.0F;
-            if(currentPhase > 360.0F)
-            {
-                currentPhase -= 360.0F;
-            }
-            if(currentPhase < 0.0F)
-            {
-                currentPhase += 360.0F;
-            }            
-            pMotor->setFieldVector(currentPhase, 0.5F * hapticData.referencePosition);
-            state = HapticState::Start;
-            //end of motor test
+            torque = 0.0F;      //motor starts with torque=0
             break;
         }
 
@@ -104,20 +91,28 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             float error = hapticData.midPosition - relativePosition;
 
             // calculate motor phase step proportional to error with the limit
-            float PhaseStep = 100.0F * error;
-            const float PhaseStepLimit = 10.0F;     // step limit in degrees of electrical revolution
-            if(PhaseStep > PhaseStepLimit)
+            const float PhaseStepGain = 10.0F * static_cast<float>(pMotor->getNoOfPoles());     // how fast motor should move while finding mid position
+            float phaseStep =  PhaseStepGain * error;
+            const float PhaseStepLimit = 0.5F * static_cast<float>(pMotor->getNoOfPoles());     // step limit in degrees of electrical revolution
+            if(phaseStep > PhaseStepLimit)
             {
-                PhaseStep = PhaseStepLimit;
+                phaseStep = PhaseStepLimit;
             }
-            else if(PhaseStep < -PhaseStepLimit)
+            else if(phaseStep < -PhaseStepLimit)
             {
-                PhaseStep = -PhaseStepLimit;
+                phaseStep = -PhaseStepLimit;
             }
 
-            currentPhase += PhaseStep;
+            currentPhase += phaseStep;
 
-            pMotor->setFieldVector(currentPhase, hapticData.initTorque);
+            //ramp of applied torque
+            const float TorqueRise = 0.01F;     // 1% of torque rise at a time
+            torque += hapticData.initTorque * TorqueRise;
+            if(torque > hapticData.initTorque)
+            {
+                torque = hapticData.initTorque;
+            }
+            pMotor->setFieldVector(currentPhase, torque);
 
             //calculate mean position deviation
             const float PosDevFilterStrength = 0.98F;
@@ -136,6 +131,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         //main haptic action
         case HapticState::HapticAction:
         {
+            setTorqueVector(0.0F, 0.0F); 
+            break;
             switch(hapticMode)
             {
                 //spring action with variable reference position
@@ -146,7 +143,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     // calculate error from the reference position
                     float error = hapticData.referencePosition - relativePosition;
                     //set torque proportional to the position error
-                    auto torque = scale<float>(-1.0F, 1.0F, hapticData.torqueGain * error, -1.0F, 1.0F);
+                    torque = scale<float>(-1.0F, 1.0F, hapticData.torqueGain * error, -1.0F, 1.0F);
                     setTorqueVector(torque, 0.6F * fabs(torque) + 0.4F);    //NOLINTcppcoreguidelines-avoid-magic-numbers
                     break;
                 }
