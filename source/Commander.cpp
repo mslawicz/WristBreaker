@@ -87,10 +87,11 @@ void Commander::handler()
     HapticData data     //for Spring mode
     {
         .midPosition = 0.55F,    // NOLINT
-        .referencePosition = pot, // NOLINT
+        .referencePosition = 0.5F, // NOLINT
         .initTorque = 0.3F,     // NOLINT
         .torqueGain = 4.0F,     // NOLINT
-        .filterRatio = 0.8F     // NOLINT
+        .filterRatio = 0.8F,    // NOLINT
+        .auxData = pot
     };
     testMotor.handler(HapticMode::Spring, data);
 

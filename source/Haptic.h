@@ -32,6 +32,7 @@ struct HapticData
     float initTorque;           // torque 0..1 applied in the sturtup procedure
     float torqueGain;           // proportional gain of the torque *see note below
     float filterRatio;          // position filter ratio, 0-no filtering
+    float auxData;              // auxilary data for testing
 };
 
 class HapticDevice
