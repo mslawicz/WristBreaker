@@ -84,13 +84,14 @@ void Commander::handler()
 
     //XXX test of haptic device
     float pot = testPot.read();
+    static float zeroPos = 0;   //XXX
+    filterEMA<float>(zeroPos, 0.2F * pot - 0.1F, 0.9F); //NOLINT XXX
     HapticData data     //for Spring mode
     {
-        .midPosition = 0.55F,    // NOLINT
-        .referencePosition = 0.5F, // NOLINT
+        .referencePosition = 0.75F,  // NOLINT
+        .zeroPosition = zeroPos,   // NOLINT
         .initTorque = 0.3F,     // NOLINT
-        .torqueGain = 4.0F,     // NOLINT
-        .filterRatio = 0.8F,    // NOLINT
+        .torqueGain = 1.5F,     // NOLINT
         .auxData = pot
     };
     testMotor.handler(HapticMode::Spring, data);
