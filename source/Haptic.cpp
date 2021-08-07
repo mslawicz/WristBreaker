@@ -129,6 +129,22 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     float error = hapticData.zeroPosition - relativePosition;
                     //set torque proportional to the position error
                     torque = scale<float>(-1.0F, 1.0F, hapticData.torqueGain * error, -1.0F, 1.0F);
+
+                    //XXX test of derivative part
+                    // static float lastError = 0.0F;
+                    // torque += (error - lastError) * 2.5F;
+                    // lastError = error;
+
+                    //XXX torque shaping test
+                    if(fabs(torque) < 0.1F)
+                    {
+                        torque *= 1.5F;
+                    }
+                    else
+                    {
+                        torque = (torque > 0 ? 1.0F : -1.0F) * (0.15F + 0.9444F * (fabs(torque) - 0.1F));
+                    }
+
                     pMotor->setFieldVector(currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle), fabs(torque));
                     break;
                 }
