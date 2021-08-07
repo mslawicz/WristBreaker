@@ -33,17 +33,6 @@ HapticDevice::~HapticDevice()
     delete pMotor;
 }
 
-// set motor torque vector
-// direction: -1 maximum left, 0 hold position, 1 maximum right
-// magnitude <0,1>
-void HapticDevice::setTorqueVector(float direction, float magnitude)
-{
-    // additional phase shift for generating torque (max 90 degrees)
-    direction = scale<float>(-1.0F, 1.0F, direction, -1.0F, 1.0F);
-    float targetPhase = currentPhase + direction * QuarterCycle;
-    pMotor->setFieldVector(targetPhase, magnitude);
-}
-
 // request calibration process
 void HapticDevice::calibrationRequest()
 {

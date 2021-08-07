@@ -51,7 +51,6 @@ public:
     void calibrationRequest();
     void handler(HapticMode hapticMode, HapticData& hapticData);
 private:
-    void setTorqueVector(float direction, float magnitude);
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
