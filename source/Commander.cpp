@@ -89,7 +89,7 @@ void Commander::handler()
         .referencePosition = 0.75F,  // NOLINT
         .zeroPosition = 0.0F,   // NOLINT
         .initTorque = 0.3F,     // NOLINT
-        .torqueGain = 2.0F * pot,     // NOLINT
+        .torqueGain = 1.1F,     // NOLINT
         .auxData = pot
     };
     testMotor.handler(HapticMode::Spring, data);

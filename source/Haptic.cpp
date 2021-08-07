@@ -131,9 +131,11 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     torque = scale<float>(-1.0F, 1.0F, hapticData.torqueGain * error, -1.0F, 1.0F);
 
                     //XXX test of derivative part
-                    // static float lastError = 0.0F;
-                    // torque += (error - lastError) * 2.5F;
-                    // lastError = error;
+                    static float lastError = 0.0F;
+                    static float filteredDerivative = 0.0F;
+                    filterEMA<float>(filteredDerivative, error - lastError, 0.2F);
+                    torque += filteredDerivative * 5.0F * hapticData.auxData;
+                    lastError = error;
 
                     //XXX torque shaping test
                     if(fabs(torque) < 0.1F)
