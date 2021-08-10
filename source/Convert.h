@@ -9,6 +9,7 @@
 #define CONVERT_H_
 
 #include <cstdint>
+#include <string.h>
 
 #define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
 #define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
@@ -55,14 +56,14 @@ template<typename Type> void filterEMA(Type& filteredValue, Type newValue, float
 
 template<typename T> void placeData(T data, uint8_t*& pBuffer)
 {
-    //memcpy(pBuffer, &variable, sizeof(T));
-    *reinterpret_cast<T*>(pBuffer) = data;
+    memcpy(pBuffer, &data, sizeof(T));
     pBuffer += sizeof(T);       //NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 }
 
 template<typename T> T parseData(uint8_t*& pBuffer)
 {
-    T data = *reinterpret_cast<T*>(pBuffer);
+    T data;
+    memcpy(&data, pBuffer, sizeof(T));
     pBuffer += sizeof(T);       //NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     return data;
 }

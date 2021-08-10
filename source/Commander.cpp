@@ -129,8 +129,7 @@ void Commander::parseReportData()
     parseData<uint8_t>(pData);      //omit reportID
     simData.flapsNumHandlePositions = parseData<uint8_t>(pData);
     simData.flapsHandleIndex = parseData<uint8_t>(pData);
-    //uint8_t* p = &receivedReport[3];
-    //simData.yokeXreference = parseData<float>(pFloat);
+    simData.yokeXreference = parseData<float>(pData);
 }
 
 /*
