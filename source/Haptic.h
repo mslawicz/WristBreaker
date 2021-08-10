@@ -29,6 +29,7 @@ struct HapticData
 {
     float referencePosition;    // absolute reference (middle) position of the device
     float zeroPosition;         // position of zero torque (relative to the reference position)
+    float currentPosition;      // current position of the device relative to reference position
     float initTorque;           // torque 0..1 applied in the sturtup procedure
     float torqueGain;           // proportional gain of the torque *see note below
     float auxData;              // auxilary data for testing

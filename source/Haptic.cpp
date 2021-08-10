@@ -44,7 +44,7 @@ void HapticDevice::calibrationRequest()
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
     // get the absolute motor shaft position from encoder <0,1>
-    encoderPosition = pEncoder->getValue();\
+    encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
     const float EncoderHalfRange = 0.5F;
     float relativePosition = encoderPosition - hapticData.referencePosition;
@@ -56,6 +56,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     {
         relativePosition -= 1.0F;
     }
+    hapticData.currentPosition = relativePosition;
     
     //haptic device state machine
     switch(state)
