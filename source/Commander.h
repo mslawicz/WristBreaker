@@ -41,7 +41,7 @@ private:
         uint8_t flapsHandleIndex;
         uint8_t requestedFlapsHandleIndex;
         bool flapsHandleSetRequest;
-        float aileronPosition;      // aileron position (yoke X axis) read from simulator
+        float yokeXreference;       // yoke X reference position received from simulator (w/o vibrations)
         float yokeXposition;        // yoke X axis position sent to simulator
     };
     void handler();

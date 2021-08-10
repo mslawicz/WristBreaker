@@ -129,7 +129,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     // calculate error from the zero position
                     float error = hapticData.zeroPosition - relativePosition;
                     //set torque proportional to the position error
-                    torque = scale<float>(-1.0F, 1.0F, hapticData.torqueGain * error, -1.0F, 1.0F);
+                    torque = scale<float, float>(-1.0F, 1.0F, hapticData.torqueGain * error, -1.0F, 1.0F);
 
                     //XXX test of derivative part
                     static float lastError = 0.0F;
@@ -171,7 +171,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
     {
         std::cout << "pos=" << encoderPosition;
         std::cout << "  pot=" << hapticData.auxData;
-        std::cout << "  cPh=" << currentPhase;
+        std::cout << "  zero=" << hapticData.zeroPosition;
         std::cout << "  dev=" << positionDeviation;
         std::cout << "  tq=" << torque;
         std::cout << "   \r" << std::flush;
