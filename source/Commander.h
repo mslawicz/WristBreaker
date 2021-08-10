@@ -41,6 +41,8 @@ private:
         uint8_t flapsHandleIndex;
         uint8_t requestedFlapsHandleIndex;
         bool flapsHandleSetRequest;
+        float aileronPosition;      // aileron position (yoke X axis) read from simulator
+        float yokeXposition;        // yoke X axis position sent to simulator
     };
     void handler();
     void parseReportData();                     // parse received report data
@@ -54,7 +56,7 @@ private:
     HapticDevice testMotor;                     // flaps lever object
     AnalogIn testPot;                           // XXX test potentiometer
     DigitalIn systemPushbutton;                 // Nucleo board blue button
-    SimData simData{0};                            // data received and calculated from simConnect
+    SimData simData{0};                         // data received and calculated from simConnect
 };
 
 #endif /* COMMANDER_H_ */

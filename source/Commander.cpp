@@ -94,17 +94,18 @@ void Commander::handler()
     };
     testMotor.handler(HapticMode::Spring, data);
 
-    //we do not send joystick reports in this version PCLink.sendReport(1, joystickReportData);
+    //we do not send joystick reports in this version 
+    //PCLink.sendReport(1, joystickReportData);
     //send USB HID report 2
-    std::vector<uint8_t> testData
-    {
-        0x21,   // NOLINT
-        0x61,   // NOLINT
-        0x62,   // NOLINT
-        0x63    // NOLINT
-    };
-    testData.resize(63);    // NOLINT
-    PCLink.sendReport(2, testData);
+    std::vector<uint8_t> hidData;
+    const size_t HidDataSize = 63;
+    hidData.resize(HidDataSize);
+    uint8_t* pData = hidData.data();
+    placeData<float>(simData.yokeXposition , pData);
+    placeData<char>('x', pData);
+    placeData<char>('y', pData);
+    placeData<char>('z', pData);
+    PCLink.sendReport(2, hidData);
 }
 
 /*

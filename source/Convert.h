@@ -8,6 +8,8 @@
 #ifndef CONVERT_H_
 #define CONVERT_H_
 
+#include <cstdint>
+
 #define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
 #define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
 
@@ -49,6 +51,20 @@ template<typename Type> Type cropAngle(Type angle)
 template<typename Type> void filterEMA(Type& filteredValue, Type newValue, float strength)
 {
     filteredValue = strength * filteredValue + (1.0F - strength) * newValue;
+}
+
+template<typename T> void placeData(T data, uint8_t*& pBuffer)
+{
+    //memcpy(pBuffer, &variable, sizeof(T));
+    *reinterpret_cast<T*>(pBuffer) = data;
+    pBuffer += sizeof(T);       //NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+}
+
+template<typename T> T parseData(uint8_t*& pBuffer)
+{
+    T data = *reinterpret_cast<T*>(pBuffer);
+    pBuffer += sizeof(T);       //NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    return data;
 }
 
 #endif /* CONVERT_H_ */
