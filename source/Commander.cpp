@@ -87,7 +87,7 @@ void Commander::handler()
     HapticData testData     //for Spring mode
     {
         .referencePosition = 0.75F,  // NOLINT
-        .zeroPosition = 0.25F * simData.yokeXreference,   //NOLINT scalling needed
+        .zeroPosition = YokeXrange * simData.yokeXreference,   // zero torque pos from simulator
         .initTorque = 0.3F,     // NOLINT
         .torqueGain = 1.1F,     // NOLINT
         .auxData = pot
@@ -95,8 +95,10 @@ void Commander::handler()
     testMotor.handler(HapticMode::Spring, testData);
 
     //XXX test
-    //convert +-90 deflection to <-1,1> range
-    simData.yokeXposition = scale<float, float>(-0.25F, 0.25F, testData.currentPosition, -1.0F, 1.0F);    //NOLINT
+    // calculate pilot's X-axis input
+    float pilotXinput = testData.currentPosition - testData.zeroPosition; 
+    // convert +-90 degrees deflection to <-1,1> range
+    simData.yokeXposition = scale<float, float>(-YokeXrange, YokeXrange, pilotXinput, -1.0F, 1.0F);
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);

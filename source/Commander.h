@@ -57,6 +57,7 @@ private:
     AnalogIn testPot;                           // XXX test potentiometer
     DigitalIn systemPushbutton;                 // Nucleo board blue button
     SimData simData{0};                         // data received and calculated from simConnect
+    const float YokeXrange = 0.25F;             // max position deflection in X axis
 };
 
 #endif /* COMMANDER_H_ */
