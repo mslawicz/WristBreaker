@@ -13,11 +13,13 @@ Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
     heartBeatLed(LED2),
     PCLink(USB_VID, USB_PID, USB_VER),
-    testMotor   //XXX test
+    yokeRollActuator
     (
-        new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 2),     //NOLINTreadability-magic-numbers)
+        new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 2),     //NOLINT(readability-magic-numbers)
         new AS5600(PC_4),
-        "test motor"
+        "yoke roll actuator",
+        0.75F,                  //NOLINT    device reference position (encoder value)
+        0.3F                    //NOLINT    maximum torque in calibration phase
     ),
     testPot(PC_5),   //XXX test
     systemPushbutton(BUTTON1)
@@ -82,23 +84,25 @@ void Commander::handler()
         static_cast<uint8_t>((joystickData.buttons >> 24) & 0xFF)    // NOLINT
     };
 
+    //calculate pilot's yoke input
+    yokeRollActuator.updateMotorPosition();     // it should be called once every handler loop
+    float currentPositionX = yokeRollActuator.getCurrentPosition();     // current poition X of the yoke
+    float zeroPositionX = YokeXrange * simData.yokeXreference;   // requested zero torque pos from simulator
+    float pilotInputX = currentPositionX - zeroPositionX;
+
     //XXX test of haptic device
     float pot = testPot.read();
-    HapticData testData     //for Spring mode
+    HapticData rollActuatorData
     {
-        .referencePosition = 0.75F,  // NOLINT
-        .zeroPosition = YokeXrange * simData.yokeXreference,   // zero torque pos from simulator
-        .initTorque = 0.3F,     // NOLINT
+        .zeroPosition = zeroPositionX,   // zero torque pos from simulator
         .torqueGain = 1.1F,     // NOLINT
         .auxData = pot
     };
-    testMotor.handler(HapticMode::Spring, testData);
+    yokeRollActuator.handler(HapticMode::Spring, rollActuatorData);
 
-    //XXX test
-    // calculate pilot's X-axis input
-    float pilotXinput = testData.currentPosition - testData.zeroPosition; 
+    //prepare data to be sent to simulator 
     // convert +-90 degrees deflection to <-1,1> range
-    simData.yokeXposition = scale<float, float>(-YokeXrange, YokeXrange, pilotXinput, -1.0F, 1.0F);
+    simData.yokeXposition = scale<float, float>(-YokeXrange, YokeXrange, pilotInputX, -1.0F, 1.0F);
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
@@ -108,10 +112,23 @@ void Commander::handler()
     hidData.resize(HidDataSize);
     uint8_t* pData = hidData.data();
     placeData<float>(simData.yokeXposition , pData);
-    placeData<char>('x', pData);
     placeData<char>('y', pData);
-    placeData<char>('z', pData);
+    placeData<char>('o', pData);
+    placeData<char>('k', pData);
+    placeData<char>('e', pData);
     PCLink.sendReport(2, hidData);
+
+    //XXX test
+    static int cnt = 0;
+    if(cnt++ %100 == 0) // NOLINT
+    {
+        std::cout << "posX=" << currentPositionX;
+        std::cout << "  pot=" << pot;
+        std::cout << "  zeroX=" << zeroPositionX;
+        std::cout << "  pilX=" << pilotInputX;
+        std::cout << "  yokeX=" << simData.yokeXposition;
+        std::cout << "   \r" << std::flush;
+    }
 }
 
 /*

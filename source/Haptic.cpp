@@ -16,11 +16,15 @@ HapticDevice::HapticDevice
 (
     MotorBLDC* pMotor,      // pointer to BLDC motor object
     Encoder* pEncoder,      // pointer to motor position encoder object
-    std::string name        // name of the device
+    std::string name,       // name of the device
+    float referencePosition,    // encoder reference (middle) position of the device
+    float maxCalTorque      // maximum torque value in calibration phase
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
-    name(std::move(name))
+    name(std::move(name)),
+    referencePosition(referencePosition),
+    maxCalTorque(maxCalTorque)
 {
     pMotor->setEnablePin(1);
     positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -43,21 +47,6 @@ void HapticDevice::calibrationRequest()
 // to be called periodically
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
-    // get the absolute motor shaft position from encoder <0,1>
-    encoderPosition = pEncoder->getValue();
-    // calculate shaft position relative to reference position <-0.5...0.5>
-    const float EncoderHalfRange = 0.5F;
-    float relativePosition = encoderPosition - hapticData.referencePosition;
-    if(relativePosition < -EncoderHalfRange)
-    {
-        relativePosition += 1.0F;
-    }
-    else if(relativePosition > EncoderHalfRange)
-    {
-        relativePosition -= 1.0F;
-    }
-    hapticData.currentPosition = relativePosition;
-    
     //haptic device state machine
     switch(state)
     {
@@ -73,8 +62,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         // motor moves slowly and finds the reference position
         case HapticState::Move2Ref:
         {
-            // position error equals -relative position
-            float error = -relativePosition;
+            // position error equals -currentPosition position
+            float error = -currentPosition;
 
             // calculate motor phase step proportional to error with the limit
             const float PhaseStepGain = 10.0F * static_cast<float>(pMotor->getNoOfPoles());     // how fast motor should move while finding mid position
@@ -93,18 +82,18 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
             //ramp of applied torque
             const float TorqueRise = 0.01F;     // 1% of torque rise at a time
-            torque += hapticData.initTorque * TorqueRise;
-            if(torque > hapticData.initTorque)
+            torque += maxCalTorque * TorqueRise;
+            if(torque > maxCalTorque)
             {
-                torque = hapticData.initTorque;
+                torque = maxCalTorque;
             }
             pMotor->setFieldVector(currentPhase, torque);
 
             //calculate mean position deviation to check if position is reached and stable
             const float PosDevFilterStrength = 0.98F;
-            filterEMA<float>(positionDeviation, fabs(relativePosition), PosDevFilterStrength);
+            filterEMA<float>(positionDeviation, fabs(currentPosition), PosDevFilterStrength);
             const float PosDevThreshold = 0.01F;    //threshold for stable position
-            //check if middle position is reached and stable 
+            //check if reference position is reached and stable 
             if(positionDeviation < PosDevThreshold)
             {
                 std::cout << "haptic device '" << name << "' ready" << std::endl;
@@ -125,9 +114,9 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 case HapticMode::Spring:
                 {
                     //calculate the current motor electric phase
-                    currentPhase = cropAngle<float>(referencePhase + FullCycle * relativePosition / positionPeriod);
+                    currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
                     // calculate error from the zero position
-                    float error = hapticData.zeroPosition - relativePosition;
+                    float error = hapticData.zeroPosition - currentPosition;
                     //set torque proportional to the position error
                     torque = scale<float, float>(-1.0F, 1.0F, hapticData.torqueGain * error, -1.0F, 1.0F);
 
@@ -165,15 +154,21 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         default:
             break;
     }
+}
 
-    static int cnt = 0;
-    if(cnt++ %100 == 0) // NOLINT
+void HapticDevice::updateMotorPosition()
+{
+    encoderPosition = pEncoder->getValue();
+    // calculate shaft position relative to reference position <-0.5...0.5>
+    const float EncoderHalfRange = 0.5F;
+    float relativePosition = encoderPosition - referencePosition;
+    if(relativePosition < -EncoderHalfRange)
     {
-        std::cout << "pos=" << encoderPosition;
-        std::cout << "  pot=" << hapticData.auxData;
-        std::cout << "  zero=" << hapticData.zeroPosition;
-        std::cout << "  dev=" << positionDeviation;
-        std::cout << "  tq=" << torque;
-        std::cout << "   \r" << std::flush;
+        relativePosition += 1.0F;
     }
+    else if(relativePosition > EncoderHalfRange)
+    {
+        relativePosition -= 1.0F;
+    }
+    currentPosition = relativePosition;
 }
