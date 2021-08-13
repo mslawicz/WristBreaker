@@ -66,9 +66,9 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             float error = -currentPosition;
 
             // calculate motor phase step proportional to error with the limit
-            const float PhaseStepGain = 10.0F * static_cast<float>(pMotor->getNoOfPoles());     // how fast motor should move while finding mid position
+            const float PhaseStepGain = 5.0F * static_cast<float>(pMotor->getNoOfPoles());     // how fast motor should move while finding mid position
             float phaseStep =  PhaseStepGain * error;
-            const float PhaseStepLimit = 0.5F * static_cast<float>(pMotor->getNoOfPoles());     // step limit in degrees of electrical revolution
+            const float PhaseStepLimit = 0.25F * static_cast<float>(pMotor->getNoOfPoles());     // step limit in degrees of electrical revolution
             if(phaseStep > PhaseStepLimit)
             {
                 phaseStep = PhaseStepLimit;
@@ -81,7 +81,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             currentPhase += phaseStep;
 
             //ramp of applied torque
-            const float TorqueRise = 0.01F;     // 1% of torque rise at a time
+            const float TorqueRise = 0.005F;     // 0.5% of torque rise at a time
             torque += maxCalTorque * TorqueRise;
             if(torque > maxCalTorque)
             {
@@ -90,7 +90,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             pMotor->setFieldVector(currentPhase, torque);
 
             //calculate mean position deviation to check if position is reached and stable
-            const float PosDevFilterStrength = 0.98F;
+            const float PosDevFilterStrength = 0.985F;
             filterEMA<float>(positionDeviation, fabs(currentPosition), PosDevFilterStrength);
             const float PosDevThreshold = 0.01F;    //threshold for stable position
             //check if reference position is reached and stable 

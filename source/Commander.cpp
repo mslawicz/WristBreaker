@@ -38,7 +38,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
 void Commander::handler()
 {
     // heart beat
-    const uint8_t HeartBeatPattern = 0x50U;
+    const uint8_t HeartBeatPattern = 0xA0U;
     heartBeatLed = static_cast<int>((handlerCallCounter++ & HeartBeatPattern) == HeartBeatPattern);
 
     // read USB HID report from PC and parse received simulation data
@@ -120,7 +120,7 @@ void Commander::handler()
 
     //XXX test
     static int cnt = 0;
-    if(cnt++ %100 == 0) // NOLINT
+    if(cnt++ %200 == 0) // NOLINT
     {
         std::cout << "posX=" << currentPositionX;
         std::cout << "  pot=" << pot;
