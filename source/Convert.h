@@ -9,7 +9,7 @@
 #define CONVERT_H_
 
 #include <cstdint>
-#include <string.h>
+#include <cstring>
 
 #define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
 #define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
