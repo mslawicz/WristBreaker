@@ -158,7 +158,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
 void HapticDevice::updateMotorPosition()
 {
-    encoderPosition = pEncoder->getValue();
+    encoderPosition = pEncoder->getFilteredValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
     const float EncoderHalfRange = 0.5F;
     float relativePosition = encoderPosition - referencePosition;

@@ -16,7 +16,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     yokeRollActuator
     (
         new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 2),     //NOLINT(readability-magic-numbers)
-        new AS5600(PC_4),
+        new AS5600(PC_4, 3),
         "yoke roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.3F                    //NOLINT    maximum torque in calibration phase

@@ -10,7 +10,8 @@
 #include <iomanip>
 #include <chrono>
 
-AS5600::AS5600(PinName input) :
+AS5600::AS5600(PinName input, size_t filterSize) :
+    Encoder(filterSize),
     analogInput(input)
 {
 }
@@ -70,7 +71,8 @@ void AS5600::program(const CommandVector& /*cv*/)
 
 }
 
-AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
+AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS, size_t filterSize) :
+    Encoder(filterSize),
     interface(MOSI, MISO, SCLK, CS)
 {
     // TODO(AS5048A): initialize encoder here
