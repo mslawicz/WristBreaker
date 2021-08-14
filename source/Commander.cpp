@@ -95,9 +95,14 @@ void Commander::handler()
     HapticData rollActuatorData
     {
         .zeroPosition = zeroPositionX,   // zero torque pos from simulator
-        .torqueGain = 1.1F,     // NOLINT
+        .torqueGain = 1.0F,     // NOLINT
         .auxData = pot
     };
+
+    //XXX test of sinusoidal movement
+    float zeroTest = 0.1F * sin(handlerCallCounter * 0.005F);
+    rollActuatorData.zeroPosition = zeroTest;
+
     yokeRollActuator.handler(HapticMode::Spring, rollActuatorData);
 
     //prepare data to be sent to simulator 
@@ -119,16 +124,16 @@ void Commander::handler()
     PCLink.sendReport(2, hidData);
 
     //XXX test
-    static int cnt = 0;
-    if(cnt++ %200 == 0) // NOLINT
-    {
-        std::cout << "posX=" << currentPositionX;
-        std::cout << "  pot=" << pot;
-        std::cout << "  zeroX=" << zeroPositionX;
-        std::cout << "  pilX=" << pilotInputX;
-        std::cout << "  yokeX=" << simData.yokeXposition;
-        std::cout << "   \r" << std::flush;
-    }
+    // static int cnt = 0;
+    // if(cnt++ %200 == 0) // NOLINT
+    // {
+    //     std::cout << "posX=" << currentPositionX;
+    //     std::cout << "  pot=" << pot;
+    //     std::cout << "  zeroX=" << zeroPositionX;
+    //     std::cout << "  pilX=" << pilotInputX;
+    //     std::cout << "  yokeX=" << simData.yokeXposition;
+    //     std::cout << "   \r" << std::flush;
+    // }
 }
 
 /*
