@@ -116,30 +116,25 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
                     // calculate error from the zero position
                     float error = 0*hapticData.zeroPosition - currentPosition;
-                    //torque proportional part
-                    float proportional = 1.2F * error;
-                    //torque integral part
-                    static float integral = 0;
-                    const float IntegralLimit = 0.3F;
-                    integral += 0.01F * error;
-                    if(integral > IntegralLimit)
-                    {
-                        integral = IntegralLimit;
-                    }
-                    else if(integral < -IntegralLimit)
-                    {
-                        integral = -IntegralLimit;
-                    }
 
-                    //XXX test of derivative part
+                    //calculate proportional part of torque
+                    float kP = hapticData.auxData;
+                    float proportional = kP * error;
+
+                    //calculate derivative part of torque
+                    float kD = 0;
                     static float lastError = 0.0F;
                     static float filteredDerivative = 0.0F;
                     filterEMA<float>(filteredDerivative, error - lastError, 0.2F);
-                    torque += filteredDerivative * 0.0F; //5.0F * hapticData.auxData;
                     lastError = error;
+                    float derivative = kD * filteredDerivative;
 
-                    torque = scale<float, float>(-1.0F, 1.0F, hapticData.torqueGain * (proportional + integral * hapticData.auxData), -1.0F, 1.0F);
+                    //calculate total requested torque
+                    torque = scale<float, float>(-1.0F, 1.0F, proportional + derivative, -1.0F, 1.0F);
+                    //torque shaping
+                    torque = (torque > 0 ? 1 : -1) * sqrtf(fabs(torque));
 
+                    //apply the requested torque to motor
                     float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
                     float torqueMagnitude = fabs(torque);
                     pMotor->setFieldVector(targetPhase, torqueMagnitude);
@@ -149,11 +144,13 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     if(cnt++ %200 == 0) // NOLINT
                     {
                         std::cout << "err=" << error;
-                        std::cout << "  prop=" << proportional;
-                        std::cout << "  int=" << integral;
-                        std::cout << "  der=" << filteredDerivative;
+                        std::cout << "  pos=" << currentPosition;
                         std::cout << "  pot=" << hapticData.auxData;
-                        std::cout << "  trq=" << torque;
+                        std::cout << "  kP=" << kP;
+                        std::cout << "  kD=" << kD;
+                        std::cout << "  P=" << proportional;
+                        std::cout << "  D=" << derivative;
+                        std::cout << "  T=" << torque;
                         std::cout << "   \r" << std::flush;
                     }
 
