@@ -115,14 +115,14 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     //calculate the current motor electric phase
                     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
                     // calculate error from the zero position
-                    float error = 0*hapticData.zeroPosition - currentPosition;
+                    float error = hapticData.zeroPosition - currentPosition;
 
                     //calculate proportional part of torque
-                    float kP = hapticData.auxData;
+                    float kP = 0.2F;
                     float proportional = kP * error;
 
                     //calculate derivative part of torque
-                    float kD = 0;
+                    float kD = hapticData.auxData;
                     static float lastError = 0.0F;
                     static float filteredDerivative = 0.0F;
                     filterEMA<float>(filteredDerivative, error - lastError, 0.2F);
