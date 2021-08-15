@@ -12,6 +12,9 @@
 #include <ostream>
 #include <utility>
 
+//global array for STM Studio tests
+float g_value[10];  //XXX test
+
 HapticDevice::HapticDevice
 (
     MotorBLDC* pMotor,      // pointer to BLDC motor object
@@ -122,7 +125,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     float proportional = kP * error;
 
                     //calculate derivative part of torque
-                    float kD = hapticData.auxData;
+                    float kD = 3.0F * hapticData.auxData;  // kD tested up to 1.0
                     static float lastError = 0.0F;
                     static float filteredDerivative = 0.0F;
                     filterEMA<float>(filteredDerivative, error - lastError, 0.2F);
@@ -153,6 +156,17 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                         std::cout << "  T=" << torque;
                         std::cout << "   \r" << std::flush;
                     }
+
+                    //XXX set global variables
+                    g_value[0] = currentPosition;
+                    g_value[1] = hapticData.zeroPosition;
+                    g_value[2] = error;
+                    g_value[3] = hapticData.auxData;
+                    g_value[4] = kP;
+                    g_value[5] = kD;
+                    g_value[6] = proportional;
+                    g_value[7] = derivative;
+                    g_value[8] = torque;
 
                     break;
                 }
