@@ -43,13 +43,19 @@ HapticDevice::~HapticDevice()
 // request calibration process
 void HapticDevice::calibrationRequest()
 {
-    state = HapticState::Start;
+    if((state == HapticState::PositionCal) ||
+       (state == HapticState::PositionCal))
+    {
+        state = HapticState::Start;
+    }
 }
 
 // haptic device application handler
 // to be called periodically
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
+    float error{0};
+
     //haptic device state machine
     switch(state)
     {
@@ -66,20 +72,14 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticState::Move2Ref:
         {
             // position error equals -currentPosition position
-            float error = -currentPosition;
+            error = -currentPosition;
 
             // calculate motor phase step proportional to error with the limit
             const float PhaseStepGain = 5.0F * static_cast<float>(pMotor->getNoOfPoles());     // how fast motor should move while finding mid position
             float phaseStep =  PhaseStepGain * error;
             const float PhaseStepLimit = 0.25F * static_cast<float>(pMotor->getNoOfPoles());     // step limit in degrees of electrical revolution
-            if(phaseStep > PhaseStepLimit)
-            {
-                phaseStep = PhaseStepLimit;
-            }
-            else if(phaseStep < -PhaseStepLimit)
-            {
-                phaseStep = -PhaseStepLimit;
-            }
+            phaseStep = limit<float>(phaseStep, -PhaseStepLimit, PhaseStepLimit);
+
             //move motor in the direction of reference position
             currentPhase += phaseStep;
 
@@ -101,9 +101,50 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             {
                 std::cout << "haptic device '" << name << "' ready" << std::endl;
                 referencePhase = currentPhase;
-                state = HapticState::HapticAction;
+                //state = HapticState::HapticAction;
+                state = HapticState::StartCal;  //XXX test of calibration
             }
 
+            break;
+        }
+
+        //start calibration process
+        case HapticState::StartCal:
+        {
+            calPosition = 0.03F;
+            torque = 0;
+            state = HapticState::PositionCal;
+            //calculate initial motor electric phase
+            currentPhase = cropAngle<float>(referencePhase + FullCycle * calPosition / positionPeriod);
+            break;
+        }
+
+        //calibrate a single position
+        case HapticState::PositionCal:
+        {
+            //calculate error from the zero position
+            error = calPosition - currentPosition;
+            //adjust current phase
+            currentPhase += 0.01F * error * QuarterCycle;
+            //acumulate needed torque value
+            torque = 5.0F * hapticData.auxData * error;
+            torque = limit<float>(torque, -maxCalTorque, maxCalTorque);
+            //apply the requested torque to motor
+            float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
+            float torqueMagnitude = fabs(torque);
+            pMotor->setFieldVector(targetPhase, torqueMagnitude);
+
+            //XXX test
+            static int cnt = 0;
+            if(cnt++ %200 == 0) // NOLINT
+            {
+                std::cout << "cal: err=" << error;
+                std::cout << "  pos=" << currentPosition;
+                std::cout << "  ph=" << currentPhase;
+                std::cout << "  T=" << torque;
+                std::cout << "  pot=" << hapticData.auxData;
+                std::cout << "   \r" << std::flush;
+            }                      
             break;
         }
 
@@ -118,7 +159,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     //calculate the current motor electric phase
                     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
                     // calculate error from the zero position
-                    float error = hapticData.zeroPosition - currentPosition;
+                    error = hapticData.zeroPosition - currentPosition;
 
                     //calculate proportional part of torque
                     float kP = 0.2F;

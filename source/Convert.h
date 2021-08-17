@@ -68,4 +68,17 @@ template<typename T> T parseData(uint8_t*& pBuffer)
     return data;
 }
 
+template<typename T> T limit(T value, T min, T max)
+{
+    if(value > max)
+    {
+        value = max;
+    }
+    else if(value < min)
+    {
+        value = min;
+    }
+    return value;
+}
+
 #endif /* CONVERT_H_ */

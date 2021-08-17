@@ -68,12 +68,15 @@ private:
     {
         Start,
         Move2Ref,
+        StartCal,
+        PositionCal,
         HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
     float positionDeviation{0};     //filtered position deviation
     float torque{0.0F};     // current torque of the motor
     float maxCalTorque;     // maximum torque value during calibration phase
+    float calPosition{0};   //YYY calibration position
 };
 
 #endif /* HAPTIC_H_ */
