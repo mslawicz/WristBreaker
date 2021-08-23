@@ -54,8 +54,6 @@ void HapticDevice::calibrationRequest()
 // to be called periodically
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
-    float error{0};
-
     //haptic device state machine
     switch(state)
     {
@@ -72,7 +70,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticState::Move2Ref:
         {
             // position error equals -currentPosition position
-            error = -currentPosition;
+            float error = -currentPosition;
 
             // calculate motor phase step proportional to error with the limit
             const float PhaseStepGain = 5.0F * static_cast<float>(pMotor->getNoOfPoles());     // how fast motor should move while finding mid position
@@ -111,40 +109,12 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         //start calibration process
         case HapticState::StartCal:
         {
-            calPosition = 0.03F;
-            torque = 0;
-            state = HapticState::PositionCal;
-            //calculate initial motor electric phase
-            currentPhase = cropAngle<float>(referencePhase + FullCycle * calPosition / positionPeriod);
             break;
         }
 
         //calibrate a single position
         case HapticState::PositionCal:
-        {
-            //calculate error from the zero position
-            error = calPosition - currentPosition;
-            //adjust current phase
-            currentPhase += 0.01F * error * QuarterCycle;
-            //acumulate needed torque value
-            torque = 5.0F * hapticData.auxData * error;
-            torque = limit<float>(torque, -maxCalTorque, maxCalTorque);
-            //apply the requested torque to motor
-            float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
-            float torqueMagnitude = fabs(torque);
-            pMotor->setFieldVector(targetPhase, torqueMagnitude);
-
-            //XXX test
-            static int cnt = 0;
-            if(cnt++ %200 == 0) // NOLINT
-            {
-                std::cout << "cal: err=" << error;
-                std::cout << "  pos=" << currentPosition;
-                std::cout << "  ph=" << currentPhase;
-                std::cout << "  T=" << torque;
-                std::cout << "  pot=" << hapticData.auxData;
-                std::cout << "   \r" << std::flush;
-            }                      
+        {             
             break;
         }
 
@@ -162,8 +132,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     static int cnt = 0;
                     if(cnt++ %200 == 0) // NOLINT
                     {
-                        std::cout << "err=" << error;
-                        std::cout << "  pos=" << currentPosition;
+                        std::cout << "pos=" << currentPosition;
                         std::cout << "  pot=" << hapticData.auxData;
                         //std::cout << "  kP=" << kP;
                         //std::cout << "  kD=" << kD;
@@ -176,7 +145,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     //XXX set global variables
                     g_value[0] = currentPosition;
                     g_value[1] = hapticData.zeroPosition;
-                    g_value[2] = error;
                     g_value[3] = hapticData.auxData;
                     g_value[8] = torque;
 
@@ -245,6 +213,7 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
     pMotor->setFieldVector(targetPhase, torqueMagnitude);
 
     //XXX test
+    g_value[2] = error;
     g_value[4] = kP;
     g_value[5] = kD;
     g_value[6] = proportional;
