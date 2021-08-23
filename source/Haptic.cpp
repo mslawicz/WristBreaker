@@ -233,9 +233,11 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
     float derivative = kD * filteredDerivative;
 
     //calculate total requested torque
-    torque = scale<float, float>(-torqueLimit, torqueLimit, proportional + derivative, -1.0F, 1.0F);
+    torque = proportional + derivative;
     //torque shaping
     torque = (torque > 0 ? 1 : -1) * sqrtf(fabs(torque));
+    //torque limit
+    torque = limit<float>(torque, -torqueLimit, torqueLimit);
 
     //apply the requested torque to motor
     float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
