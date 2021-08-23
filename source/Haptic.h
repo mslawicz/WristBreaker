@@ -53,6 +53,7 @@ public:
     void updateMotorPosition();
     float getCurrentPosition() const { return currentPosition; }     //returns current position of the device relative to reference position
 private:
+    void setTorque(float zeroPosition, float torqueLimit);
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
@@ -77,6 +78,8 @@ private:
     float torque{0.0F};     // current torque of the motor
     float maxCalTorque;     // maximum torque value during calibration phase
     float calPosition{0};   //YYY calibration position
+    float lastError{0};     //last position error for calculation of derivative component
+    float filteredDerivative{0};    //filtered value of derivative component
 };
 
 #endif /* HAPTIC_H_ */

@@ -100,8 +100,9 @@ void Commander::handler()
     };
 
     //XXX test of sinusoidal movement
-    float zeroTest = 0.1F * sin(handlerCallCounter * 0.005F);
-    rollActuatorData.zeroPosition = zeroTest;
+    //float zeroTest = 0.1F * sin(handlerCallCounter * 0.005F);
+    //rollActuatorData.zeroPosition = zeroTest;
+    rollActuatorData.zeroPosition = 0.0F;
 
     yokeRollActuator.handler(HapticMode::Spring, rollActuatorData);
 

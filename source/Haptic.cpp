@@ -102,7 +102,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 std::cout << "haptic device '" << name << "' ready" << std::endl;
                 referencePhase = currentPhase;
                 //state = HapticState::HapticAction;
-                state = HapticState::StartCal;  //XXX test of calibration
+                state = HapticState::HapticAction;
             }
 
             break;
@@ -156,32 +156,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    //calculate the current motor electric phase
-                    currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
-                    // calculate error from the zero position
-                    error = hapticData.zeroPosition - currentPosition;
-
-                    //calculate proportional part of torque
-                    float kP = 0.2F;
-                    float proportional = kP * error;
-
-                    //calculate derivative part of torque
-                    float kD = 3.0F * hapticData.auxData;  // kD tested up to 1.0
-                    static float lastError = 0.0F;
-                    static float filteredDerivative = 0.0F;
-                    filterEMA<float>(filteredDerivative, error - lastError, 0.2F);
-                    lastError = error;
-                    float derivative = kD * filteredDerivative;
-
-                    //calculate total requested torque
-                    torque = scale<float, float>(-1.0F, 1.0F, proportional + derivative, -1.0F, 1.0F);
-                    //torque shaping
-                    torque = (torque > 0 ? 1 : -1) * sqrtf(fabs(torque));
-
-                    //apply the requested torque to motor
-                    float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
-                    float torqueMagnitude = fabs(torque);
-                    pMotor->setFieldVector(targetPhase, torqueMagnitude);
+                    setTorque(hapticData.zeroPosition, 1.0F);
 
                     //XXX test
                     static int cnt = 0;
@@ -190,10 +165,10 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                         std::cout << "err=" << error;
                         std::cout << "  pos=" << currentPosition;
                         std::cout << "  pot=" << hapticData.auxData;
-                        std::cout << "  kP=" << kP;
-                        std::cout << "  kD=" << kD;
-                        std::cout << "  P=" << proportional;
-                        std::cout << "  D=" << derivative;
+                        //std::cout << "  kP=" << kP;
+                        //std::cout << "  kD=" << kD;
+                        //std::cout << "  P=" << proportional;
+                        //std::cout << "  D=" << derivative;
                         std::cout << "  T=" << torque;
                         std::cout << "   \r" << std::flush;
                     }
@@ -203,10 +178,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     g_value[1] = hapticData.zeroPosition;
                     g_value[2] = error;
                     g_value[3] = hapticData.auxData;
-                    g_value[4] = kP;
-                    g_value[5] = kD;
-                    g_value[6] = proportional;
-                    g_value[7] = derivative;
                     g_value[8] = torque;
 
                     break;
@@ -242,4 +213,38 @@ void HapticDevice::updateMotorPosition()
         relativePosition -= 1.0F;
     }
     currentPosition = relativePosition;
+}
+
+void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
+{
+    //calculate the current motor electric phase
+    currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
+    // calculate error from the zero position
+    float error = zeroPosition - currentPosition;
+
+    //calculate proportional part of torque
+    float kP = 0.2F;    //XXX kP should be provided as argument
+    float proportional = kP * error;
+
+    //calculate derivative part of torque
+    float kD = 0.95F;  //XXX kD should be provided as argument
+    filterEMA<float>(filteredDerivative, error - lastError, 0.2F);
+    lastError = error;
+    float derivative = kD * filteredDerivative;
+
+    //calculate total requested torque
+    torque = scale<float, float>(-torqueLimit, torqueLimit, proportional + derivative, -1.0F, 1.0F);
+    //torque shaping
+    torque = (torque > 0 ? 1 : -1) * sqrtf(fabs(torque));
+
+    //apply the requested torque to motor
+    float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
+    float torqueMagnitude = fabs(torque);
+    pMotor->setFieldVector(targetPhase, torqueMagnitude);
+
+    //XXX test
+    g_value[4] = kP;
+    g_value[5] = kD;
+    g_value[6] = proportional;
+    g_value[7] = derivative;
 }
