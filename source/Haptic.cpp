@@ -45,8 +45,7 @@ HapticDevice::~HapticDevice()
 // request calibration process
 void HapticDevice::calibrationRequest()
 {
-    if((state == HapticState::PositionCal) ||
-       (state == HapticState::PositionCal))
+    if(state == HapticState::HapticAction)
     {
         state = HapticState::Start;
     }
@@ -101,8 +100,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             {
                 std::cout << "haptic device '" << name << "' ready" << std::endl;
                 referencePhase = currentPhase;
-                //state = HapticState::HapticAction;
-                state = HapticState::HapticAction;
+                state = HapticState::StartCal;
             }
 
             break;
@@ -111,12 +109,44 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         //start calibration process
         case HapticState::StartCal:
         {
+            calibrationPosition = -operationRange;
+            positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
+            lastPosition = 0.0F;
+            state = HapticState::SetCalPos;
             break;
         }
 
-        //calibrate a single position
-        case HapticState::PositionCal:
-        {             
+        //set calibration position
+        case HapticState::SetCalPos:
+        {   
+            setTorque(calibrationPosition, maxCalTorque);
+            //calculate mean position deviation to check if position is reached and stable
+            const float PosDevFilterStrength = 0.985F;
+            filterEMA<float>(positionDeviation, fabs(currentPosition - lastPosition), PosDevFilterStrength);
+            lastPosition = currentPosition;
+            const float PosDevThreshold = 0.01F;    //threshold for stable position
+            //check if reference position is reached and stable 
+            if(positionDeviation < PosDevThreshold)
+            {
+                std::cout << calibrationPosition << ";" << currentPosition << std::endl;
+                state = HapticState::StoreCalPos;
+            }
+            break;
+        }        
+
+        //store calibration position
+        case HapticState::StoreCalPos:
+        {   
+            calibrationPosition += 0.02F * operationRange;
+            if(calibrationPosition > operationRange)
+            {
+                state = HapticState::EndCal;
+            }
+            else
+            {
+                positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
+                state = HapticState::SetCalPos;
+            }
             break;
         }
 
@@ -203,7 +233,7 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
     float proportional = kP * error;
 
     //calculate derivative part of torque
-    float kD = 0.95F;  //XXX kD should be provided as argument
+    float kD = 0.8F;  //XXX kD should be provided as argument
     filterEMA<float>(filteredDerivative, error - lastError, 0.2F);
     lastError = error;
     float derivative = kD * filteredDerivative;

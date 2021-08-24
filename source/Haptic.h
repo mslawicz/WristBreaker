@@ -72,7 +72,8 @@ private:
         Start,
         Move2Ref,
         StartCal,
-        PositionCal,
+        SetCalPos,
+        StoreCalPos,
         EndCal,
         HapticAction
     };
@@ -83,6 +84,8 @@ private:
     float lastError{0};     //last position error for calculation of derivative component
     float filteredDerivative{0};    //filtered value of derivative component
     float operationRange{0};    //the range of normal operation from reference position
+    float calibrationPosition{0};
+    float lastPosition{0};
 };
 
 #endif /* HAPTIC_H_ */
