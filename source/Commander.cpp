@@ -19,7 +19,8 @@ Commander::Commander(events::EventQueue& eventQueue) :
         new AS5600(PC_4, 3),
         "yoke roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
-        0.3F                    //NOLINT    maximum torque in calibration phase
+        0.3F,                   //NOLINT    maximum torque in calibration phase
+        0.25F                   //NOLINT    range of normal operation from reference position
     ),
     testPot(PC_5),   //XXX test
     systemPushbutton(BUTTON1)
@@ -87,7 +88,7 @@ void Commander::handler()
     //calculate pilot's yoke input
     yokeRollActuator.updateMotorPosition();     // it should be called once every handler loop
     float currentPositionX = yokeRollActuator.getCurrentPosition();     // current poition X of the yoke
-    float zeroPositionX = YokeXrange * simData.yokeXreference;   // requested zero torque pos from simulator
+    float zeroPositionX = yokeRollActuator.getOperationRange() * simData.yokeXreference;   // requested zero torque pos from simulator
     float pilotInputX = currentPositionX - zeroPositionX;
 
     //XXX test of haptic device
@@ -108,7 +109,7 @@ void Commander::handler()
 
     //prepare data to be sent to simulator 
     // convert +-90 degrees deflection to <-1,1> range
-    simData.yokeXposition = scale<float, float>(-YokeXrange, YokeXrange, pilotInputX, -1.0F, 1.0F);
+    simData.yokeXposition = scale<float, float>(-yokeRollActuator.getOperationRange(), yokeRollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);

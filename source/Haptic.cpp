@@ -21,13 +21,15 @@ HapticDevice::HapticDevice
     Encoder* pEncoder,      // pointer to motor position encoder object
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
-    float maxCalTorque      // maximum torque value in calibration phase
+    float maxCalTorque,     // maximum torque value in calibration phase
+    float operationRange    // the range of normal operation from reference position
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
     name(std::move(name)),
     referencePosition(referencePosition),
-    maxCalTorque(maxCalTorque)
+    maxCalTorque(maxCalTorque),
+    operationRange(operationRange)
 {
     pMotor->setEnablePin(1);
     positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -117,6 +119,12 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         {             
             break;
         }
+
+        //end calibration process
+        case HapticState::EndCal:
+        {             
+            break;
+        }        
 
         //main haptic action
         case HapticState::HapticAction:

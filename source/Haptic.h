@@ -41,7 +41,8 @@ public:
         Encoder* pEncoder,      // pointer to motor position encoder object
         std::string name,       // name of the device
         float referencePosition,    // encoder reference (middle) position of the device
-        float maxCalTorque      // maximum torque value in calibration phase
+        float maxCalTorque,     // maximum torque value in calibration phase
+        float operationRange    // the range of normal operation from reference position
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -52,6 +53,7 @@ public:
     void handler(HapticMode hapticMode, HapticData& hapticData);
     void updateMotorPosition();
     float getCurrentPosition() const { return currentPosition; }     //returns current position of the device relative to reference position
+    float getOperationRange() const { return operationRange; }
 private:
     void setTorque(float zeroPosition, float torqueLimit);
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
@@ -71,6 +73,7 @@ private:
         Move2Ref,
         StartCal,
         PositionCal,
+        EndCal,
         HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
@@ -79,6 +82,7 @@ private:
     float maxCalTorque;     // maximum torque value during calibration phase
     float lastError{0};     //last position error for calculation of derivative component
     float filteredDerivative{0};    //filtered value of derivative component
+    float operationRange{0};    //the range of normal operation from reference position
 };
 
 #endif /* HAPTIC_H_ */
