@@ -168,9 +168,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    //XXX test of derivative
-                    kD = 1.5F * hapticData.auxData;
-
                     setTorque(hapticData.zeroPosition, 1.0F);
 
                     //XXX test
@@ -241,7 +238,7 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
     float proportional = kP * error;
 
     //calculate derivative part of torque
-    filterEMA<float>(filteredDerivative, error - lastError, 0.2F);
+    filterEMA<float>(filteredDerivative, error - lastError, 0.05F);
     lastError = error;
     float derivative = kD * filteredDerivative;
 
