@@ -22,14 +22,18 @@ HapticDevice::HapticDevice
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
     float maxCalTorque,     // maximum torque value in calibration phase
-    float operationRange    // the range of normal operation from reference position
+    float operationRange,   // the range of normal operation from reference position
+    float kP,               //torque calculation proportional coefficient
+    float kD                //torque calculation derivative coefficient    
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
     name(std::move(name)),
     referencePosition(referencePosition),
     maxCalTorque(maxCalTorque),
-    operationRange(operationRange)
+    operationRange(operationRange),
+    kP(kP),
+    kD(kD)
 {
     pMotor->setEnablePin(1);
     positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -100,7 +104,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             {
                 std::cout << "haptic device '" << name << "' ready" << std::endl;
                 referencePhase = currentPhase;
-                state = HapticState::StartCal;
+                state = HapticState::HapticAction;
             }
 
             break;
@@ -164,6 +168,9 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
+                    //XXX test of derivative
+                    kD = 1.5F * hapticData.auxData;
+
                     setTorque(hapticData.zeroPosition, 1.0F);
 
                     //XXX test
@@ -172,8 +179,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     {
                         std::cout << "pos=" << currentPosition;
                         std::cout << "  pot=" << hapticData.auxData;
-                        //std::cout << "  kP=" << kP;
-                        //std::cout << "  kD=" << kD;
+                        std::cout << "  kP=" << kP;
+                        std::cout << "  kD=" << kD;
                         //std::cout << "  P=" << proportional;
                         //std::cout << "  D=" << derivative;
                         std::cout << "  T=" << torque;
@@ -184,6 +191,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     g_value[0] = currentPosition;
                     g_value[1] = hapticData.zeroPosition;
                     g_value[3] = hapticData.auxData;
+                    g_value[4] = kP;
+                    g_value[5] = kD;
                     g_value[8] = torque;
 
                     break;
@@ -229,11 +238,9 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
     float error = zeroPosition - currentPosition;
 
     //calculate proportional part of torque
-    float kP = 0.2F;    //XXX kP should be provided as argument
     float proportional = kP * error;
 
     //calculate derivative part of torque
-    float kD = 0.8F;  //XXX kD should be provided as argument
     filterEMA<float>(filteredDerivative, error - lastError, 0.2F);
     lastError = error;
     float derivative = kD * filteredDerivative;
@@ -252,8 +259,6 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
 
     //XXX test
     g_value[2] = error;
-    g_value[4] = kP;
-    g_value[5] = kD;
     g_value[6] = proportional;
     g_value[7] = derivative;
 }
