@@ -179,9 +179,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                         std::cout << "pos=" << currentPosition;
                         std::cout << "  pot=" << hapticData.auxData;
                         std::cout << "  kP=" << kP;
+                        std::cout << "  kI=" << kI;
                         std::cout << "  kD=" << kD;
-                        //std::cout << "  P=" << proportional;
-                        //std::cout << "  D=" << derivative;
                         std::cout << "  T=" << torque;
                         std::cout << "   \r" << std::flush;
                     }
@@ -189,9 +188,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     //XXX set global variables
                     g_value[0] = currentPosition;
                     g_value[1] = hapticData.zeroPosition;
-                    g_value[3] = hapticData.auxData;
-                    g_value[4] = kP;
-                    g_value[5] = kD;
                     g_value[8] = torque;
 
                     break;
@@ -233,19 +229,27 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
 {
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
-    // calculate error from the zero position
+    // calculate error from the zero position; positive error for CCW deflection
     float error = zeroPosition - currentPosition;
 
     //calculate proportional part of torque
+    static AnalogIn kPpot(PA_5); kP = kPpot.read(); //XXX test
     float proportional = kP * error;
 
+    //calculate integral part of torque
+    static AnalogIn kIpot(PA_6); kI = 0.1F * kIpot.read(); //XXX test
+    integral += kI * error;
+    const float IntegralLimit = 0.1F;
+    integral = limit<float>(integral, -IntegralLimit, IntegralLimit);
+
     //calculate derivative part of torque
+    static AnalogIn kDpot(PA_7); kD = kDpot.read(); //XXX test
     filterEMA<float>(filteredDerivative, error - lastError, 0.05F);
     lastError = error;
     float derivative = kD * filteredDerivative;
 
     //calculate total requested torque
-    torque = proportional + derivative;
+    torque = proportional + integral + derivative;
     //torque shaping
     torque = (torque > 0 ? 1 : -1) * sqrtf(fabs(torque));
     //torque limit
@@ -258,6 +262,9 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
 
     //XXX test
     g_value[2] = error;
-    g_value[6] = proportional;
-    g_value[7] = derivative;
+    g_value[3] = proportional;
+    g_value[4] = integral;
+    g_value[5] = derivative;
+    g_value[6] = 0;
+    g_value[7] = 0;
 }

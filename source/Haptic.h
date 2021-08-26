@@ -92,6 +92,7 @@ private:
     float kP{0};            //torque calculation proportional coefficient
     float kI{0};            //torque calculation integral coefficient
     float kD{0};            //torque calculation derivative coefficient
+    float integral{0};      //integral part of the torque
 };
 
 #endif /* HAPTIC_H_ */
