@@ -233,17 +233,24 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
     float error = zeroPosition - currentPosition;
 
     //calculate proportional part of torque
-    static AnalogIn kPpot(PA_5); kP = kPpot.read(); //XXX test
+    static AnalogIn kPpot(PA_5); kP = 3.0F * kPpot.read(); //XXX test
     float proportional = kP * error;
 
     //calculate integral part of torque
-    static AnalogIn kIpot(PA_6); kI = 0.1F * kIpot.read(); //XXX test
-    integral += kI * error;
-    const float IntegralLimit = 0.1F;
+    const float IntegralLimit = 0.06F;
+    static AnalogIn kIpot(PA_6); kI = 0.05F * kIpot.read(); //XXX test
+    if(fabsf(proportional) < IntegralLimit)
+    {
+        integral += kI * error;
+    }
+    else
+    {
+        integral *= 0.99F;
+    }
     integral = limit<float>(integral, -IntegralLimit, IntegralLimit);
 
     //calculate derivative part of torque
-    static AnalogIn kDpot(PA_7); kD = kDpot.read(); //XXX test
+    static AnalogIn kDpot(PA_7); kD = 3.0F * kDpot.read(); //XXX test
     filterEMA<float>(filteredDerivative, error - lastError, 0.05F);
     lastError = error;
     float derivative = kD * filteredDerivative;
@@ -251,7 +258,7 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
     //calculate total requested torque
     torque = proportional + integral + derivative;
     //torque shaping
-    torque = (torque > 0 ? 1 : -1) * sqrtf(fabs(torque));
+    //XXX torque = (torque > 0 ? 1 : -1) * sqrtf(fabs(torque));
     //torque limit
     torque = limit<float>(torque, -torqueLimit, torqueLimit);
 

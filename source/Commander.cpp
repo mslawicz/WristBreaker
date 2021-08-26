@@ -108,6 +108,8 @@ void Commander::handler()
     //rollActuatorData.zeroPosition = zeroTest;
     static float fpos = 0.0F;
     filterEMA<float>(fpos, 0.1F * (pot - 0.5F), 0.95F);
+    const float Ampl = 0.1F;
+    //float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
     rollActuatorData.zeroPosition = fpos;
 
     yokeRollActuator.handler(HapticMode::Spring, rollActuatorData);
