@@ -44,6 +44,7 @@ public:
         float maxCalTorque,     // maximum torque value in calibration phase
         float operationRange,   // the range of normal operation from reference position
         float kP,               //torque calculation proportional coefficient
+        float kI,               //torque calculation integral coefficient
         float kD                //torque calculation derivative coefficient
     );
     ~HapticDevice();
@@ -89,6 +90,7 @@ private:
     float calibrationPosition{0};
     float lastPosition{0};
     float kP{0};            //torque calculation proportional coefficient
+    float kI{0};            //torque calculation integral coefficient
     float kD{0};            //torque calculation derivative coefficient
 };
 

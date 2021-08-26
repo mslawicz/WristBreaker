@@ -24,6 +24,7 @@ HapticDevice::HapticDevice
     float maxCalTorque,     // maximum torque value in calibration phase
     float operationRange,   // the range of normal operation from reference position
     float kP,               //torque calculation proportional coefficient
+    float kI,               //torque calculation integral coefficient
     float kD                //torque calculation derivative coefficient    
 ) :
     pMotor(pMotor),
@@ -33,6 +34,7 @@ HapticDevice::HapticDevice
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
     kP(kP),
+    kI(kI),
     kD(kD)
 {
     pMotor->setEnablePin(1);

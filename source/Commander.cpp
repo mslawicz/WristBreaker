@@ -22,6 +22,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.3F,                   //NOLINT    maximum torque in calibration phase
         0.25F,                  //NOLINT    range of normal operation from reference position
         0.2F,                   //NOLINT    torque calculation proportional coefficient
+        0.0F,                   //NOLINT    torque calculation integral coefficient
         0.38F                   //NOLINT    torque calculation derivative coefficient
     ),
     testPot(PC_5),   //XXX test
@@ -105,7 +106,9 @@ void Commander::handler()
     //XXX test of sinusoidal movement
     //float zeroTest = 0.1F * sin(handlerCallCounter * 0.005F);
     //rollActuatorData.zeroPosition = zeroTest;
-    rollActuatorData.zeroPosition = 0.0F;
+    static float fpos = 0.0F;
+    filterEMA<float>(fpos, 0.1F * (pot - 0.5F), 0.95F);
+    rollActuatorData.zeroPosition = fpos;
 
     yokeRollActuator.handler(HapticMode::Spring, rollActuatorData);
 
