@@ -73,6 +73,7 @@ private:
     enum class HapticState
     {
         Start,
+        CalibratePosition,
         Move2Ref,
         StartCal,
         SetCalPos,

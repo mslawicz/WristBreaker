@@ -15,7 +15,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     PCLink(USB_VID, USB_PID, USB_VER),
     yokeRollActuator
     (
-        new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 2),     //NOLINT(readability-magic-numbers)
+        new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINT(readability-magic-numbers)
         new AS5600(PC_4, 3),
         "yoke roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
