@@ -2,8 +2,8 @@
 
 KvStore::KvStore()
 {
-    Console::getInstance().registerCommand("lsp", "list stored parameters", callback(this, &KvStore::list));
-    //Console::getInstance().registerCommand("csp", "clear all stored parameters", callback(this, &KvStore::clear));    
+    Console::getInstance().registerCommand("lsp", "list stored parameters", callback(&KvStore::list));
+    Console::getInstance().registerCommand("csp", "clear all stored parameters", callback(&KvStore::clear));    
 }
 
 KvStore& KvStore::getInstance()
@@ -15,7 +15,7 @@ KvStore& KvStore::getInstance()
 /*
 list all stored parameter keys
 */
-void KvStore::list(CommandVector  /*cv*/)
+void KvStore::list(const CommandVector&  /*cv*/)
 {
     kv_iterator_t it = nullptr;
     int result = kv_iterator_open(&it, nullptr);
@@ -39,7 +39,7 @@ void KvStore::list(CommandVector  /*cv*/)
 /*
 clear storage memory
 */
-void KvStore::clear(CommandVector  /*cv*/)
+void KvStore::clear(const CommandVector&  /*cv*/)
 {
     int result = kv_reset("/kv/");
     if(result != 0)
