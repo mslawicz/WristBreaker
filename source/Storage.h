@@ -5,6 +5,7 @@
 #include "KVStore.h"
 #include "kvstore_global_api.h"
 #include "mbed.h"
+#include <iostream>
 #include <string>
 
 /*
@@ -15,6 +16,8 @@ class KvStore
 public:
     KvStore(KvStore const&) = delete;       // do not allow copy constructor of a singleton
     void operator=(KvStore const&) = delete;
+    KvStore(KvStore&&) = delete;
+    void operator=(KvStore&&) = delete;
     static KvStore& getInstance();
     
     template<typename T> void store(const std::string key, T value)     // store key-value pair in memory
@@ -22,7 +25,7 @@ public:
         int result = kv_set(key.c_str(), &value, sizeof(T), 0);
         if(result)
         {
-            printf("Parameter '%s' store error %d\n", key.c_str(), MBED_GET_ERROR_CODE(result));
+            std::cout << "Parameter '" << key << "' store error " << MBED_GET_ERROR_CODE(result) << std::endl;
         }
     }
 
@@ -38,16 +41,16 @@ public:
         if(result)
         {
             error = true;
-            printf("Parameter '%s' get info error %d\n", key.c_str(), MBED_GET_ERROR_CODE(result));
+            std::cout << "Parameter '" << key << "' get info error " << MBED_GET_ERROR_CODE(result) << std::endl;
         }
         else
         {
-            size_t actualSize;
+            size_t actualSize{0};
             result = kv_get(key.c_str(), &value, info.size, &actualSize);
             if(result)
             {
                 error = true;
-                printf("Parameter '%s' restore error %d\n", key.c_str(), MBED_GET_ERROR_CODE(result));
+                std::cout << "Parameter '" << key << "' restore error " << MBED_GET_ERROR_CODE(result) << std::endl;
             }
         }
 
@@ -83,7 +86,8 @@ public:
     void clear(CommandVector cv);
 private:
     KvStore();
-    kv_info_t info;
+    ~KvStore();
+    kv_info_t info{0, 0};
 };
 
 #endif /* STORAGE_H_ */

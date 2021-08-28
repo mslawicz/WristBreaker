@@ -17,6 +17,7 @@
 #include "Console.h"
 #include "Statistics.h"
 #include "Commander.h"
+#include "Storage.h"
 #include <mbed.h>
 #include <iostream>
 

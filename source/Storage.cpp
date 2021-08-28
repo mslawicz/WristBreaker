@@ -2,8 +2,8 @@
 
 KvStore::KvStore()
 {
-    Console::getInstance().registerCommand("lp", "list stored parameters", callback(this, &KvStore::list));
-    Console::getInstance().registerCommand("cp", "clear all stored parameters", callback(this, &KvStore::clear));
+    Console::getInstance().registerCommand("lsp", "list stored parameters", callback(this, &KvStore::list));
+    //Console::getInstance().registerCommand("csp", "clear all stored parameters", callback(this, &KvStore::clear));    
 }
 
 KvStore& KvStore::getInstance()
@@ -15,39 +15,39 @@ KvStore& KvStore::getInstance()
 /*
 list all stored parameter keys
 */
-void KvStore::list(CommandVector cv)
+void KvStore::list(CommandVector  /*cv*/)
 {
-    kv_iterator_t it;
-    int result = kv_iterator_open(&it, NULL);
-    if(result)
+    kv_iterator_t it = nullptr;
+    int result = kv_iterator_open(&it, nullptr);
+    if(result != 0)
     {
-        printf("Error %d on parameters iteration\n", MBED_GET_ERROR_CODE(result));
+        std::cout << "Error " << MBED_GET_ERROR_CODE(result) << " on parameters iteration" << std::endl;
         return;
     }
     const size_t MaxKeySize = 50;
     char key[MaxKeySize] = {0};
-    printf("Stored parameters: ");
-    while(kv_iterator_next(it, key, MaxKeySize) != MBED_ERROR_ITEM_NOT_FOUND)
+    std::cout << "Stored parameters: ";
+    while(kv_iterator_next(it, static_cast<char*>(key), MaxKeySize) != MBED_ERROR_ITEM_NOT_FOUND)
     {
-        printf("%s, ", key);
-        memset(key, 0, MaxKeySize);
+        std::cout << key << ", ";
+        memset(static_cast<char*>(key), 0, MaxKeySize);
     }
     kv_iterator_close(it);
-    printf("\n");
+    std::cout << std::endl;
 }
 
 /*
 clear storage memory
 */
-void KvStore::clear(CommandVector cv)
+void KvStore::clear(CommandVector  /*cv*/)
 {
     int result = kv_reset("/kv/");
-    if(result)
+    if(result != 0)
     {
-        printf("Resetting parameter storage failed with error %d\n", MBED_GET_ERROR_CODE(result));
+        std::cout << "Resetting parameter storage failed with error " << MBED_GET_ERROR_CODE(result) << std::endl;
     }
     else
     {
-        printf("Parameter storage cleared\n");
+        std::cout << "Parameter storage cleared" << std::endl;
     }
 }
