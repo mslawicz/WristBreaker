@@ -24,7 +24,6 @@ HapticDevice::HapticDevice
     float maxCalTorque,     // maximum torque value in calibration phase
     float operationRange,   // the range of normal operation from reference position
     float kP,               //torque calculation proportional coefficient
-    float kI,               //torque calculation integral coefficient
     float kD                //torque calculation derivative coefficient    
 ) :
     pMotor(pMotor),
@@ -34,7 +33,6 @@ HapticDevice::HapticDevice
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
     kP(kP),
-    kI(kI),
     kD(kD)
 {
     pMotor->setEnablePin(1);
@@ -113,7 +111,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
                     counter = 0;
                     torque = 0.0F;
-                    state = HapticState::CalPosition;
+                    state = HapticState::HapticAction;
                 }
             }     
             break;
@@ -171,7 +169,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                         std::cout << "pos=" << currentPosition;
                         std::cout << "  pot=" << hapticData.auxData;
                         std::cout << "  kP=" << kP;
-                        std::cout << "  kI=" << kI;
                         std::cout << "  kD=" << kD;
                         std::cout << "  T=" << torque;
                         std::cout << "   \r" << std::flush;
@@ -217,29 +214,16 @@ void HapticDevice::updateMotorPosition()
     currentPosition = relativePosition;
 }
 
-void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
+void HapticDevice::setTorque(float targetPosition, float torqueLimit)
 {
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
     // calculate error from the zero position; positive error for CCW deflection
-    float error = zeroPosition - currentPosition;
+    float error = targetPosition - currentPosition;
 
     //calculate proportional part of torque
     static AnalogIn kPpot(PA_5); kP = 3.0F * kPpot.read(); //XXX test
     float proportional = kP * error;
-
-    //calculate integral part of torque
-    const float IntegralLimit = 0.06F;
-    static AnalogIn kIpot(PA_6); kI = 0.05F * kIpot.read(); //XXX test
-    if(fabsf(proportional) < IntegralLimit)
-    {
-        integral += kI * error;
-    }
-    else
-    {
-        integral *= 0.99F;
-    }
-    integral = limit<float>(integral, -IntegralLimit, IntegralLimit);
 
     //calculate derivative part of torque
     static AnalogIn kDpot(PA_7); kD = 3.0F * kDpot.read(); //XXX test
@@ -248,7 +232,7 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
     float derivative = kD * filteredDerivative;
 
     //calculate total requested torque
-    torque = proportional + integral + derivative;
+    torque = proportional + derivative;
     //torque shaping
     //XXX torque = (torque > 0 ? 1 : -1) * sqrtf(fabs(torque));
     //torque limit
@@ -262,7 +246,7 @@ void HapticDevice::setTorque(float zeroPosition, float torqueLimit)
     //XXX test
     g_value[2] = error;
     g_value[3] = proportional;
-    g_value[4] = integral;
+    g_value[4] = 0;
     g_value[5] = derivative;
     g_value[6] = 0;
     g_value[7] = 0;
