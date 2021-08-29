@@ -101,14 +101,18 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 std::cout << "  refPh=" << measuredRefPhase; 
                 std::cout << std::endl;
                 referencePhase += measuredRefPhase;
-                calibrationPosition -= 0.2F * operationRange;
+                const float PositionIncrement = 0.2F * operationRange;
+                calibrationPosition -= PositionIncrement;
                 positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
                 if(calibrationPosition < -operationRange)
                 {
                     //end of phase calibration - store the result
                     referencePhase = cropAngle<float>(referencePhase / counter);
-                    std::cout << "Mean reference phase=" << referencePhase;
+                    std::cout << "Mean reference phase=" << referencePhase << std::endl;
                     //store referencePhase here
+
+                    counter = 0;
+                    torque = 0.0F;
                     state = HapticState::CalPosition;
                 }
             }     
@@ -118,7 +122,29 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         //store calibration position
         case HapticState::CalPosition:
         {   
-            pMotor->setFieldVector(currentPhase, 0);
+            const size_t CalibrationSize = 100;
+            //calculate target position
+            calibrationPosition = -operationRange + counter * (operationRange + operationRange) / CalibrationSize;
+            //calculate the current motor electric phase from the motor position
+            currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
+            //calculate error from the zero position; positive error for CCW deflection
+            float error = calibrationPosition - currentPosition;
+            //integrate requested torque
+            torque = limit<float>(3.0F * hapticData.auxData * error, -maxCalTorque, maxCalTorque); 
+            float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
+            pMotor->setFieldVector(targetPhase, fabsf(torque));
+
+            //XXX test
+            static int cnt = 0;
+            if(cnt++ %200 == 0) // NOLINT
+            {
+                std::cout << "cal=" << calibrationPosition;
+                std::cout << "  pos=" << currentPosition;
+                std::cout << "  err=" << error;
+                std::cout << "  T=" << torque;
+                std::cout << "  pot=" << hapticData.auxData;
+                std::cout << "   \r" << std::flush;
+            }
             break;
         }
 
