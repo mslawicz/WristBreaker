@@ -73,11 +73,9 @@ private:
     enum class HapticState
     {
         Start,
-        CalibratePosition,
-        Move2Ref,
         StartCal,
-        SetCalPos,
-        StoreCalPos,
+        CalPhase,
+        CalPosition,
         EndCal,
         HapticAction
     };
@@ -94,6 +92,7 @@ private:
     float kI{0};            //torque calculation integral coefficient
     float kD{0};            //torque calculation derivative coefficient
     float integral{0};      //integral part of the torque
+    uint32_t counter{0};    //general counter
 };
 
 #endif /* HAPTIC_H_ */

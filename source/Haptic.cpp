@@ -51,10 +51,7 @@ HapticDevice::~HapticDevice()
 // request calibration process
 void HapticDevice::calibrationRequest()
 {
-    if(state == HapticState::HapticAction)
-    {
-        state = HapticState::Start;
-    }
+    state = HapticState::StartCal;
 }
 
 // haptic device application handler
@@ -67,95 +64,29 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         // state machine starts here and initializes variables
         case HapticState::Start:
         {
-            state = HapticState::CalibratePosition;
-            positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
-            torque = 0.0F;      //motor starts with torque=0 and slowly increase it
-            break;
-        }
-
-        case HapticState::CalibratePosition:
-        {
-            static float zeroPos{0};
-            filterEMA(zeroPos, 0.3F * (hapticData.auxData - 0.5F), 0.99F);
-            float error = zeroPos - currentPosition;
-            torque = limit<float>(torque + 0.001 * error, -maxCalTorque, maxCalTorque);
-            currentPhase += limit<float>(5.0F * error, -QuarterCycle, QuarterCycle);
-            float refPhase = cropAngle<float>(currentPhase - FullCycle * currentPosition / positionPeriod);
-            float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
-            pMotor->setFieldVector(targetPhase, fabsf(torque));
-            //XXX test
-            static int cnt = 0;
-            if(cnt++ %200 == 0) // NOLINT
-            {
-                std::cout << "pos=" << currentPosition;
-                std::cout << "  err=" << error;
-                std::cout << "  T=" << torque;
-                std::cout << "  cP=" << currentPhase;
-                std::cout << "  tP=" << targetPhase;
-                std::cout << "  rP=" << refPhase;
-                std::cout << "   \r" << std::flush;
-            }      
-            g_value[0] = currentPosition;
-            g_value[1] = zeroPos;
-            g_value[2] = error;
-            g_value[8] = torque;      
-            break;
-        }
-
-        // motor moves slowly and finds the reference position
-        case HapticState::Move2Ref:
-        {
-            // position error equals -currentPosition position
-            float error = -currentPosition;
-
-            // calculate motor phase step proportional to error with the limit
-            const float PhaseStepGain = 2.5F * static_cast<float>(pMotor->getNoOfPoles());     // how fast motor should move while finding mid position
-            float phaseStep =  PhaseStepGain * error;
-            const float PhaseStepLimit = 0.125F * static_cast<float>(pMotor->getNoOfPoles());     // step limit in degrees of electrical revolution
-            phaseStep = limit<float>(phaseStep, -PhaseStepLimit, PhaseStepLimit);
-
-            //move motor in the direction of reference position
-            currentPhase += phaseStep;
-
-            //ramp of applied torque
-            const float TorqueRise = 0.005F;     // 0.5% of torque rise at a time
-            torque += maxCalTorque * TorqueRise;
-            if(torque > maxCalTorque)
-            {
-                torque = maxCalTorque;
-            }
-            pMotor->setFieldVector(currentPhase, torque);
-
-            //calculate mean position deviation to check if position is reached and stable
-            const float PosDevFilterStrength = 0.985F;
-            filterEMA<float>(positionDeviation, fabs(currentPosition), PosDevFilterStrength);
-            const float PosDevThreshold = 0.01F;    //threshold for stable position
-            //check if reference position is reached and stable 
-            if(positionDeviation < PosDevThreshold)
-            {
-                std::cout << "haptic device '" << name << "' ready" << std::endl;
-                referencePhase = currentPhase;
-                state = HapticState::HapticAction;
-            }
-
+            state = HapticState::StartCal;
             break;
         }
 
         //start calibration process
         case HapticState::StartCal:
         {
-            calibrationPosition = -operationRange;
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
-            lastPosition = 0.0F;
-            state = HapticState::SetCalPos;
+            calibrationPosition = operationRange;
+            referencePhase = 0.0F;
+            torque = maxCalTorque;
+            counter = 0;
+            state = HapticState::CalPhase;
             break;
         }
 
-        //set calibration position
-        case HapticState::SetCalPos:
+        //measure phase shift
+        case HapticState::CalPhase:
         {   
-            setTorque(calibrationPosition, maxCalTorque);
-            //calculate mean position deviation to check if position is reached and stable
+            float error = calibrationPosition - currentPosition;
+            currentPhase += limit<float>(5.0F * error, -QuarterCycle, QuarterCycle);
+            pMotor->setFieldVector(currentPhase, fabsf(torque));
+            //calculate mean position deviation to check if calibration position is reached and stable
             const float PosDevFilterStrength = 0.985F;
             filterEMA<float>(positionDeviation, fabs(currentPosition - lastPosition), PosDevFilterStrength);
             lastPosition = currentPosition;
@@ -163,25 +94,31 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             //check if reference position is reached and stable 
             if(positionDeviation < PosDevThreshold)
             {
-                std::cout << calibrationPosition << ";" << currentPosition << std::endl;
-                state = HapticState::StoreCalPos;
-            }
+                auto measuredRefPhase = cropAngle<float>(currentPhase - FullCycle * currentPosition / positionPeriod);
+                counter++;
+                std::cout << "pos=" << calibrationPosition;
+                std::cout << "  err=" << error;
+                std::cout << "  refPh=" << measuredRefPhase; 
+                std::cout << std::endl;
+                referencePhase += measuredRefPhase;
+                calibrationPosition -= 0.2F * operationRange;
+                positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
+                if(calibrationPosition < -operationRange)
+                {
+                    //end of phase calibration - store the result
+                    referencePhase = cropAngle<float>(referencePhase / counter);
+                    std::cout << "Mean reference phase=" << referencePhase;
+                    //store referencePhase here
+                    state = HapticState::CalPosition;
+                }
+            }     
             break;
         }        
 
         //store calibration position
-        case HapticState::StoreCalPos:
+        case HapticState::CalPosition:
         {   
-            calibrationPosition += 0.02F * operationRange;
-            if(calibrationPosition > operationRange)
-            {
-                state = HapticState::EndCal;
-            }
-            else
-            {
-                positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
-                state = HapticState::SetCalPos;
-            }
+            pMotor->setFieldVector(currentPhase, 0);
             break;
         }
 
