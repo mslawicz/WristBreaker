@@ -72,10 +72,7 @@ private:
     enum class HapticState
     {
         Start,
-        StartCal,
-        CalPhase,
-        CalPosition,
-        EndCal,
+        Move2Ref,
         HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
