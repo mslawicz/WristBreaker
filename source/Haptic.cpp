@@ -173,17 +173,30 @@ void HapticDevice::setTorque(float targetPosition, float torqueLimit)
     float error = targetPosition - currentPosition;
 
     //calculate proportional part of torque
-    static AnalogIn kPpot(PA_5); kP = 5.0F * kPpot.read(); //XXX test
+    static AnalogIn kPpot(PA_5); kP = 3.0F * kPpot.read(); //XXX test
     float proportional = kP * error;
     //proportional part shaping
-    //proportional = (proportional > 0 ? 1 : -1) * sqrtf(fabs(proportional));
+    //proportional = (proportional > 0 ? 1 : -1) * sqrtf(fabsf(proportional));
 
     //calculate derivative part of torque
-    static AnalogIn fltrPot(PA_6); float fltrStr = fltrPot.read(); //XXX test
-    static AnalogIn kDpot(PA_7); kD = 5.0F * kDpot.read(); //XXX test
-    filterEMA<float>(filteredDerivative, error - lastError, fltrStr);
-    lastError = error;
+    static AnalogIn fltrPot(PA_6); float fltrStr = fltrPot.read(); //XXX test proposed value 0.2F
+    static AnalogIn kDpot(PA_7); kD = 10.0F * kDpot.read(); //XXX test
+    filterEMA<float>(filteredDerivative, lastPosition - currentPosition, fltrStr);
+    lastPosition = currentPosition;
     float derivative = kD * filteredDerivative;
+    const float DerivativeThreshold = 0.025;
+    if(derivative > DerivativeThreshold)
+    {
+        derivative -= DerivativeThreshold;
+    }
+    else if (derivative < -DerivativeThreshold)
+    {
+        derivative += DerivativeThreshold;
+    }
+    else
+    {
+        derivative = 0.0F;
+    }
 
     //calculate total requested torque
     torque = proportional + derivative;

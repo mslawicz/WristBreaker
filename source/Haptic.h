@@ -79,11 +79,10 @@ private:
     float positionDeviation{0};     //filtered position deviation
     float torque{0.0F};     // current torque of the motor
     float maxCalTorque;     // maximum torque value during calibration phase
-    float lastError{0};     //last position error for calculation of derivative component
+    float lastPosition{0};     //last position for calculation of derivative component
     float filteredDerivative{0};    //filtered value of derivative component
     float operationRange{0};    //the range of normal operation from reference position
     float calibrationPosition{0};
-    float lastPosition{0};
     float kP{0};            //torque calculation proportional coefficient
     float kD{0};            //torque calculation derivative coefficient
     uint32_t counter{0};    //general counter
