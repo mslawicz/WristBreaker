@@ -81,4 +81,22 @@ template<typename T> T limit(T value, T min, T max)
     return value;
 }
 
+//cut out values not exceeding threshold
+template<typename T> T threshold(T value, T low, T high)
+{
+    if(value > high)
+    {
+        value -= high;
+    }
+    else if(value < low)
+    {
+        value -= low;
+    }
+    else
+    {
+        value = static_cast<T>(0);
+    }
+    return value;
+}
+
 #endif /* CONVERT_H_ */

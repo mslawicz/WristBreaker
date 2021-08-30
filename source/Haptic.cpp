@@ -188,18 +188,7 @@ void HapticDevice::setTorque(float targetPosition, float torqueLimit)
     lastPosition = currentPosition;
     float derivative = kD * filteredDerivative;
     static AnalogIn thrPot(PA_6); derivativeThreshold = 0.05F * thrPot.read(); //XXX test
-    if(derivative > derivativeThreshold)
-    {
-        derivative -= derivativeThreshold;
-    }
-    else if (derivative < -derivativeThreshold)
-    {
-        derivative += derivativeThreshold;
-    }
-    else
-    {
-        derivative = 0.0F;
-    }
+    derivative = threshold<float>(derivative, -derivativeThreshold, derivativeThreshold);
 
     //calculate total requested torque
     torque = proportional + derivative;
