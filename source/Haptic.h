@@ -45,7 +45,9 @@ public:
         float maxCalTorque,     // maximum torque value in calibration phase
         float operationRange,   // the range of normal operation from reference position
         float kP,               //torque calculation proportional coefficient
-        float kD                //torque calculation derivative coefficient
+        float kD,               //torque calculation derivative coefficient
+        size_t derivativeFilterSize,    //size of median filter for derivative part
+        float derivativeThreshold   //threshold for derivative part
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -86,7 +88,8 @@ private:
     float kP{0};            //torque calculation proportional coefficient
     float kD{0};            //torque calculation derivative coefficient
     uint32_t counter{0};    //general counter
-    MedianFilter derivativeFilter;
+    MedianFilter derivativeFilter;  //filter of derivative part
+    float derivativeThreshold;  //threshold of torque calculation derivative part
 };
 
 #endif /* HAPTIC_H_ */

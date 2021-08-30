@@ -21,8 +21,10 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.2F,                   //NOLINT    maximum torque in calibration phase
         0.25F,                  //NOLINT    range of normal operation from reference position
-        0.2F,                   //NOLINT    torque calculation proportional coefficient
-        0.38F                   //NOLINT    torque calculation derivative coefficient
+        1.7F,                   //NOLINT    torque calculation proportional coefficient
+        3.3F,                   //NOLINT    torque calculation derivative coefficient
+        3,                      //NOLINT    derivative part median filter size
+        0.015F                  //NOLINT    derivative part threshold
     ),
     testPot(PC_5),   //XXX test
     systemPushbutton(BUTTON1)
