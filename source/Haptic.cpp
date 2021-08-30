@@ -33,7 +33,8 @@ HapticDevice::HapticDevice
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
     kP(kP),
-    kD(kD)
+    kD(kD),
+    derivativeFilter(3)
 {
     pMotor->setEnablePin(1);
     positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -179,12 +180,12 @@ void HapticDevice::setTorque(float targetPosition, float torqueLimit)
     //proportional = (proportional > 0 ? 1 : -1) * sqrtf(fabsf(proportional));
 
     //calculate derivative part of torque
-    static AnalogIn fltrPot(PA_6); float fltrStr = fltrPot.read(); //XXX test proposed value 0.2F
     static AnalogIn kDpot(PA_7); kD = 10.0F * kDpot.read(); //XXX test
-    filterEMA<float>(filteredDerivative, lastPosition - currentPosition, fltrStr);
+    float filteredDerivative = derivativeFilter.getMedian(lastPosition - currentPosition);
     lastPosition = currentPosition;
     float derivative = kD * filteredDerivative;
-    const float DerivativeThreshold = 0.025;
+    static AnalogIn thrPot(PA_6); float DerivativeThreshold = 0.05F * thrPot.read(); //XXX test
+    //const float DerivativeThreshold = 0.025;
     if(derivative > DerivativeThreshold)
     {
         derivative -= DerivativeThreshold;
@@ -211,7 +212,7 @@ void HapticDevice::setTorque(float targetPosition, float torqueLimit)
     //XXX test
     g_value[2] = error;
     g_value[3] = proportional;
-    g_value[4] = fltrStr * 0.1F;
+    g_value[4] = DerivativeThreshold;
     g_value[5] = derivative;
     g_value[6] = 0;
     g_value[7] = 0;

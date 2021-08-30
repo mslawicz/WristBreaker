@@ -14,11 +14,11 @@ class MedianFilter
 {
 public:
     explicit MedianFilter(size_t size);
-    float getMedian(float newValue);
+    float getMedian(float newValue);    //filter and return current value
 private:
     size_t size;
-    std::vector<float> chronoData;
-    std::vector<float> sortedData;
+    std::vector<float> chronoData;      //data ordered by time
+    std::vector<float> sortedData;      //data ordered by value
 };
 
 #endif /* FILTER_H_ */
