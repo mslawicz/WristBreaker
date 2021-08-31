@@ -99,13 +99,33 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             //check if reference position is reached and stable 
             if(positionDeviation < PosDevThreshold)
             {
-                std::cout << "haptic device '" << name << "' ready" << std::endl;
-                referencePhase = currentPhase;
-                state = HapticState::HapticAction;
+                referencePhase = cropAngle<float>(currentPhase);
+                std::cout << "haptic device '" << name << "' reference phase = " << referencePhase << std::endl;
+                calibrationPosition = -operationRange;
+                state = HapticState::Move2Low;
             }
 
             break;
         }
+
+        // move to lower range position
+        case HapticState::Move2Low:
+        {
+            float error = setTorque(calibrationPosition, maxCalTorque);
+            if(fabsf(error) < 0.01F)
+            {
+                pMotor->setFieldVector(currentPhase, 0);
+                state = HapticState::CalPos;
+            }
+            break;
+        }
+
+        // calibrate position
+        case HapticState::CalPos:
+        {
+            
+            break;
+        }        
 
         //main haptic action
         case HapticState::HapticAction:
@@ -169,7 +189,9 @@ void HapticDevice::updateMotorPosition()
     currentPosition = relativePosition;
 }
 
-void HapticDevice::setTorque(float targetPosition, float torqueLimit)
+//set torque proportional to target position error
+//returns the current position error
+float HapticDevice::setTorque(float targetPosition, float torqueLimit)
 {
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
@@ -207,4 +229,6 @@ void HapticDevice::setTorque(float targetPosition, float torqueLimit)
     g_value[5] = derivative;
     g_value[6] = 0;
     g_value[7] = 0;
+
+    return error;
 }
