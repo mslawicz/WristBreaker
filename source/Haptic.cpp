@@ -102,7 +102,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 referencePhase = cropAngle<float>(currentPhase);
                 std::cout << "haptic device '" << name << "' reference phase = " << referencePhase << std::endl;
                 calibrationPosition = -operationRange;
-                state = HapticState::Move2Low;
+                state = HapticState::HapticAction;
             }
 
             break;
@@ -111,10 +111,14 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         // move to lower range position
         case HapticState::Move2Low:
         {
-            float error = setTorque(calibrationPosition, maxCalTorque);
-            if(fabsf(error) < 0.01F)
+            const float PhaseStep = 0.1F * static_cast<float>(pMotor->getNoOfPoles());
+            currentPhase -= PhaseStep;
+            pMotor->setFieldVector(currentPhase, maxCalTorque);
+            if(currentPosition < calibrationPosition)
             {
-                pMotor->setFieldVector(currentPhase, 0);
+                torque = 0;
+                counter = 0;
+                positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
                 state = HapticState::CalPos;
             }
             break;
@@ -123,9 +127,51 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         // calibrate position
         case HapticState::CalPos:
         {
-            
+            const size_t NoOfCalSections = 20;
+            float error = calibrationPosition - currentPosition;
+            torque = limit<float>(torque + 1.1F * error, -maxCalTorque, maxCalTorque);
+            currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
+            float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
+            pMotor->setFieldVector(targetPhase, fabsf(torque));
+            //calculate mean position deviation to check if position is reached and stable
+            const float PosDevFilterStrength = 0.985F;
+            filterEMA<float>(positionDeviation, fabsf(error), PosDevFilterStrength);
+            const float PosDevThreshold = 0.005F;    //threshold for stable position
+            //check if reference position is reached and stable 
+            if(positionDeviation < PosDevThreshold)
+            {
+                std::cout << "cal pos = " << calibrationPosition;
+                std::cout << ", T = " << torque;
+                std::cout << std::endl;
+                counter++;
+                calibrationPosition = -operationRange + operationRange * 0.5F * counter / NoOfCalSections;
+                positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
+                if(counter > NoOfCalSections)
+                {
+                    pMotor->setFieldVector(currentPhase, 0);    //XXX temporary
+                    state = HapticState::CalEnd;
+                }
+            }            
+
+            //XXX test
+            static int cnt = 0;
+            if(cnt++ %200 == 0) // NOLINT
+            {
+                std::cout << "pos=" << currentPosition;
+                std::cout << "  err=" << error;
+                std::cout << "  cP=" << currentPhase;
+                std::cout << "  tP=" << targetPhase;
+                std::cout << "  T=" << torque;
+                std::cout << "   \r" << std::flush;
+            }
             break;
-        }        
+        }      
+
+        // end of calibration process
+        case HapticState::CalEnd:
+        {
+            break;
+        }          
 
         //main haptic action
         case HapticState::HapticAction:

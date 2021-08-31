@@ -78,6 +78,7 @@ private:
         Move2Ref,
         Move2Low,
         CalPos,
+        CalEnd,
         HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
