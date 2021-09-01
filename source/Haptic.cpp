@@ -193,6 +193,9 @@ float HapticDevice::setTorque(float targetPosition, float torqueLimit)
 
     //calculate total requested torque
     torque = proportional + derivative;
+    //shift torque
+    float shift = 0.1F * thrPot.read();
+    torque += (torque > 0 ? shift : -shift);
     //torque limit
     torque = limit<float>(torque, -torqueLimit, torqueLimit);
 
