@@ -99,8 +99,9 @@ void Commander::handler()
     float pot = testPot.read();
     HapticData rollActuatorData
     {
-        .zeroPosition = zeroPositionX,   // zero torque pos from simulator
-        .torqueGain = 1.0F,     // NOLINT
+        .zeroPosition = 0, //zeroPositionX,   // zero torque pos from simulator
+        .torqueGain = 1.0F,     //NOLINT
+        .zeroMagnitude = 0.5F * pot,  //NOLINT
         .auxData = pot
     };
 
