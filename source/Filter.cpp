@@ -47,12 +47,13 @@ MovingAverageFilter::MovingAverageFilter(size_t size) :
     data.resize(size, 0.0F);
 }
  
-void MovingAverageFilter::filter(float inputData)
+float MovingAverageFilter::getFilterValue(float inputData)
 {
     sum -= data.front();
     data.erase(data.begin());
     sum += inputData;
     data.push_back(inputData);
+    return sum / size;
 }
 
 

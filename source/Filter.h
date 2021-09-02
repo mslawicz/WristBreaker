@@ -34,8 +34,7 @@ class MovingAverageFilter
 {
 public:
     explicit MovingAverageFilter(size_t size);
-    float getFilterValue() const { return sum / size; }
-    void filter(float inputData);
+    float getFilterValue(float inputData);       //filter and return current value
 private:
     size_t size;
     std::vector<float> data;      //input data vector

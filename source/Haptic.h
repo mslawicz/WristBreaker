@@ -90,6 +90,7 @@ private:
     uint32_t counter{0};    //general counter
     MedianFilter derivativeFilter;  //filter of derivative part
     float derivativeThreshold;  //threshold of torque calculation derivative part
+    MovingAverageFilter outputFilter;   //PID output filter
 };
 
 #endif /* HAPTIC_H_ */

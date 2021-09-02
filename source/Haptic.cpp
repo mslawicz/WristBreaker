@@ -37,7 +37,8 @@ HapticDevice::HapticDevice
     kP(kP),
     kD(kD),
     derivativeFilter(derivativeFilterSize),
-    derivativeThreshold(derivativeThreshold)
+    derivativeThreshold(derivativeThreshold),
+    outputFilter(50)
 {
     pMotor->setEnablePin(1);
     positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -156,7 +157,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
 void HapticDevice::updateMotorPosition()
 {
-    encoderPosition = pEncoder->getFilteredValue();
+    encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
     const float EncoderHalfRange = 0.5F;
     float relativePosition = encoderPosition - referencePosition;
@@ -196,9 +197,13 @@ float HapticDevice::setTorque(float targetPosition, float torqueLimit)
     torque = proportional + derivative;
     //torque limit
     torque = limit<float>(torque, -torqueLimit, torqueLimit);
+    //filter torque
+    float filteredTorque = outputFilter.getFilterValue(torque);
+    torque = filteredTorque;
 
     //apply the requested torque to motor
-    float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
+    //float targetPhase = currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
+    float targetPhase = currentPhase + torque * QuarterCycle;
     //static AnalogIn ctrqPot(PA_6); float constTorque = 0.5F * ctrqPot.read(); //XXX test
     float vectorMagnitude = fabsf(torque);
     pMotor->setFieldVector(targetPhase, vectorMagnitude);
