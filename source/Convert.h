@@ -45,15 +45,6 @@ template<typename Type> Type cropAngle(Type angle)
     return angle;
 }
 
-//EMA filter
-// filteredValue - variable to be filtered
-// newValue - new input value; its impact is proportional to (1-strength)
-// strength - filter strength: 0.0f no filtering, 1.0f for no input value impact
-template<typename Type> void filterEMA(Type& filteredValue, Type newValue, float strength)
-{
-    filteredValue = strength * filteredValue + (1.0F - strength) * newValue;
-}
-
 template<typename T> void placeData(T data, uint8_t*& pBuffer)
 {
     memcpy(pBuffer, &data, sizeof(T));

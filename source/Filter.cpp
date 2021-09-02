@@ -41,4 +41,18 @@ float MedianFilter::getMedian(float newValue)
     return sortedData[size / 2];
 }
 
+MovingAverageFilter::MovingAverageFilter(size_t size) :
+    size(size)
+{
+    data.resize(size, 0.0F);
+}
+ 
+void MovingAverageFilter::filter(float inputData)
+{
+    sum -= data.front();
+    data.erase(data.begin());
+    sum += inputData;
+    data.push_back(inputData);
+}
+
 

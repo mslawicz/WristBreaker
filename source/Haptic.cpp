@@ -127,6 +127,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                         std::cout << "  kP=" << kP;
                         std::cout << "  kD=" << kD;
                         std::cout << "  T=" << torque;
+                        std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
                     }
 
@@ -193,9 +194,6 @@ float HapticDevice::setTorque(float targetPosition, float torqueLimit)
 
     //calculate total requested torque
     torque = proportional + derivative;
-    //shift torque
-    float shift = 0.1F * thrPot.read();
-    torque += (torque > 0 ? shift : -shift);
     //torque limit
     torque = limit<float>(torque, -torqueLimit, torqueLimit);
 
