@@ -87,7 +87,6 @@ private:
     float calibrationPosition{0};
     float kP{0};            //torque calculation proportional coefficient
     float kD{0};            //torque calculation derivative coefficient
-    uint32_t counter{0};    //general counter
     MedianFilter derivativeFilter;  //filter of derivative part
     float derivativeThreshold;  //threshold of torque calculation derivative part
     MovingAverageFilter outputFilter;   //PID output filter

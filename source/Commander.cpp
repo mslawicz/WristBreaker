@@ -16,7 +16,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     yokeRollActuator
     (
         new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINT(readability-magic-numbers)
-        new AS5600(PC_4, 3),
+        new AS5600(PC_4, 5),
         "yoke roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.2F,                   //NOLINT    maximum torque in calibration phase
@@ -111,7 +111,7 @@ void Commander::handler()
     // filterEMA<float>(fpos, 0.1F * (pot - 0.5F), 0.95F);
     const float Ampl = 0.07F;
     float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
-    rollActuatorData.zeroPosition = fpos;
+    rollActuatorData.zeroPosition = fpos * 0;
 
     yokeRollActuator.handler(HapticMode::Spring, rollActuatorData);
 
