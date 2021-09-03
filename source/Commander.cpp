@@ -23,8 +23,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.25F,                  //NOLINT    range of normal operation from reference position
         1.7F,                   //NOLINT    torque calculation proportional coefficient
         4.5F,                   //NOLINT    torque calculation derivative coefficient
-        3,                      //NOLINT    derivative part median filter size
-        0.015F                  //NOLINT    derivative part threshold
+        3                       //NOLINT    derivative part median filter size
     ),
     testPot(PC_5),   //XXX test
     systemPushbutton(BUTTON1)

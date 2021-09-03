@@ -25,8 +25,7 @@ HapticDevice::HapticDevice
     float operationRange,   // the range of normal operation from reference position
     float kP,               //torque calculation proportional coefficient
     float kD,               //torque calculation derivative coefficient    
-    size_t derivativeFilterSize,    //size of median filter for derivative part
-    float derivativeThreshold   //threshold for derivative part
+    size_t derivativeFilterSize    //size of median filter for derivative part
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
@@ -37,7 +36,6 @@ HapticDevice::HapticDevice
     kP(kP),
     kD(kD),
     derivativeFilter(derivativeFilterSize),
-    derivativeThreshold(derivativeThreshold),
     outputFilter(50)
 {
     pMotor->setEnablePin(1);
@@ -181,38 +179,29 @@ float HapticDevice::setTorque(float targetPosition, float torqueLimit)
     // calculate error from the zero position; positive error for CCW deflection
     float error = targetPosition - currentPosition;
 
-    //calculate proportional part of torque
-    static AnalogIn kPpot(PA_5); kP = 4.0F * kPpot.read(); //XXX test 1.7
-    float proportional = kP * error;
+    //calculate target torque torque
+    static AnalogIn kPpot(PA_5); kP = 6.0F * kPpot.read(); //XXX test 1.7
+    float targetTorque = kP * error;
+    static AnalogIn thrPot(PA_6); float torqueRamp = 0.5F * thrPot.read(); //XXX test
+    torque += torqueRamp * (targetTorque - torque);
 
-    //calculate derivative part of torque
     static AnalogIn kDpot(PA_7); kD = 200.0F * kDpot.read(); //XXX test 3.3
-    float filteredDerivative = derivativeFilter.getMedian(currentPosition - lastPosition);
-    float derivative = kD * filteredDerivative;
-    static AnalogIn thrPot(PA_6); derivativeThreshold = 0.1F * thrPot.read(); //XXX test
-    derivative = threshold<float>(derivative, -derivativeThreshold, derivativeThreshold);
 
-    //calculate total requested torque
-    torque = proportional;
     //torque limit
     torque = limit<float>(torque, -torqueLimit, torqueLimit);
-    //filter torque
-    // float filteredTorque = outputFilter.getFilterValue(torque);
-    // torque = filteredTorque;
 
     //apply the requested torque to motor
-    float phaseShift = (torque > 0 ? QuarterCycle : -QuarterCycle) + filteredDerivative * QuarterCycle;
-    float targetPhase = currentPhase + phaseShift;
+    float targetPhase = currentPhase + torque * QuarterCycle;
     float vectorMagnitude = fabsf(torque);
     pMotor->setFieldVector(targetPhase, vectorMagnitude);
 
     //XXX test
     g_value[2] = error;
-    g_value[3] = proportional;
-    g_value[4] = derivativeThreshold;
-    g_value[5] = filteredDerivative;
-    g_value[6] = 0;
-    g_value[7] = 0;
+    g_value[3] = currentPhase;
+    g_value[4] = targetPhase;
+    g_value[5] = 0;;
+    g_value[6] = targetTorque;
+    g_value[7] = torqueRamp;
 
     lastPosition = currentPosition;
     return error;
