@@ -178,31 +178,25 @@ float HapticDevice::setTorque(float targetPosition, float torqueLimit)
     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
     // calculate error from the zero position; positive error for CCW deflection
     float error = targetPosition - currentPosition;
-
-    //calculate target torque torque
-    static AnalogIn kPpot(PA_5); kP = 6.0F * kPpot.read(); //XXX test 1.7
-    float targetTorque = kP * error;
-    static AnalogIn thrPot(PA_6); float torqueRamp = 0.5F * thrPot.read(); //XXX test
-    torque += torqueRamp * (targetTorque - torque);
-
-    static AnalogIn kDpot(PA_7); kD = 200.0F * kDpot.read(); //XXX test 3.3
-
-    //torque limit
-    torque = limit<float>(torque, -torqueLimit, torqueLimit);
-
+    //calculate requested torque with limit
+    static AnalogIn kPpot(PA_5); kP = 6.0F * kPpot.read(); //XXX test 3.5
+    torque = limit<float>(kP * error, -torqueLimit, torqueLimit);
     //apply the requested torque to motor
-    float targetPhase = currentPhase + torque * QuarterCycle;
+    const float PhaseGain = 2.0F;
+    auto dPhase = limit<float>(PhaseGain * torque * QuarterCycle, -QuarterCycle, QuarterCycle);
     float vectorMagnitude = fabsf(torque);
-    pMotor->setFieldVector(targetPhase, vectorMagnitude);
+    pMotor->setFieldVector(currentPhase + dPhase, vectorMagnitude);
 
     //XXX test
     g_value[2] = error;
-    g_value[3] = currentPhase;
-    g_value[4] = targetPhase;
-    g_value[5] = 0;;
-    g_value[6] = targetTorque;
-    g_value[7] = torqueRamp;
+    g_value[3] = dPhase;
+    g_value[4] = 0;
+    g_value[5] = 0;
+    g_value[6] = 0;
+    g_value[7] = 0;
+    g_value[9] = 0;
 
-    lastPosition = currentPosition;
+    //static AnalogIn dpPot(PA_6); float DP = 50.0F * dpPot.read(); //XXX test
+    //static AnalogIn kDpot(PA_7); kD = 200.0F * kDpot.read(); //XXX test 3.3
     return error;
 }
