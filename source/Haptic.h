@@ -44,8 +44,6 @@ public:
         float referencePosition,    // encoder reference (middle) position of the device
         float maxCalTorque,     // maximum torque value in calibration phase
         float operationRange,   // the range of normal operation from reference position
-        float kP,               //torque calculation proportional coefficient
-        float kD,               //torque calculation derivative coefficient
         size_t derivativeFilterSize    //size of median filter for derivative part
     );
     ~HapticDevice();
@@ -84,8 +82,6 @@ private:
     float lastPosition{0};     //last position for calculation of derivative component
     float operationRange{0};    //the range of normal operation from reference position
     float calibrationPosition{0};
-    float kP{0};            //torque calculation proportional coefficient
-    float kD{0};            //torque calculation derivative coefficient
     MedianFilter derivativeFilter;  //filter of derivative part
     MovingAverageFilter outputFilter;   //PID output filter
 };

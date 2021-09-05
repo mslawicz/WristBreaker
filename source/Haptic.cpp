@@ -22,9 +22,7 @@ HapticDevice::HapticDevice
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
     float maxCalTorque,     // maximum torque value in calibration phase
-    float operationRange,   // the range of normal operation from reference position
-    float kP,               //torque calculation proportional coefficient
-    float kD,               //torque calculation derivative coefficient    
+    float operationRange,   // the range of normal operation from reference position  
     size_t derivativeFilterSize    //size of median filter for derivative part
 ) :
     pMotor(pMotor),
@@ -33,8 +31,6 @@ HapticDevice::HapticDevice
     referencePosition(referencePosition),
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
-    kP(kP),
-    kD(kD),
     derivativeFilter(derivativeFilterSize),
     outputFilter(50)
 {
