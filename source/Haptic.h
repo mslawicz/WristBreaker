@@ -14,11 +14,7 @@
 #include "Encoder.h"
 #include "Filter.h"
 #include <string>
-#include <map>
-#include <vector>
 
-using TorqueVector = std::pair<float, float>;
-using TorqueMap = std::map<float, TorqueVector>;
 
 enum class HapticMode
 {
@@ -28,7 +24,7 @@ enum class HapticMode
 
 struct HapticData
 {
-    float zeroPosition;         // position of zero torque (relative to the reference position)
+    float zeroPosition;         // position of zero force (relative to the reference position)
     float forceGain;            // gain for force vector calculation
     float auxData;              // auxilary data for testing
 };
@@ -42,7 +38,7 @@ public:
         Encoder* pEncoder,      // pointer to motor position encoder object
         std::string name,       // name of the device
         float referencePosition,    // encoder reference (middle) position of the device
-        float maxCalTorque,     // maximum torque value in calibration phase
+        float maxCalForce,      // maximum force value in calibration phase
         float operationRange    // the range of normal operation from reference position
     );
     ~HapticDevice();
@@ -76,8 +72,8 @@ private:
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
     float positionDeviation{0};     //filtered position deviation
-    float torque{0.0F};     // current torque of the motor
-    float maxCalTorque;     // maximum torque value during calibration phase
+    float force{0.0F};      // current force of the motor
+    float maxCalForce;      // maximum force value during calibration phase
     float lastPosition{0};     //last position for calculation of derivative component
     float operationRange{0};    //the range of normal operation from reference position
     float calibrationPosition{0};
@@ -86,6 +82,7 @@ private:
 #endif /* HAPTIC_H_ */
 
 /*
-recommended torqueGain values:
+recommended ForceGain values:
 HT2205 Spring: 4
+57BLY12530 Spring: 3.5
 */

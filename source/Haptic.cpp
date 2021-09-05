@@ -21,14 +21,14 @@ HapticDevice::HapticDevice
     Encoder* pEncoder,      // pointer to motor position encoder object
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
-    float maxCalTorque,     // maximum torque value in calibration phase
+    float maxCalForce,      // maximum force value in calibration phase
     float operationRange    // the range of normal operation from reference position  
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
     name(std::move(name)),
     referencePosition(referencePosition),
-    maxCalTorque(maxCalTorque),
+    maxCalForce(maxCalForce),
     operationRange(operationRange)
 {
     pMotor->setEnablePin(1);
@@ -78,11 +78,11 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             //move motor in the direction of reference position
             currentPhase += phaseStep;
 
-            //ramp of applied torque
-            const float TorqueRise = 0.005F;     // 0.5% of torque rise at a time
-            torque += maxCalTorque * TorqueRise;
-            torque = limit<float>(torque, 0, maxCalTorque);
-            pMotor->setFieldVector(currentPhase, torque);
+            //ramp of applied force
+            const float ForceRise = 0.005F;     // 0.5% of force rise at a time
+            force += maxCalForce * ForceRise;
+            force = limit<float>(force, 0, maxCalForce);
+            pMotor->setFieldVector(currentPhase, force);
 
             //calculate mean position deviation to check if position is reached and stable
             const float PosDevFilterStrength = 0.985F;
@@ -118,7 +118,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                         std::cout << "pos=" << currentPosition;
                         std::cout << "  pot=" << hapticData.auxData;
                         std::cout << "  fG=" << hapticData.forceGain;
-                        std::cout << "  T=" << torque;
+                        std::cout << "  T=" << force;
                         std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
                     }
@@ -126,7 +126,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     //XXX set global variables
                     g_value[0] = currentPosition;
                     g_value[1] = hapticData.zeroPosition;
-                    g_value[8] = torque;
+                    g_value[8] = force;
 
                     break;
                 }
