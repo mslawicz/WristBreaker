@@ -20,8 +20,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         "yoke roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.2F,                   //NOLINT    maximum torque in calibration phase
-        0.25F,                  //NOLINT    range of normal operation from reference position
-        3                       //NOLINT    derivative part median filter size
+        0.25F                   //NOLINT    range of normal operation calculated from reference position
     ),
     testPot(PC_5),   //XXX test
     systemPushbutton(BUTTON1)

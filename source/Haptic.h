@@ -43,8 +43,7 @@ public:
         std::string name,       // name of the device
         float referencePosition,    // encoder reference (middle) position of the device
         float maxCalTorque,     // maximum torque value in calibration phase
-        float operationRange,   // the range of normal operation from reference position
-        size_t derivativeFilterSize    //size of median filter for derivative part
+        float operationRange    // the range of normal operation from reference position
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -82,8 +81,6 @@ private:
     float lastPosition{0};     //last position for calculation of derivative component
     float operationRange{0};    //the range of normal operation from reference position
     float calibrationPosition{0};
-    MedianFilter derivativeFilter;  //filter of derivative part
-    MovingAverageFilter outputFilter;   //PID output filter
 };
 
 #endif /* HAPTIC_H_ */
