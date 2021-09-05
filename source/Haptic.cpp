@@ -107,7 +107,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    static AnalogIn kPpot(PA_5); hapticData.forceGain = 6.0F * kPpot.read(); //XXX test 3.5
                     setForce(hapticData.zeroPosition, hapticData.forceGain, 1.0F);
 
                     //XXX test
@@ -165,15 +164,21 @@ void HapticDevice::updateMotorPosition()
 //set force vector proportional to target position error
 void HapticDevice::setForce(float targetPosition, float forceGain, float forceLimit)
 {
+    static float lastPosition = 0;
+
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
     // calculate error from the zero position; positive error for CCW deflection
     float error = targetPosition - currentPosition;
     //calculate requested force with limit
-    force = limit<float>(forceGain * error, -forceLimit, forceLimit);
+    static AnalogIn kPpot(PA_5); forceGain = 3.0F * kPpot.read(); //XXX test
+    static AnalogIn dpPot(PA_6); float derGain = 10.0F * dpPot.read(); //XXX test
+    float derivative = derGain * (lastPosition - currentPosition);
+    force = limit<float>(forceGain * error + derivative, -forceLimit, forceLimit);
     //apply the requested force vector to motor
     const float PhaseGain = 2.0F;
-    auto dPhase = limit<float>(PhaseGain * force * QuarterCycle, -QuarterCycle, QuarterCycle);
+    //XXX auto dPhase = limit<float>(PhaseGain * force * QuarterCycle, -QuarterCycle, QuarterCycle);
+    float dPhase = force > 0 ? QuarterCycle : -QuarterCycle;
     float vectorMagnitude = fabsf(force);
     pMotor->setFieldVector(currentPhase + dPhase, vectorMagnitude);
 
@@ -182,10 +187,10 @@ void HapticDevice::setForce(float targetPosition, float forceGain, float forceLi
     g_value[3] = dPhase;
     g_value[4] = 0;
     g_value[5] = 0;
-    g_value[6] = 0;
+    g_value[6] = derivative;
     g_value[7] = 0;
     g_value[9] = 0;
 
-    //static AnalogIn dpPot(PA_6); float DP = 50.0F * dpPot.read(); //XXX test
     //static AnalogIn kDpot(PA_7); kD = 200.0F * kDpot.read(); //XXX test 3.3
+    lastPosition = currentPosition;
 }
