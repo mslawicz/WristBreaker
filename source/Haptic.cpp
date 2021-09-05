@@ -165,6 +165,7 @@ void HapticDevice::updateMotorPosition()
 void HapticDevice::setForce(float targetPosition, float forceGain, float forceLimit)
 {
     static float lastPosition = 0;
+    static float derivative = 0;
 
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
@@ -173,7 +174,9 @@ void HapticDevice::setForce(float targetPosition, float forceGain, float forceLi
     //calculate requested force with limit
     static AnalogIn kPpot(PA_5); forceGain = 3.0F * kPpot.read(); //XXX test
     static AnalogIn dpPot(PA_6); float derGain = 10.0F * dpPot.read(); //XXX test
-    float derivative = derGain * (lastPosition - currentPosition);
+    static MedianFilter mF(5);
+    //derivative = derGain * (lastPosition - currentPosition);
+    derivative = mF.getMedian(derGain * (lastPosition - currentPosition));
     force = limit<float>(forceGain * error + derivative, -forceLimit, forceLimit);
     //apply the requested force vector to motor
     const float PhaseGain = 2.0F;
@@ -187,7 +190,7 @@ void HapticDevice::setForce(float targetPosition, float forceGain, float forceLi
     g_value[3] = dPhase;
     g_value[4] = 0;
     g_value[5] = 0;
-    g_value[6] = derivative;
+    g_value[6] = derivative * 10;
     g_value[7] = 0;
     g_value[9] = 0;
 
