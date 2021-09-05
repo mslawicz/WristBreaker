@@ -83,5 +83,5 @@ private:
 /*
 recommended ForceGain values:
 HT2205 Spring: 4
-57BLY12530 Spring: 3.5
+57BLY12530 Spring: 1.9 (soft) ... 4.0 (hard)
 */
