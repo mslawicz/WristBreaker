@@ -93,7 +93,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             {
                 referencePhase = cropAngle<float>(currentPhase);
                 std::cout << "haptic device '" << name << "' reference phase = " << referencePhase << std::endl;
-                calibrationPosition = -operationRange;
                 state = HapticState::HapticAction;
             }
 
@@ -118,7 +117,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                         std::cout << "pos=" << currentPosition;
                         std::cout << "  pot=" << hapticData.auxData;
                         std::cout << "  fG=" << hapticData.forceGain;
-                        std::cout << "  T=" << force;
+                        std::cout << "  F=" << force;
                         std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
                     }
@@ -171,7 +170,7 @@ void HapticDevice::setForce(float targetPosition, float forceGain, float forceLi
     // calculate error from the zero position; positive error for CCW deflection
     float error = targetPosition - currentPosition;
     //calculate requested force with limit
-    auto force = limit<float>(forceGain * error, -forceLimit, forceLimit);
+    force = limit<float>(forceGain * error, -forceLimit, forceLimit);
     //apply the requested force vector to motor
     const float PhaseGain = 2.0F;
     auto dPhase = limit<float>(PhaseGain * force * QuarterCycle, -QuarterCycle, QuarterCycle);

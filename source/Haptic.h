@@ -74,7 +74,6 @@ private:
     float positionDeviation{0};     //filtered position deviation
     float force{0.0F};      // current force of the motor
     float maxCalForce;      // maximum force value during calibration phase
-    float lastPosition{0};     //last position for calculation of derivative component
     float operationRange{0};    //the range of normal operation from reference position
     float calibrationPosition{0};
 };
