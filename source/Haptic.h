@@ -24,8 +24,8 @@ enum class HapticMode
 
 struct HapticData
 {
-    float zeroPosition;         // position of zero force (relative to the reference position)
-    float forceGain;            // gain for force vector calculation
+    float zeroPosition;         // position of zero torque (relative to the reference position)
+    float torqueGain;            // gain for torque calculation
     float auxData;              // auxilary data for testing
 };
 
@@ -38,7 +38,7 @@ public:
         Encoder* pEncoder,      // pointer to motor position encoder object
         std::string name,       // name of the device
         float referencePosition,    // encoder reference (middle) position of the device
-        float maxCalForce,      // maximum force value in calibration phase
+        float maxCalTorque,      // maximum torque value in calibration phase
         float operationRange    // the range of normal operation from reference position
     );
     ~HapticDevice();
@@ -52,7 +52,7 @@ public:
     float getCurrentPosition() const { return currentPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }
 private:
-    void setForce(float targetPosition, float forceGain, float forceLimit);
+    void setTorque(float targetPosition, float torqueGain, float torqueLimit);
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
@@ -72,8 +72,8 @@ private:
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
     float positionDeviation{0};     //filtered position deviation
-    float force{0.0F};      // current force of the motor
-    float maxCalForce;      // maximum force value during calibration phase
+    float torque{0.0F};      // current torque of the motor
+    float maxCalTorque;      // maximum torque value during calibration phase
     float operationRange{0};    //the range of normal operation from reference position
     float calibrationPosition{0};
 };
@@ -81,7 +81,7 @@ private:
 #endif /* HAPTIC_H_ */
 
 /*
-recommended ForceGain values:
+recommended torqueGain values:
 HT2205 Spring: 4
 57BLY12530 Spring: 1.9 (soft) ... 4.0 (hard)
 */

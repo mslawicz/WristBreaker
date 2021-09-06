@@ -21,14 +21,14 @@ HapticDevice::HapticDevice
     Encoder* pEncoder,      // pointer to motor position encoder object
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
-    float maxCalForce,      // maximum force value in calibration phase
+    float maxCalTorque,      // maximum torque value in calibration phase
     float operationRange    // the range of normal operation from reference position  
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
     name(std::move(name)),
     referencePosition(referencePosition),
-    maxCalForce(maxCalForce),
+    maxCalTorque(maxCalTorque),
     operationRange(operationRange)
 {
     pMotor->setEnablePin(1);
@@ -78,11 +78,11 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             //move motor in the direction of reference position
             currentPhase += phaseStep;
 
-            //ramp of applied force
-            const float ForceRise = 0.005F;     // 0.5% of force rise at a time
-            force += maxCalForce * ForceRise;
-            force = limit<float>(force, 0, maxCalForce);
-            pMotor->setFieldVector(currentPhase, force);
+            //ramp of applied torque
+            const float TorqueRise = 0.005F;     // 0.5% of torque rise at a time
+            torque += maxCalTorque * TorqueRise;
+            torque = limit<float>(torque, 0, maxCalTorque);
+            pMotor->setFieldVector(currentPhase, torque);
 
             //calculate mean position deviation to check if position is reached and stable
             const float PosDevFilterStrength = 0.985F;
@@ -107,7 +107,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    setForce(hapticData.zeroPosition, hapticData.forceGain, 1.0F);
+                    setTorque(hapticData.zeroPosition, hapticData.torqueGain, 1.0F);
 
                     //XXX test
                     static int cnt = 0;
@@ -115,8 +115,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     {
                         std::cout << "pos=" << currentPosition;
                         std::cout << "  pot=" << hapticData.auxData;
-                        std::cout << "  fG=" << hapticData.forceGain;
-                        std::cout << "  F=" << force;
+                        std::cout << "  fG=" << hapticData.torqueGain;
+                        std::cout << "  F=" << torque;
                         std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
                     }
@@ -124,7 +124,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     //XXX set global variables
                     g_value[0] = currentPosition;
                     g_value[1] = hapticData.zeroPosition;
-                    g_value[8] = force;
+                    g_value[8] = torque;
 
                     break;
                 }
@@ -161,8 +161,8 @@ void HapticDevice::updateMotorPosition()
     currentPosition = relativePosition;
 }
 
-//set force vector proportional to target position error
-void HapticDevice::setForce(float targetPosition, float forceGain, float forceLimit)
+//set torque proportional to target position error
+void HapticDevice::setTorque(float targetPosition, float torqueGain, float torqueLimit)
 {
     static float lastPosition = 0;
     static float derivative = 0;
@@ -171,18 +171,16 @@ void HapticDevice::setForce(float targetPosition, float forceGain, float forceLi
     currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
     // calculate error from the zero position; positive error for CCW deflection
     float error = targetPosition - currentPosition;
-    //calculate requested force with limit
-    static AnalogIn kPpot(PA_5); forceGain = 3.0F * kPpot.read(); //XXX test
+    //calculate requested torque with limit
+    static AnalogIn kPpot(PA_5); torqueGain = 3.0F * kPpot.read(); //XXX test
     static AnalogIn dpPot(PA_6); float derGain = 10.0F * dpPot.read(); //XXX test
     static MedianFilter mF(5);
     //derivative = derGain * (lastPosition - currentPosition);
     derivative = mF.getMedian(derGain * (lastPosition - currentPosition));
-    force = limit<float>(forceGain * error + derivative, -forceLimit, forceLimit);
-    //apply the requested force vector to motor
-    const float PhaseGain = 2.0F;
-    //XXX auto dPhase = limit<float>(PhaseGain * force * QuarterCycle, -QuarterCycle, QuarterCycle);
-    float dPhase = force > 0 ? QuarterCycle : -QuarterCycle;
-    float vectorMagnitude = fabsf(force);
+    torque = limit<float>(torqueGain * error + derivative, -torqueLimit, torqueLimit);
+    //apply the requested torque to motor
+    float dPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
+    float vectorMagnitude = fabsf(torque);
     pMotor->setFieldVector(currentPhase + dPhase, vectorMagnitude);
 
     //XXX test

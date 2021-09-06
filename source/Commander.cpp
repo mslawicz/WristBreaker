@@ -19,7 +19,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         new AS5600(PC_4, 5),
         "yoke roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
-        0.2F,                   //NOLINT    maximum force in calibration phase
+        0.2F,                   //NOLINT    maximum torque in calibration phase
         0.25F                   //NOLINT    range of normal operation calculated from reference position
     ),
     testPot(PC_5),   //XXX test
@@ -88,15 +88,15 @@ void Commander::handler()
     //calculate pilot's yoke input
     yokeRollActuator.updateMotorPosition();     // it should be called once every handler loop
     float currentPositionX = yokeRollActuator.getCurrentPosition();     // current poition X of the yoke
-    float zeroPositionX = yokeRollActuator.getOperationRange() * simData.yokeXreference;   // requested zero force position from simulator
+    float zeroPositionX = yokeRollActuator.getOperationRange() * simData.yokeXreference;   // requested zero torque position from simulator
     float pilotInputX = currentPositionX - zeroPositionX;
 
     //XXX test of haptic device
     float pot = testPot.read();
     HapticData rollActuatorData
     {
-        .zeroPosition = 0, //zeroPositionX,   // zero force position from simulator
-        .forceGain = 3.5F,     //NOLINT
+        .zeroPosition = 0, //zeroPositionX,   // zero torque position from simulator
+        .torqueGain = 3.5F,     //NOLINT
         .auxData = pot
     };
 
