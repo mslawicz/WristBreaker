@@ -57,9 +57,10 @@ private:
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
     float referencePosition;    // encoder reference (middle) position of the device
-    float encoderPosition{0};  // motor position read from encoder
-    float currentPosition{0};  // current position of the device relative to reference position (not filtered)
+    float encoderPosition{0};   // motor position read from encoder
+    float currentPosition{0};   // current position of the device relative to reference position (not filtered)
     float filteredPosition{0};  // current position of the device relative to reference position (filtered)
+    float lastPosition{0};      // last position used for derivative calculations (not filtered)
     float positionPeriod;   // position segment size of electric 360 degrees cycle
     float currentPhase{0};  // current electric phase of the motor
     float referencePhase{0};    // measured electric phase of the motor in the reference position
@@ -77,6 +78,7 @@ private:
     float operationRange{0};    //the range of normal operation from reference position
     float calibrationPosition{0};
     MedianFilter positionFilter;
+    MedianFilter derivativeFilter;
 };
 
 #endif /* HAPTIC_H_ */
