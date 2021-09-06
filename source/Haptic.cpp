@@ -22,14 +22,15 @@ HapticDevice::HapticDevice
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
     float maxCalTorque,      // maximum torque value in calibration phase
-    float operationRange    // the range of normal operation from reference position  
+    float operationRange     // the range of normal operation from reference position
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
     name(std::move(name)),
     referencePosition(referencePosition),
     maxCalTorque(maxCalTorque),
-    operationRange(operationRange)
+    operationRange(operationRange),
+    positionFilter(5)   //NOLINT
 {
     pMotor->setEnablePin(1);
     positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -65,6 +66,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         relativePosition -= 1.0F;
     }
     currentPosition = relativePosition;
+    //filter current position
+    filteredPosition = positionFilter.getMedian(currentPosition);
 
     //haptic device state machine
     switch(state)
@@ -80,8 +83,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         // motor moves slowly and finds the reference position
         case HapticState::Move2Ref:
         {
-            // position error equals -currentPosition position
-            float error = -currentPosition;
+            // position error equals -filteredPosition
+            float error = -filteredPosition;
 
             // calculate motor phase step proportional to error with the limit
             const float PhaseStepGain = 2.5F * static_cast<float>(pMotor->getNoOfPoles());     // how fast motor should move while finding mid position
@@ -100,7 +103,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
             //calculate mean position deviation to check if position is reached and stable
             const float PosDevFilterStrength = 0.985F;
-            filterEMA<float>(positionDeviation, fabsf(currentPosition), PosDevFilterStrength);
+            filterEMA<float>(positionDeviation, fabsf(filteredPosition), PosDevFilterStrength);
             const float PosDevThreshold = 0.01F;    //threshold for stable position
             //check if reference position is reached and stable 
             if(positionDeviation < PosDevThreshold)
@@ -127,16 +130,16 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     static int cnt = 0;
                     if(cnt++ %200 == 0) // NOLINT
                     {
-                        std::cout << "pos=" << currentPosition;
+                        std::cout << "pos=" << filteredPosition;
                         std::cout << "  pot=" << hapticData.auxData;
                         std::cout << "  fG=" << hapticData.torqueGain;
                         std::cout << "  F=" << torque;
-                        std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
+                        std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
                     }
 
                     //XXX set global variables
-                    g_value[0] = currentPosition;
+                    g_value[0] = filteredPosition;
                     g_value[1] = hapticData.zeroPosition;
                     g_value[8] = torque;
 
@@ -165,9 +168,9 @@ void HapticDevice::setTorque(float targetPosition, float torqueGain, float torqu
     static float derivative = 0;
 
     //calculate the current motor electric phase
-    currentPhase = cropAngle<float>(referencePhase + FullCycle * currentPosition / positionPeriod);
+    currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
     // calculate error from the zero position; positive error for CCW deflection
-    float error = targetPosition - currentPosition;
+    float error = targetPosition - filteredPosition;
     //calculate requested torque with limit
     static AnalogIn kPpot(PA_5); torqueGain = 3.0F * kPpot.read(); //XXX test
     static AnalogIn dpPot(PA_6); float derGain = 10.0F * dpPot.read(); //XXX test

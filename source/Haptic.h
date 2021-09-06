@@ -48,7 +48,7 @@ public:
     void operator=(HapticDevice&&) = delete;
     void calibrationRequest();
     void handler(HapticMode hapticMode, HapticData& hapticData);
-    float getCurrentPosition() const { return currentPosition; }     //returns current position of the device relative to reference position
+    float getCurrentPosition() const { return filteredPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }
 private:
     void setTorque(float targetPosition, float torqueGain, float torqueLimit);
@@ -58,7 +58,8 @@ private:
     Encoder* pEncoder;      // motor position encoder
     float referencePosition;    // encoder reference (middle) position of the device
     float encoderPosition{0};  // motor position read from encoder
-    float currentPosition{0};  // current position of the device relative to reference position
+    float currentPosition{0};  // current position of the device relative to reference position (not filtered)
+    float filteredPosition{0};  // current position of the device relative to reference position (filtered)
     float positionPeriod;   // position segment size of electric 360 degrees cycle
     float currentPhase{0};  // current electric phase of the motor
     float referencePhase{0};    // measured electric phase of the motor in the reference position
@@ -75,6 +76,7 @@ private:
     float maxCalTorque;      // maximum torque value during calibration phase
     float operationRange{0};    //the range of normal operation from reference position
     float calibrationPosition{0};
+    MedianFilter positionFilter;
 };
 
 #endif /* HAPTIC_H_ */
