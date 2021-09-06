@@ -52,6 +52,20 @@ void HapticDevice::calibrationRequest()
 // to be called periodically
 void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 {
+    encoderPosition = pEncoder->getValue();
+    // calculate shaft position relative to reference position <-0.5...0.5>
+    const float EncoderHalfRange = 0.5F;
+    float relativePosition = encoderPosition - referencePosition;
+    if(relativePosition < -EncoderHalfRange)
+    {
+        relativePosition += 1.0F;
+    }
+    else if(relativePosition > EncoderHalfRange)
+    {
+        relativePosition -= 1.0F;
+    }
+    currentPosition = relativePosition;
+
     //haptic device state machine
     switch(state)
     {
@@ -142,23 +156,6 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         default:
             break;
     }
-}
-
-void HapticDevice::updateMotorPosition()
-{
-    encoderPosition = pEncoder->getValue();
-    // calculate shaft position relative to reference position <-0.5...0.5>
-    const float EncoderHalfRange = 0.5F;
-    float relativePosition = encoderPosition - referencePosition;
-    if(relativePosition < -EncoderHalfRange)
-    {
-        relativePosition += 1.0F;
-    }
-    else if(relativePosition > EncoderHalfRange)
-    {
-        relativePosition -= 1.0F;
-    }
-    currentPosition = relativePosition;
 }
 
 //set torque proportional to target position error

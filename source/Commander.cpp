@@ -86,7 +86,6 @@ void Commander::handler()
     };
 
     //calculate pilot's yoke input
-    yokeRollActuator.updateMotorPosition();     // it should be called once every handler loop
     float currentPositionX = yokeRollActuator.getCurrentPosition();     // current poition X of the yoke
     float zeroPositionX = yokeRollActuator.getOperationRange() * simData.yokeXreference;   // requested zero torque position from simulator
     float pilotInputX = currentPositionX - zeroPositionX;

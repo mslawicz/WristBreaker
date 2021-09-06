@@ -48,7 +48,6 @@ public:
     void operator=(HapticDevice&&) = delete;
     void calibrationRequest();
     void handler(HapticMode hapticMode, HapticData& hapticData);
-    void updateMotorPosition();
     float getCurrentPosition() const { return currentPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }
 private:
