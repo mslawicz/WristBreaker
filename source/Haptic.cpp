@@ -22,7 +22,9 @@ HapticDevice::HapticDevice
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
     float maxCalTorque,      // maximum torque value in calibration phase
-    float operationRange     // the range of normal operation from reference position
+    float operationRange,    // the range of normal operation from reference position
+    float TD,                //derivative time (see classic PID formula)
+    float dTermThreshold     //threshold for derivative term
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
@@ -31,7 +33,9 @@ HapticDevice::HapticDevice
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT
-    derivativeFilter(5)  //NOLINT
+    derivativeFilter(5), //NOLINT
+    TD(TD),
+    dTermThreshold(dTermThreshold)
 {
     pMotor->setEnablePin(1);
     positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());
@@ -138,7 +142,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                         std::cout << "pos=" << filteredPosition;
                         std::cout << "  pot=" << hapticData.auxData;
                         std::cout << "  tG=" << hapticData.torqueGain;
-                        std::cout << "  dG=" << hapticData.torqueGain * tD;
+                        std::cout << "  dG=" << hapticData.torqueGain * TD;
                         std::cout << "  T=" << torque;
                         std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
@@ -177,8 +181,8 @@ void HapticDevice::setTorque(float targetPosition, float torqueLimit, HapticData
     //calculate proportional term of torque 
     float pTerm = hapticData.torqueGain * error;
     //calculate derivative term of torque
-    float dTerm = hapticData.torqueGain * tD * derivativeFilter.getMedian(lastPosition - currentPosition);
-    dTerm = threshold(dTerm, -DerivativeThreshold, DerivativeThreshold);
+    float dTerm = TD * derivativeFilter.getMedian(lastPosition - currentPosition);
+    dTerm = hapticData.torqueGain * threshold(dTerm, -dTermThreshold, dTermThreshold);
     //calculate requested torque with limit
     torque = limit<float>(pTerm + dTerm, -torqueLimit, torqueLimit);
     //apply the requested torque to motor
