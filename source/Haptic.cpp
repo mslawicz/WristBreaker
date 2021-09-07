@@ -125,7 +125,11 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    setTorque(hapticData.zeroPosition, hapticData.torqueGain, 1.0F);
+                    static AnalogIn kPpot(PA_5); hapticData.pGain = 3.0F * kPpot.read(); //XXX test
+                    static AnalogIn dpPot(PA_6); hapticData.dGain = 10.0F * dpPot.read(); //XXX test
+                    //static AnalogIn kDpot(PA_7); float DerivativeThreshold = 0.02F * kDpot.read(); //XXX test 3.3          
+
+                    setTorque(hapticData.zeroPosition, 1.0F, hapticData);
 
                     //XXX test
                     static int cnt = 0;
@@ -133,8 +137,9 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     {
                         std::cout << "pos=" << filteredPosition;
                         std::cout << "  pot=" << hapticData.auxData;
-                        std::cout << "  fG=" << hapticData.torqueGain;
-                        std::cout << "  F=" << torque;
+                        std::cout << "  pG=" << hapticData.pGain;
+                        std::cout << "  dG=" << hapticData.dGain;
+                        std::cout << "  T=" << torque;
                         std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
                     }
@@ -163,36 +168,32 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 }
 
 //set torque proportional to target position error
-void HapticDevice::setTorque(float targetPosition, float torqueGain, float torqueLimit)
+void HapticDevice::setTorque(float targetPosition, float torqueLimit, HapticData& hapticData)
 {
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
     //calculate error from the zero position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
-    //calculate proportional part of torque 
-    static AnalogIn kPpot(PA_5); float proportionalGain = 3.0F * kPpot.read(); //XXX test
-    float proportional = proportionalGain * error;
-    //calculate derivative part of torque
-    static AnalogIn dpPot(PA_6); float derivativeGain = 10.0F * dpPot.read(); //XXX test
-    float derivative = derivativeGain * derivativeFilter.getMedian(lastPosition - currentPosition);
-    const float DerivativeThreshold = 0.01F;
-    derivative = threshold(derivative, -DerivativeThreshold, DerivativeThreshold);
+    //calculate proportional term of torque 
+    float pTerm = hapticData.pGain * error;
+    //calculate derivative term of torque
+    float dTerm = hapticData.dGain * derivativeFilter.getMedian(lastPosition - currentPosition);
+    dTerm = threshold(dTerm, -DerivativeThreshold, DerivativeThreshold);
     //calculate requested torque with limit
-    torque = limit<float>(proportional + derivative, -torqueLimit, torqueLimit);
+    torque = limit<float>(pTerm + dTerm, -torqueLimit, torqueLimit);
     //apply the requested torque to motor
-    float dPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
+    float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
     float vectorMagnitude = fabsf(torque);
-    pMotor->setFieldVector(currentPhase + dPhase, vectorMagnitude);
+    pMotor->setFieldVector(currentPhase + deltaPhase, vectorMagnitude);
+
+    lastPosition = currentPosition;
 
     //XXX test
     g_value[2] = error;
-    g_value[3] = dPhase;
+    g_value[3] = deltaPhase;
     g_value[4] = 0;
     g_value[5] = 0;
-    g_value[6] = derivative * 10;
-    g_value[7] = proportional;
+    g_value[6] = dTerm * 10;
+    g_value[7] = pTerm;
     g_value[9] = 0;
-
-    //static AnalogIn kDpot(PA_7); float DerivativeThreshold = 0.02F * kDpot.read(); //XXX test 3.3
-    lastPosition = currentPosition;
 }

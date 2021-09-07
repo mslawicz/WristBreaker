@@ -25,7 +25,8 @@ enum class HapticMode
 struct HapticData
 {
     float zeroPosition;         // position of zero torque (relative to the reference position)
-    float torqueGain;            // gain for torque calculation
+    float pGain;                // gain for torque proportional term
+    float dGain;                // gain for torque derivative term
     float auxData;              // auxilary data for testing
 };
 
@@ -39,7 +40,7 @@ public:
         std::string name,       // name of the device
         float referencePosition,    // encoder reference (middle) position of the device
         float maxCalTorque,      // maximum torque value in calibration phase
-        float operationRange    // the range of normal operation from reference position
+        float operationRange     // the range of normal operation from reference position
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -51,7 +52,7 @@ public:
     float getCurrentPosition() const { return filteredPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }
 private:
-    void setTorque(float targetPosition, float torqueGain, float torqueLimit);
+    void setTorque(float targetPosition, float torqueLimit, HapticData& hapticData);
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
@@ -79,12 +80,12 @@ private:
     float calibrationPosition{0};
     MedianFilter positionFilter;
     MedianFilter derivativeFilter;
+    const float DerivativeThreshold = 0.01F;
 };
 
 #endif /* HAPTIC_H_ */
 
 /*
 recommended torqueGain values:
-HT2205 Spring: 4
 57BLY12530 Spring: 1.9 (soft) ... 4.0 (hard)
 */
