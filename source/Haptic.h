@@ -25,8 +25,7 @@ enum class HapticMode
 struct HapticData
 {
     float zeroPosition;         // position of zero torque (relative to the reference position)
-    float pGain;                // gain for torque proportional term
-    float dGain;                // gain for torque derivative term
+    float torqueGain;           // gain for torque proportional term
     float auxData;              // auxilary data for testing
 };
 
@@ -80,7 +79,8 @@ private:
     float calibrationPosition{0};
     MedianFilter positionFilter;
     MedianFilter derivativeFilter;
-    const float DerivativeThreshold = 0.01F;
+    const float DerivativeThreshold = 0.02F;
+    float tD{3.9F};        //derivative time (multiplied by torque gain for derivative gain)
 };
 
 #endif /* HAPTIC_H_ */

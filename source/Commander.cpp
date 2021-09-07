@@ -95,8 +95,7 @@ void Commander::handler()
     HapticData rollActuatorData
     {
         .zeroPosition = 0, //zeroPositionX,   // zero torque position from simulator
-        .pGain = 2.0F,     //NOLINT
-        .dGain = 2.5F,     //NOLINT
+        .torqueGain = 1.22F,    //NOLINT
         .auxData = pot
     };
 
