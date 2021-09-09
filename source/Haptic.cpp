@@ -144,6 +144,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                         std::cout << "  tG=" << hapticData.torqueGain;
                         std::cout << "  dG=" << hapticData.torqueGain * TD;
                         std::cout << "  T=" << torque;
+                        std::cout << "  ff=" << hapticData.feedForward;
                         std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
                     }
@@ -172,7 +173,8 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 }
 
 //set torque proportional to target position error
-void HapticDevice::setTorque(float targetPosition, float torqueLimit, HapticData& hapticData)
+//returns current error
+float HapticDevice::setTorque(float targetPosition, float torqueLimit, HapticData& hapticData)
 {
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
@@ -184,7 +186,7 @@ void HapticDevice::setTorque(float targetPosition, float torqueLimit, HapticData
     float dTerm = TD * derivativeFilter.getMedian(lastPosition - currentPosition);
     dTerm = hapticData.torqueGain * threshold(dTerm, -dTermThreshold, dTermThreshold);
     //calculate requested torque with limit
-    torque = limit<float>(pTerm + dTerm, -torqueLimit, torqueLimit);
+    torque = limit<float>(pTerm + dTerm + hapticData.feedForward, -torqueLimit, torqueLimit);
     //apply the requested torque to motor
     float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
     float vectorMagnitude = fabsf(torque);
@@ -199,5 +201,7 @@ void HapticDevice::setTorque(float targetPosition, float torqueLimit, HapticData
     g_value[5] = 0;
     g_value[6] = dTerm * 10;
     g_value[7] = pTerm;
-    g_value[9] = 0;
+    g_value[9] = hapticData.feedForward;
+
+    return error;
 }
