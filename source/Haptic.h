@@ -26,6 +26,7 @@ struct HapticData
 {
     float targetPosition;       // target position of zero torque (relative to the reference position)
     float torqueGain;           // gain for torque proportional term
+    float torqueLimit;          // current maximum torque value
     float feedForward;          // torque feed forward value
     float auxData;              // auxilary data for testing
 };
@@ -54,7 +55,7 @@ public:
     float getCurrentPosition() const { return filteredPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }
 private:
-    float setTorque(float targetPosition, float torqueLimit, HapticData& hapticData);
+    float setTorque(HapticData& hapticData);
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
