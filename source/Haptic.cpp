@@ -126,8 +126,11 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticState::CalibratePosition:
         {
             static AnalogIn kPpot(PA_5); hapticData.torqueGain = 3.0F * kPpot.read(); //XXX test
+            static float ff = 0;
             hapticData.torqueLimit = 0.3F;  //NOLINT
+            hapticData.feedForward = ff;
             auto error = setTorque(hapticData);
+            ff = limit<float>(ff + error * 0.01F, -0.1F, 0.1F);
 
             //XXX test
             static int cnt = 0;
