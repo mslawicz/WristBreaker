@@ -96,7 +96,7 @@ void Commander::handler()
     float pot = testPot.read();
     HapticData rollActuatorData
     {
-        .zeroPosition = 0, //zeroPositionX,   // zero torque position from simulator
+        .targetPosition = 0, //zeroPositionX,   // zero torque position from simulator
         .torqueGain = 1.22F,    //NOLINT
         .feedForward = 0,
         .auxData = pot
@@ -104,12 +104,12 @@ void Commander::handler()
 
     //XXX test of sinusoidal movement
     //float zeroTest = 0.1F * sin(handlerCallCounter * 0.005F);
-    //rollActuatorData.zeroPosition = zeroTest;
+    //rollActuatorData.targetPosition = zeroTest;
     static float fpos = 0.0F;
     filterEMA<float>(fpos, 0.1F * (pot - 0.5F), 0.95F);
     //const float Ampl = 0.1F * pot;
     //float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
-    rollActuatorData.zeroPosition = fpos;
+    rollActuatorData.targetPosition = fpos;
 
     yokeRollActuator.handler(HapticMode::Spring, rollActuatorData);
 

@@ -24,7 +24,7 @@ enum class HapticMode
 
 struct HapticData
 {
-    float zeroPosition;         // position of zero torque (relative to the reference position)
+    float targetPosition;       // target position of zero torque (relative to the reference position)
     float torqueGain;           // gain for torque proportional term
     float feedForward;          // torque feed forward value
     float auxData;              // auxilary data for testing

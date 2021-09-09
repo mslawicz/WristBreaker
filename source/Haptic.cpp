@@ -126,13 +126,13 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         case HapticState::CalibratePosition:
         {
             static AnalogIn kPpot(PA_5); hapticData.torqueGain = 3.0F * kPpot.read(); //XXX test
-            auto error = setTorque(hapticData.zeroPosition, 0.3F, hapticData);
+            auto error = setTorque(hapticData.targetPosition, 0.3F, hapticData);
 
             //XXX test
             static int cnt = 0;
             if(cnt++ %200 == 0) // NOLINT
             {
-                std::cout << "tPos=" << hapticData.zeroPosition;
+                std::cout << "tPos=" << hapticData.targetPosition;
                 std::cout << "  pos=" << filteredPosition;
                 std::cout << "  err=" << error;
                 std::cout << "  tG=" << hapticData.torqueGain;
@@ -144,7 +144,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             }   
             //XXX set global variables
             g_value[0] = filteredPosition;
-            g_value[1] = hapticData.zeroPosition;
+            g_value[1] = hapticData.targetPosition;
             g_value[8] = torque;                     
             break;
         }
@@ -161,7 +161,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     //static AnalogIn dpPot(PA_6); hapticData.dGain = 10.0F * dpPot.read(); //XXX test
                     //static AnalogIn kDpot(PA_7); float DerivativeThreshold = 0.02F * kDpot.read(); //XXX test 3.3          
 
-                    setTorque(hapticData.zeroPosition, 1.0F, hapticData);
+                    setTorque(hapticData.targetPosition, 1.0F, hapticData);
 
                     //XXX test
                     static int cnt = 0;
@@ -179,7 +179,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
                     //XXX set global variables
                     g_value[0] = filteredPosition;
-                    g_value[1] = hapticData.zeroPosition;
+                    g_value[1] = hapticData.targetPosition;
                     g_value[8] = torque;
 
                     break;
