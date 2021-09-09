@@ -98,6 +98,7 @@ void Commander::handler()
     {
         .zeroPosition = 0, //zeroPositionX,   // zero torque position from simulator
         .torqueGain = 1.22F,    //NOLINT
+        .feedForward = 0,
         .auxData = pot
     };
 

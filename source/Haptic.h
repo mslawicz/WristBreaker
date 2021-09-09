@@ -72,6 +72,7 @@ private:
     {
         Start,
         Move2Ref,
+        CalibratePosition,
         HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine

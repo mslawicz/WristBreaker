@@ -115,11 +115,39 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             {
                 referencePhase = cropAngle<float>(currentPhase);
                 std::cout << "haptic device '" << name << "' reference phase = " << referencePhase << std::endl;
-                state = HapticState::HapticAction;
+                //state = HapticState::HapticAction;
+                state = HapticState::CalibratePosition;
             }
 
             break;
         }     
+
+        // calibrates position
+        case HapticState::CalibratePosition:
+        {
+            static AnalogIn kPpot(PA_5); hapticData.torqueGain = 3.0F * kPpot.read(); //XXX test
+            auto error = setTorque(hapticData.zeroPosition, 0.3F, hapticData);
+
+            //XXX test
+            static int cnt = 0;
+            if(cnt++ %200 == 0) // NOLINT
+            {
+                std::cout << "tPos=" << hapticData.zeroPosition;
+                std::cout << "  pos=" << filteredPosition;
+                std::cout << "  err=" << error;
+                std::cout << "  tG=" << hapticData.torqueGain;
+                std::cout << "  dG=" << hapticData.torqueGain * TD;
+                std::cout << "  T=" << torque;
+                std::cout << "  ff=" << hapticData.feedForward;
+                std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
+                std::cout << "   \r" << std::flush;
+            }   
+            //XXX set global variables
+            g_value[0] = filteredPosition;
+            g_value[1] = hapticData.zeroPosition;
+            g_value[8] = torque;                     
+            break;
+        }
 
         //main haptic action
         case HapticState::HapticAction:
