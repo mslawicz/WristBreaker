@@ -130,6 +130,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             counter = 0;
             calibrationTorque = 0.0F;
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
+            std::cout << "\nstart of calibration" << std::endl;
             state = HapticState::CalibratePosition;
             break;
         }            
@@ -146,12 +147,13 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             //calculate mean position deviation to check if position is reached and stable
             const float PosDevFilterStrength = 0.985F;
             filterEMA<float>(positionDeviation, fabsf(error), PosDevFilterStrength);
-            const float PosDevThreshold = 0.001F;    //threshold for stable position
+            const float PosDevThreshold = 0.005F;    //threshold for stable position
             //check if reference position is reached and stable 
             if(positionDeviation < PosDevThreshold)
             {
-                referencePhase = cropAngle<float>(currentPhase);
-                std::cout << "cal=" << hapticData.targetPosition << "  ff = " << hapticData.feedForward << "  err=" << error << "  dev=" << positionDeviation << std::endl;
+                //store calibration point data here
+                //std::cout << "cal=" << hapticData.targetPosition << "  ff = " << hapticData.feedForward << "  err=" << error << "  dev=" << positionDeviation << std::endl;
+                std::cout << hapticData.targetPosition << ";" << hapticData.feedForward << std::endl;
                 positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
                 if(++counter > calibrationSections)
                 {
@@ -160,19 +162,19 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             }
 
             //XXX test
-            static int cnt = 0;
-            if(cnt++ %200 == 0) // NOLINT
-            {
-                std::cout << "tPos=" << hapticData.targetPosition;
-                std::cout << "  pos=" << filteredPosition;
-                std::cout << "  err=" << error;
-                std::cout << "  tG=" << hapticData.torqueGain;
-                std::cout << "  dG=" << hapticData.torqueGain * TD;
-                std::cout << "  T=" << torque;
-                std::cout << "  ff=" << hapticData.feedForward;
-                std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
-                std::cout << "   \r" << std::flush;
-            }   
+            // static int cnt = 0;
+            // if(cnt++ %200 == 0) // NOLINT
+            // {
+            //     std::cout << "tPos=" << hapticData.targetPosition;
+            //     std::cout << "  pos=" << filteredPosition;
+            //     std::cout << "  err=" << error;
+            //     std::cout << "  tG=" << hapticData.torqueGain;
+            //     std::cout << "  dG=" << hapticData.torqueGain * TD;
+            //     std::cout << "  T=" << torque;
+            //     std::cout << "  ff=" << hapticData.feedForward;
+            //     std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
+            //     std::cout << "   \r" << std::flush;
+            // }   
             //XXX set global variables
             g_value[0] = filteredPosition;
             g_value[1] = hapticData.targetPosition;
@@ -183,6 +185,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         // end calibration
         case HapticState::EndCalibration:
         {        
+            std::cout << "end of calibration" << std::endl;
             state = HapticState::HapticAction;
             break;
         }           

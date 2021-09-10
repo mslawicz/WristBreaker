@@ -23,7 +23,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
         3.9F,                   //NOLINT    derivative time (see classic PID formula)
         0.015F,                 //NOLINT    threshold for derivative term
-        10,                     //NOLINT    size of calibration data
+        100,                    //NOLINT    size of calibration data
         0.1F                    //NOLINT    limit value of feed forward torque
     ),
     testPot(PC_5),   //XXX test
