@@ -129,6 +129,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         {        
             counter = 0;
             calibrationTorque = 0.0F;
+            positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
             state = HapticState::CalibratePosition;
             break;
         }            
@@ -136,12 +137,27 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
         // calibrates position
         case HapticState::CalibratePosition:
         {
-            hapticData.torqueLimit = 0.3F;  //NOLINT
+            hapticData.torqueLimit = maxCalTorque;
             hapticData.feedForward = calibrationTorque;
             hapticData.targetPosition = -operationRange + (operationRange + operationRange) * counter / calibrationSections;
             auto error = setTorque(hapticData);
             const float TorqueStep = 0.01F;     //value of torque increment/decrement
             calibrationTorque = limit<float>(calibrationTorque + error * TorqueStep, -feedForwardLimit, feedForwardLimit);
+            //calculate mean position deviation to check if position is reached and stable
+            const float PosDevFilterStrength = 0.985F;
+            filterEMA<float>(positionDeviation, fabsf(error), PosDevFilterStrength);
+            const float PosDevThreshold = 0.001F;    //threshold for stable position
+            //check if reference position is reached and stable 
+            if(positionDeviation < PosDevThreshold)
+            {
+                referencePhase = cropAngle<float>(currentPhase);
+                std::cout << "cal=" << hapticData.targetPosition << "  ff = " << hapticData.feedForward << "  err=" << error << "  dev=" << positionDeviation << std::endl;
+                positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
+                if(++counter > calibrationSections)
+                {
+                    state = HapticState::EndCalibration;
+                }
+            }
 
             //XXX test
             static int cnt = 0;
@@ -163,6 +179,13 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             g_value[8] = torque;                     
             break;
         }
+
+        // end calibration
+        case HapticState::EndCalibration:
+        {        
+            state = HapticState::HapticAction;
+            break;
+        }           
 
         //main haptic action
         case HapticState::HapticAction:
