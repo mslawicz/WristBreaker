@@ -24,7 +24,9 @@ HapticDevice::HapticDevice
     float maxCalTorque,      // maximum torque value in calibration phase
     float operationRange,    // the range of normal operation from reference position
     float TD,                //derivative time (see classic PID formula)
-    float dTermThreshold     //threshold for derivative term
+    float dTermThreshold,    //threshold for derivative term
+    size_t calibrationSections,  //number of calibration sections
+    float feedForwardLimit   //limit value of feed forward torque
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
@@ -35,11 +37,12 @@ HapticDevice::HapticDevice
     positionFilter(5),   //NOLINT
     derivativeFilter(5), //NOLINT
     TD(TD),
-    dTermThreshold(dTermThreshold)
+    dTermThreshold(dTermThreshold),
+    calibrationSections(calibrationSections),
+    feedForwardLimit(feedForwardLimit)
 {
     pMotor->setEnablePin(1);
     positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());
-    calibrationRequest();
 }
 
 HapticDevice::~HapticDevice()
@@ -51,7 +54,7 @@ HapticDevice::~HapticDevice()
 // request calibration process
 void HapticDevice::calibrationRequest()
 {
-    state = HapticState::Start;
+    state = HapticState::StartCalibration;
 }
 
 // haptic device application handler
@@ -115,22 +118,30 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             {
                 referencePhase = cropAngle<float>(currentPhase);
                 std::cout << "haptic device '" << name << "' reference phase = " << referencePhase << std::endl;
-                //state = HapticState::HapticAction;
-                state = HapticState::CalibratePosition;
+                state = HapticState::HapticAction;
             }
 
             break;
         }     
 
+        // start calibration
+        case HapticState::StartCalibration:
+        {        
+            counter = 0;
+            calibrationTorque = 0.0F;
+            state = HapticState::CalibratePosition;
+            break;
+        }            
+
         // calibrates position
         case HapticState::CalibratePosition:
         {
-            static AnalogIn kPpot(PA_5); hapticData.torqueGain = 3.0F * kPpot.read(); //XXX test
-            static float ff = 0;
             hapticData.torqueLimit = 0.3F;  //NOLINT
-            hapticData.feedForward = ff;
+            hapticData.feedForward = calibrationTorque;
+            hapticData.targetPosition = -operationRange + (operationRange + operationRange) * counter / calibrationSections;
             auto error = setTorque(hapticData);
-            ff = limit<float>(ff + error * 0.01F, -0.1F, 0.1F);
+            const float TorqueStep = 0.01F;     //value of torque increment/decrement
+            calibrationTorque = limit<float>(calibrationTorque + error * TorqueStep, -feedForwardLimit, feedForwardLimit);
 
             //XXX test
             static int cnt = 0;

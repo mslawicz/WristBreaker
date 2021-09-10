@@ -43,7 +43,9 @@ public:
         float maxCalTorque,      // maximum torque value in calibration phase
         float operationRange,    // the range of normal operation from reference position
         float TD,                //derivative time (see classic PID formula)
-        float dTermThreshold     //threshold for derivative term
+        float dTermThreshold,    //threshold for derivative term
+        size_t calibrationSections,  //number of calibration sections
+        float feedForwardLimit   //limit value of feed forward torque
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -73,6 +75,7 @@ private:
     {
         Start,
         Move2Ref,
+        StartCalibration,
         CalibratePosition,
         HapticAction
     };
@@ -86,6 +89,10 @@ private:
     MedianFilter derivativeFilter;
     float TD;        //derivative time (multiplied by torque gain for derivative gain)
     float dTermThreshold;   //threshold for derivative term
+    size_t calibrationSections;     //number of calibration sections
+    float calibrationTorque{0}; //torque value used in calibration procedure
+    float feedForwardLimit;     //limit value of feed forward torque
+    size_t counter{0};          //position counter in calibration phase
 };
 
 #endif /* HAPTIC_H_ */
