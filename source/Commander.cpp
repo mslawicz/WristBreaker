@@ -13,7 +13,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue(eventQueue),
     heartBeatLed(LED2),
     PCLink(USB_VID, USB_PID, USB_VER),
-    yokeRollActuator
+    rollActuator
     (
         new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINT(readability-magic-numbers)
         new AS5600(PC_4),
@@ -90,13 +90,13 @@ void Commander::handler()
     };
 
     //calculate pilot's yoke input
-    float currentPositionX = yokeRollActuator.getCurrentPosition();     // current poition X of the yoke
-    float zeroPositionX = yokeRollActuator.getOperationRange() * simData.yokeXreference;   // requested zero torque position from simulator
+    float currentPositionX = rollActuator.getCurrentPosition();     // current poition X of the yoke
+    float zeroPositionX = rollActuator.getOperationRange() * simData.yokeXreference;   // requested zero torque position from simulator
     float pilotInputX = currentPositionX - zeroPositionX;
 
     //XXX test of haptic device
     float pot = testPot.read();
-    HapticData& rollActuatorData = yokeRollActuator.getHapticData();
+    HapticData& rollActuatorData = rollActuator.getHapticData();
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     rollActuatorData.goalPosition = 0;   //zeroPositionX,   //zero torque position from simulator
     rollActuatorData.torqueGain = 1.22F;    //NOLINT
@@ -113,11 +113,11 @@ void Commander::handler()
     float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
     rollActuatorData.goalPosition = fpos;
 
-    yokeRollActuator.handler();
+    rollActuator.handler();
 
     //prepare data to be sent to simulator 
     // convert +-90 degrees deflection to <-1,1> range
-    simData.yokeXposition = scale<float, float>(-yokeRollActuator.getOperationRange(), yokeRollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
+    simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
@@ -135,7 +135,7 @@ void Commander::handler()
 
     if(systemPushbutton.read() == 1)
     {
-        yokeRollActuator.calibrationRequest();
+        rollActuator.calibrationRequest();
     }
 
     //XXX test

@@ -99,6 +99,7 @@ private:
     size_t counter{0};          //position counter in calibration phase
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic parameters of this device
+    std::string referencePhaseMemo;     //name of parameter in flash memory
 };
 
 #endif /* HAPTIC_H_ */
