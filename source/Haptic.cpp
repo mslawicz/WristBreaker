@@ -54,7 +54,10 @@ HapticDevice::~HapticDevice()
 // request calibration process
 void HapticDevice::calibrationRequest()
 {
-    state = HapticState::StartCalibration;
+    if(HapticState::HapticAction == state)
+    {
+        state = HapticState::StartCalibration;
+    }
 }
 
 // haptic device application handler
