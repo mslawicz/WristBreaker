@@ -7,6 +7,7 @@
 
 #include "Haptic.h"
 #include "Convert.h"
+#include "Storage.h"
 #include <cmath>
 #include <iostream>
 #include <ostream>
@@ -86,6 +87,12 @@ void HapticDevice::handler()
         // state machine starts here and initializes variables
         case HapticState::Start:
         {
+            //restore device data from flash memory
+            size_t dataSize{0};
+            float xxx{0};
+            std::string key("/kv/throttleInputMin");
+            dataSize = KvStore::getInstance().restoreData(key, &xxx);
+
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
             state = HapticState::Move2Ref;
             break;

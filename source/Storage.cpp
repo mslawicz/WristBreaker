@@ -25,11 +25,11 @@ void KvStore::list(const CommandVector&  /*cv*/)
         return;
     }
     const size_t MaxKeySize = 50;
-    char key[MaxKeySize] = {0};
+    char key[MaxKeySize] = {0}; //NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
     std::cout << "Stored parameters: ";
     while(kv_iterator_next(it, static_cast<char*>(key), MaxKeySize) != MBED_ERROR_ITEM_NOT_FOUND)
     {
-        std::cout << key << ", ";
+        std::cout << static_cast<char*>(key) << ", ";
         memset(static_cast<char*>(key), 0, MaxKeySize);
     }
     kv_iterator_close(it);
@@ -50,4 +50,28 @@ void KvStore::clear(const CommandVector&  /*cv*/)
     {
         std::cout << "Parameter storage cleared" << std::endl;
     }
+}
+
+/*
+restore data from the given key
+returns the actual size od restored data or 0 if error
+*/
+size_t KvStore::restoreData(std::string& key, void* pData)
+{
+    int error = kv_get_info(key.c_str(), &info);
+    if(0 != error)
+    {
+        std::cout << "Parameter '" << key << "' info error " << MBED_GET_ERROR_CODE(error) << std::endl;
+        return 0;
+    }
+            
+    size_t actualSize{0};
+    error = kv_get(key.c_str(), pData, info.size, &actualSize);
+    if(0 != error)
+    {
+        std::cout << "Parameter '" << key << "' restore error " << MBED_GET_ERROR_CODE(error) << std::endl;
+        return 0;
+    }
+    
+    return actualSize;
 }
