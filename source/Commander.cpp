@@ -101,16 +101,17 @@ void Commander::handler()
         .targetPosition = 0, //zeroPositionX,   // zero torque position from simulator
         .torqueGain = 1.22F,    //NOLINT
         .feedForward = 0,
+        .deltaPosLimit = 0.001F,
         .auxData = pot
     };
 
     //XXX test of sinusoidal movement
     //float zeroTest = 0.1F * sin(handlerCallCounter * 0.005F);
     //rollActuatorData.targetPosition = zeroTest;
-    static float fpos = 0.0F;
-    filterEMA<float>(fpos, 0.1F * (pot - 0.5F), 0.95F);
-    //const float Ampl = 0.1F * pot;
-    //float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
+    //static float fpos = 0.0F;
+    //filterEMA<float>(fpos, 0.1F * (pot - 0.5F), 0.95F);
+    const float Ampl = 0.1F * pot;
+    float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
     rollActuatorData.targetPosition = fpos;
 
     yokeRollActuator.handler(HapticMode::Spring, rollActuatorData);

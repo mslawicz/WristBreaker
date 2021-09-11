@@ -246,15 +246,26 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 //returns current error
 float HapticDevice::setTorque(HapticData& hapticData)
 {
+    if(hapticData.deltaPosLimit == 0)
+    {
+        //target position rate of change limit off
+        currentTargetPosition = hapticData.targetPosition;
+    }
+    else
+    {
+        //limit the rate of change of target position
+        currentTargetPosition += limit<float>(hapticData.targetPosition - currentTargetPosition, -hapticData.deltaPosLimit, hapticData.deltaPosLimit);
+    }
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
-    //calculate error from the zero position; positive error for CCW deflection
-    float error = hapticData.targetPosition - filteredPosition;
+    //calculate error from the target position; positive error for CCW deflection
+    float error = currentTargetPosition - filteredPosition;
     //calculate proportional term of torque 
-    float pTerm = hapticData.torqueGain * error;
+    float KP = hapticData.torqueGain;
+    float pTerm = KP * error;
     //calculate derivative term of torque
-    float dTerm = TD * derivativeFilter.getMedian(lastPosition - currentPosition);
-    dTerm = hapticData.torqueGain * threshold(dTerm, -dTermThreshold, dTermThreshold);
+    float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
+    float dTerm = KP * threshold(TD * deltaPosition, -dTermThreshold, dTermThreshold);
     //calculate requested torque with limit
     torque = limit<float>(pTerm + dTerm + hapticData.feedForward, -hapticData.torqueLimit, hapticData.torqueLimit);
     //apply the requested torque to motor
@@ -266,12 +277,12 @@ float HapticDevice::setTorque(HapticData& hapticData)
 
     //XXX test
     g_value[2] = error;
-    g_value[3] = deltaPhase;
+    g_value[3] = deltaPosition;
     g_value[4] = 0;
     g_value[5] = 0;
     g_value[6] = dTerm * 10;
     g_value[7] = pTerm;
-    g_value[9] = hapticData.feedForward;
+    g_value[9] = currentTargetPosition;
 
     return error;
 }

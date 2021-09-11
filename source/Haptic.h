@@ -28,6 +28,7 @@ struct HapticData
     float torqueGain;           // gain for torque proportional term
     float torqueLimit;          // current maximum torque value
     float feedForward;          // torque feed forward value
+    float deltaPosLimit;        // value of allowed position change; off when ==0
     float auxData;              // auxilary data for testing
 };
 
@@ -94,6 +95,7 @@ private:
     float calibrationTorque{0}; //torque value used in calibration procedure
     float feedForwardLimit;     //limit value of feed forward torque
     size_t counter{0};          //position counter in calibration phase
+    float currentTargetPosition{0};     //target position used in torque calculations
 };
 
 #endif /* HAPTIC_H_ */
