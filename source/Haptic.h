@@ -24,6 +24,7 @@ enum class HapticMode
 
 struct HapticData
 {
+    HapticMode hapticMode;      // haptic mode for haptic action phase
     float targetPosition;       // target position of zero torque (relative to the reference position)
     float torqueGain;           // gain for torque proportional term
     float torqueLimit;          // current maximum torque value
@@ -54,7 +55,7 @@ public:
     HapticDevice(HapticDevice&&) = delete;
     void operator=(HapticDevice&&) = delete;
     void calibrationRequest();
-    void handler(HapticMode hapticMode);
+    void handler();
     float getCurrentPosition() const { return filteredPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }
     HapticData& getHapticData() { return hapticData; }
@@ -97,7 +98,7 @@ private:
     float feedForwardLimit;     //limit value of feed forward torque
     size_t counter{0};          //position counter in calibration phase
     float currentTargetPosition{0};     //target position used in torque calculations
-    HapticData hapticData{0};   //haptic parameters of this device
+    HapticData hapticData;      //haptic parameters of this device
 };
 
 #endif /* HAPTIC_H_ */

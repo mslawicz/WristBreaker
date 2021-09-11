@@ -97,6 +97,7 @@ void Commander::handler()
     //XXX test of haptic device
     float pot = testPot.read();
     HapticData& rollActuatorData = yokeRollActuator.getHapticData();
+    rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     rollActuatorData.targetPosition = 0; //zeroPositionX,   // zero torque position from simulator
     rollActuatorData.torqueGain = 1.22F;    //NOLINT
     rollActuatorData.feedForward = 0;
@@ -112,7 +113,7 @@ void Commander::handler()
     float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
     rollActuatorData.targetPosition = fpos;
 
-    yokeRollActuator.handler(HapticMode::Spring);
+    yokeRollActuator.handler();
 
     //prepare data to be sent to simulator 
     // convert +-90 degrees deflection to <-1,1> range

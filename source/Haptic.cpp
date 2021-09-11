@@ -59,7 +59,7 @@ void HapticDevice::calibrationRequest()
 
 // haptic device application handler
 // to be called periodically
-void HapticDevice::handler(HapticMode hapticMode)
+void HapticDevice::handler()
 {
     encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
@@ -193,7 +193,7 @@ void HapticDevice::handler(HapticMode hapticMode)
         //main haptic action
         case HapticState::HapticAction:
         {
-            switch(hapticMode)
+            switch(hapticData.hapticMode)
             {
                 //spring action with variable zero position
                 case HapticMode::Spring:
