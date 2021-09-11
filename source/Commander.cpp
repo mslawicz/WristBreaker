@@ -98,7 +98,7 @@ void Commander::handler()
     float pot = testPot.read();
     HapticData& rollActuatorData = yokeRollActuator.getHapticData();
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    rollActuatorData.targetPosition = 0; //zeroPositionX,   // zero torque position from simulator
+    rollActuatorData.goalPosition = 0;   //zeroPositionX,   //zero torque position from simulator
     rollActuatorData.torqueGain = 1.22F;    //NOLINT
     rollActuatorData.feedForward = 0;
     rollActuatorData.deltaPosLimit = 0.001F;    //range 0.5 / 200 Hz / 2.5 sec = 0.001
@@ -106,12 +106,12 @@ void Commander::handler()
 
     //XXX test of sinusoidal movement
     //float zeroTest = 0.1F * sin(handlerCallCounter * 0.005F);
-    //rollActuatorData.targetPosition = zeroTest;
+    //rollActuatorData.goalPosition = zeroTest;
     //static float fpos = 0.0F;
     //filterEMA<float>(fpos, 0.1F * (pot - 0.5F), 0.95F);
     const float Ampl = 0.1F * pot;
     float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
-    rollActuatorData.targetPosition = fpos;
+    rollActuatorData.goalPosition = fpos;
 
     yokeRollActuator.handler();
 

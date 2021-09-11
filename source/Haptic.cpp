@@ -140,7 +140,7 @@ void HapticDevice::handler()
         {
             hapticData.torqueLimit = maxCalTorque;
             hapticData.feedForward = calibrationTorque;
-            hapticData.targetPosition = -operationRange + (operationRange + operationRange) * counter / calibrationSections;
+            hapticData.goalPosition = -operationRange + (operationRange + operationRange) * counter / calibrationSections;
             auto error = setTorque();
             const float TorqueStep = 0.01F;     //value of torque increment/decrement
             calibrationTorque = limit<float>(calibrationTorque + error * TorqueStep, -feedForwardLimit, feedForwardLimit);
@@ -152,8 +152,8 @@ void HapticDevice::handler()
             if(positionDeviation < PosDevThreshold)
             {
                 //store calibration point data here
-                //std::cout << "cal=" << hapticData.targetPosition << "  ff = " << hapticData.feedForward << "  err=" << error << "  dev=" << positionDeviation << std::endl;
-                std::cout << hapticData.targetPosition << ";" << hapticData.feedForward << std::endl;
+                //std::cout << "cal=" << hapticData.goalPosition << "  ff = " << hapticData.feedForward << "  err=" << error << "  dev=" << positionDeviation << std::endl;
+                std::cout << hapticData.goalPosition << ";" << hapticData.feedForward << std::endl;
                 positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
                 if(++counter > calibrationSections)
                 {
@@ -165,7 +165,7 @@ void HapticDevice::handler()
             // static int cnt = 0;
             // if(cnt++ %200 == 0) // NOLINT
             // {
-            //     std::cout << "tPos=" << hapticData.targetPosition;
+            //     std::cout << "gPos=" << hapticData.goalPosition;
             //     std::cout << "  pos=" << filteredPosition;
             //     std::cout << "  err=" << error;
             //     std::cout << "  tG=" << hapticData.torqueGain;
@@ -177,7 +177,7 @@ void HapticDevice::handler()
             // }   
             //XXX set global variables
             g_value[0] = filteredPosition;
-            g_value[1] = hapticData.targetPosition;
+            g_value[1] = hapticData.goalPosition;
             g_value[8] = torque;                     
             break;
         }
@@ -221,7 +221,7 @@ void HapticDevice::handler()
 
                     //XXX set global variables
                     g_value[0] = filteredPosition;
-                    g_value[1] = hapticData.targetPosition;
+                    g_value[1] = hapticData.goalPosition;
                     g_value[8] = torque;
 
                     break;
@@ -242,24 +242,24 @@ void HapticDevice::handler()
     }
 }
 
-//set torque proportional to target position error
+//set torque proportional to goal position error
 //returns current error
 float HapticDevice::setTorque()
 {
     if(hapticData.deltaPosLimit == 0)
     {
         //target position rate of change limit off
-        currentTargetPosition = hapticData.targetPosition;
+        targetPosition = hapticData.goalPosition;
     }
     else
     {
         //limit the rate of change of target position
-        currentTargetPosition += limit<float>(hapticData.targetPosition - currentTargetPosition, -hapticData.deltaPosLimit, hapticData.deltaPosLimit);
+        targetPosition += limit<float>(hapticData.goalPosition - targetPosition, -hapticData.deltaPosLimit, hapticData.deltaPosLimit);
     }
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
-    //calculate error from the target position; positive error for CCW deflection
-    float error = currentTargetPosition - filteredPosition;
+    //calculate error from the goal position; positive error for CCW deflection
+    float error = targetPosition - filteredPosition;
     //calculate proportional term of torque 
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
@@ -282,7 +282,7 @@ float HapticDevice::setTorque()
     g_value[5] = 0;
     g_value[6] = dTerm * 10;
     g_value[7] = pTerm;
-    g_value[9] = currentTargetPosition;
+    g_value[9] = targetPosition;
 
     return error;
 }
