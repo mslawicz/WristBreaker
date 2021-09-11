@@ -59,7 +59,7 @@ void HapticDevice::calibrationRequest()
 
 // haptic device application handler
 // to be called periodically
-void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
+void HapticDevice::handler(HapticMode hapticMode)
 {
     encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
@@ -141,7 +141,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
             hapticData.torqueLimit = maxCalTorque;
             hapticData.feedForward = calibrationTorque;
             hapticData.targetPosition = -operationRange + (operationRange + operationRange) * counter / calibrationSections;
-            auto error = setTorque(hapticData);
+            auto error = setTorque();
             const float TorqueStep = 0.01F;     //value of torque increment/decrement
             calibrationTorque = limit<float>(calibrationTorque + error * TorqueStep, -feedForwardLimit, feedForwardLimit);
             //calculate mean position deviation to check if position is reached and stable
@@ -203,7 +203,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
                     //static AnalogIn kDpot(PA_7); float DerivativeThreshold = 0.02F * kDpot.read(); //XXX test 3.3          
 
                     hapticData.torqueLimit = 1.0F;
-                    setTorque(hapticData);
+                    setTorque();
 
                     //XXX test
                     static int cnt = 0;
@@ -244,7 +244,7 @@ void HapticDevice::handler(HapticMode hapticMode, HapticData& hapticData)
 
 //set torque proportional to target position error
 //returns current error
-float HapticDevice::setTorque(HapticData& hapticData)
+float HapticDevice::setTorque()
 {
     if(hapticData.deltaPosLimit == 0)
     {

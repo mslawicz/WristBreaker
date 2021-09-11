@@ -54,11 +54,12 @@ public:
     HapticDevice(HapticDevice&&) = delete;
     void operator=(HapticDevice&&) = delete;
     void calibrationRequest();
-    void handler(HapticMode hapticMode, HapticData& hapticData);
+    void handler(HapticMode hapticMode);
     float getCurrentPosition() const { return filteredPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }
+    HapticData& getHapticData() { return hapticData; }
 private:
-    float setTorque(HapticData& hapticData);
+    float setTorque();
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
@@ -96,6 +97,7 @@ private:
     float feedForwardLimit;     //limit value of feed forward torque
     size_t counter{0};          //position counter in calibration phase
     float currentTargetPosition{0};     //target position used in torque calculations
+    HapticData hapticData{0};   //haptic parameters of this device
 };
 
 #endif /* HAPTIC_H_ */

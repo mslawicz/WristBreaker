@@ -96,14 +96,12 @@ void Commander::handler()
 
     //XXX test of haptic device
     float pot = testPot.read();
-    HapticData rollActuatorData
-    {
-        .targetPosition = 0, //zeroPositionX,   // zero torque position from simulator
-        .torqueGain = 1.22F,    //NOLINT
-        .feedForward = 0,
-        .deltaPosLimit = 0.001F,
-        .auxData = pot
-    };
+    HapticData& rollActuatorData = yokeRollActuator.getHapticData();
+    rollActuatorData.targetPosition = 0; //zeroPositionX,   // zero torque position from simulator
+    rollActuatorData.torqueGain = 1.22F;    //NOLINT
+    rollActuatorData.feedForward = 0;
+    rollActuatorData.deltaPosLimit = 0.001F;    //range 0.5 / 200 Hz / 2.5 sec = 0.001
+    rollActuatorData.auxData = pot;
 
     //XXX test of sinusoidal movement
     //float zeroTest = 0.1F * sin(handlerCallCounter * 0.005F);
@@ -114,7 +112,7 @@ void Commander::handler()
     float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
     rollActuatorData.targetPosition = fpos;
 
-    yokeRollActuator.handler(HapticMode::Spring, rollActuatorData);
+    yokeRollActuator.handler(HapticMode::Spring);
 
     //prepare data to be sent to simulator 
     // convert +-90 degrees deflection to <-1,1> range
