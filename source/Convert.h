@@ -90,4 +90,10 @@ template<typename T> T threshold(T value, T low, T high)
     return value;
 }
 
+//check if variable is in the required range
+template<typename T> bool isInRange(T value, T min, T max)
+{
+    return ((value >= min) && (value <= max));
+}
+
 #endif /* CONVERT_H_ */

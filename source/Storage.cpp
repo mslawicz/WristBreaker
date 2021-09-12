@@ -75,3 +75,17 @@ size_t KvStore::restoreData(std::string& key, void* pData)
     
     return actualSize;
 }
+
+/*
+store data with the given key
+returns the error code or 0 if OK
+*/
+int KvStore::storeData(std::string& key, const void* pData, size_t size)
+{
+    int error = kv_set(key.c_str(), pData, size, 0);
+    if(error)
+    {
+        std::cout << "Parameter '" << key << "' store error " << MBED_GET_ERROR_CODE(error) << std::endl;
+    }
+    return error;
+}

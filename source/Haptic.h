@@ -72,12 +72,13 @@ private:
     float lastPosition{0};      // last position used for derivative calculations (not filtered)
     float positionPeriod;   // position segment size of electric 360 degrees cycle
     float currentPhase{0};  // current electric phase of the motor
-    float referencePhase{0};    // measured electric phase of the motor in the reference position
+    float referencePhase{0};    // measured electric phase of the motor in the reference position; stored in flash
     std::string name;       // the name of this haptic device
     enum class HapticState
     {
         Start,
         Move2Ref,
+        FFCheck,
         StartCalibration,
         CalibratePosition,
         EndCalibration,
@@ -99,7 +100,7 @@ private:
     size_t counter{0};          //position counter in calibration phase
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic parameters of this device
-    std::string referencePhaseMemo;     //name of parameter in flash memory
+    std::string memParamRefPhase;     //name of parameter in flash memory
 };
 
 #endif /* HAPTIC_H_ */

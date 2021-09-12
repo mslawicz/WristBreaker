@@ -88,13 +88,29 @@ void HapticDevice::handler()
         case HapticState::Start:
         {
             //restore device data from flash memory
-            size_t dataSize{0};
-            float xxx{0};
-            std::string key("/kv/throttleInputMin");
-            dataSize = KvStore::getInstance().restoreData(key, &xxx);
+            memParamRefPhase = "/kv/" + name.substr(0, 3) + '_' + name.substr(name.size()-3, 3) + '_' + "refPhase";
+            size_t dataSize = KvStore::getInstance().restoreData(memParamRefPhase, &referencePhase);
+            if(sizeof(referencePhase) == dataSize)
+            {
+                if(isInRange<float>(referencePhase, 0.0F, FullCycle))
+                {
+                    std::cout << name << " reference phase restored " << referencePhase << std::endl;
+                    state = HapticState::FFCheck;
+                }
+                else
+                {
+                    std::cout << name << " restored reference phase out of range (" << referencePhase << "), calibration required" << std::endl;
+                    state = HapticState::Move2Ref;
+                }
+            }
+            else
+            {
+                //parameter not restored
+                std::cout << name << " reference phase not restored, calibration required" << std::endl;
+                state = HapticState::Move2Ref;
+            }
 
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
-            state = HapticState::Move2Ref;
             break;
         }
 
@@ -127,12 +143,20 @@ void HapticDevice::handler()
             if(positionDeviation < PosDevThreshold)
             {
                 referencePhase = cropAngle<float>(currentPhase);
-                std::cout << "haptic device '" << name << "' reference phase = " << referencePhase << std::endl;
-                state = HapticState::HapticAction;
+                std::cout << name << " reference phase measured " << referencePhase << std::endl;
+                KvStore::getInstance().storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
+                state = HapticState::FFCheck;
             }
 
             break;
         }     
+
+        // check feedforward data
+        case HapticState::FFCheck:
+        {        
+            state = HapticState::HapticAction; //XXX temp
+            break;
+        }    
 
         // start calibration
         case HapticState::StartCalibration:
