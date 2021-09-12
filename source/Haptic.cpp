@@ -168,6 +168,16 @@ void HapticDevice::handler()
                 //parameter not restored
                 std::cout << name << " feed-forward data not restored; use calibration command" << std::endl;
                 feedForwardArray.assign(noOfCalPositions, 0.0F);
+                // feedForwardArray = std::vector<float>
+                // {
+                //     0, 0.05, 0, -0,05,
+                //     0, 0.05, 0, -0,05,
+                //     0, 0.05, 0, -0,05,
+                //     0, 0.05, 0, -0,05,
+                //     0, 0.05, 0, -0,05,
+                //     0, 0.05, 0, -0,05,
+                //     0
+                // };
             }
             state = HapticState::HapticAction;
             break;
