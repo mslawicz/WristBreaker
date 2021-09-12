@@ -53,7 +53,7 @@ public:
     void operator=(HapticDevice const&) = delete;
     HapticDevice(HapticDevice&&) = delete;
     void operator=(HapticDevice&&) = delete;
-    void calibrationRequest();
+    void calibrationRequest(const CommandVector&);
     void handler();
     float getCurrentPosition() const { return filteredPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }

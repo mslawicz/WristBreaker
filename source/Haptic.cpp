@@ -44,6 +44,7 @@ HapticDevice::HapticDevice
 {
     pMotor->setEnablePin(1);
     positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());
+    Console::getInstance().registerCommand("cal_r", "actuator calibration", callback(this, &HapticDevice::calibrationRequest));
 }
 
 HapticDevice::~HapticDevice()
@@ -53,7 +54,7 @@ HapticDevice::~HapticDevice()
 }
 
 // request calibration process
-void HapticDevice::calibrationRequest()
+void HapticDevice::calibrationRequest(const CommandVector& /*cv*/)
 {
     if(HapticState::HapticAction == state)
     {
@@ -178,7 +179,7 @@ void HapticDevice::handler()
             counter = 0;
             calibrationTorque = 0.0F;
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
-            std::cout << "\nstart of calibration" << std::endl;
+            std::cout << name << " calibration started" << std::endl;
             state = HapticState::CalibratePosition;
             break;
         }            
@@ -203,8 +204,8 @@ void HapticDevice::handler()
                 {
                     feedForwardArray[counter] = calibrationTorque;
                 }
-                //std::cout << "cal=" << hapticData.goalPosition << "  ff = " << calibrationTorque << "  err=" << error << "  dev=" << positionDeviation << std::endl;
-                std::cout << hapticData.goalPosition << ";" << calibrationTorque << std::endl;
+                std::cout << "pos=" << hapticData.goalPosition << ", ff=" << calibrationTorque << ", err=" << error << ", dev=" << positionDeviation << std::endl;
+                //std::cout << hapticData.goalPosition << ";" << calibrationTorque << std::endl;
                 positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
                 if(++counter >= noOfCalPositions)
                 {
@@ -236,7 +237,8 @@ void HapticDevice::handler()
         // end calibration
         case HapticState::EndCalibration:
         {        
-            std::cout << "end of calibration" << std::endl;
+            std::cout << name << " calibration completed" << std::endl;
+            KvStore::getInstance().storeData(memParamFFData, feedForwardArray.data(), noOfCalPositions * sizeof(float));
             state = HapticState::HapticAction;
             break;
         }           
@@ -324,18 +326,12 @@ float HapticDevice::setTorque(bool useCalibrationTorque)
     }
     else
     {
-        feedForwardArray[0] = -0.02F; //XXX test
-        feedForwardArray[1] = -0.0F; //XXX test
-        feedForwardArray[2] = 0.02F; //XXX test
-        feedForwardArray[3] = -0.01F; //XXX test
-        feedForwardArray[4] = -0.04F; //XXX test
         const float PositionInterval = (operationRange + operationRange) / (noOfCalPositions - 1);
         auto lowerIndex = limit<size_t>(static_cast<size_t>((filteredPosition + operationRange) / PositionInterval), 0, noOfCalPositions - 1);
         float lowerIndexPosition = lowerIndex * PositionInterval - operationRange;
         float positionIntervalPCT = (filteredPosition - lowerIndexPosition) / PositionInterval;
         ffTerm = feedForwardArray[lowerIndex] + (feedForwardArray[lowerIndex+1] - feedForwardArray[lowerIndex]) * positionIntervalPCT;
-        g_value[3] = lowerIndex;
-        
+        g_value[3] = lowerIndex;      
     }
     //calculate requested torque with limit
     torque = limit<float>(pTerm + dTerm + ffTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
@@ -354,5 +350,6 @@ float HapticDevice::setTorque(bool useCalibrationTorque)
     g_value[7] = ffTerm * 10; //pTerm;
     g_value[9] = targetPosition;
 
+    //return hapticData.goalPosition - filteredPosition;
     return error;
 }

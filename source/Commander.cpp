@@ -134,7 +134,7 @@ void Commander::handler()
 
     if(systemPushbutton.read() == 1)
     {
-        rollActuator.calibrationRequest();
+        rollActuator.calibrationRequest(CommandVector{});
     }
 
     //XXX test
