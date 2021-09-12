@@ -324,7 +324,16 @@ float HapticDevice::setTorque(bool useCalibrationTorque)
     }
     else
     {
-        auto lowerIndex = static_cast<size_t>((noOfCalPositions - 1) * (filteredPosition + operationRange) / (operationRange + operationRange));
+        feedForwardArray[0] = -0.02F; //XXX test
+        feedForwardArray[1] = -0.0F; //XXX test
+        feedForwardArray[2] = 0.02F; //XXX test
+        feedForwardArray[3] = -0.01F; //XXX test
+        feedForwardArray[4] = -0.04F; //XXX test
+        const float PositionInterval = (operationRange + operationRange) / (noOfCalPositions - 1);
+        auto lowerIndex = limit<size_t>(static_cast<size_t>((filteredPosition + operationRange) / PositionInterval), 0, noOfCalPositions - 1);
+        float lowerIndexPosition = lowerIndex * PositionInterval - operationRange;
+        float positionIntervalPCT = (filteredPosition - lowerIndexPosition) / PositionInterval;
+        ffTerm = feedForwardArray[lowerIndex] + (feedForwardArray[lowerIndex+1] - feedForwardArray[lowerIndex]) * positionIntervalPCT;
         g_value[3] = lowerIndex;
         
     }
@@ -342,7 +351,7 @@ float HapticDevice::setTorque(bool useCalibrationTorque)
     g_value[4] = 0;
     g_value[5] = 0;
     g_value[6] = dTerm * 10;
-    g_value[7] = pTerm;
+    g_value[7] = ffTerm * 10; //pTerm;
     g_value[9] = targetPosition;
 
     return error;
