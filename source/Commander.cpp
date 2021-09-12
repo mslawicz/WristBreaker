@@ -100,7 +100,6 @@ void Commander::handler()
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     rollActuatorData.goalPosition = 0;   //zeroPositionX,   //zero torque position from simulator
     rollActuatorData.torqueGain = 1.22F;    //NOLINT
-    rollActuatorData.feedForward = 0;
     rollActuatorData.deltaPosLimit = 0.001F;    //range 0.5 / 200 Hz / 2.5 sec = 0.001
     rollActuatorData.auxData = pot;
 

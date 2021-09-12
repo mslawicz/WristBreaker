@@ -28,7 +28,6 @@ struct HapticData
     float goalPosition;         // goal position of zero torque (relative to the reference position)
     float torqueGain;           // gain for torque proportional term
     float torqueLimit;          // current maximum torque value
-    float feedForward;          // torque feed forward value
     float deltaPosLimit;        // value of allowed position change; off when ==0
     float auxData;              // auxilary data for testing
 };
@@ -103,6 +102,7 @@ private:
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
     std::string memParamFFData;       //name of parameter in flash memory (feed forward data)
     std::vector<float> feedForwardArray;    //vector of feed-forward data
+    bool useCalibrationTorque{false};       //use calibration torque instead of feed-forward data
 };
 
 #endif /* HAPTIC_H_ */

@@ -168,6 +168,7 @@ void HapticDevice::handler()
                 std::cout << name << " feed-forward data not restored; use calibration command" << std::endl;
                 feedForwardArray.assign(noOfCalPositions, 0.0F);
             }
+            useCalibrationTorque = false;
             state = HapticState::HapticAction;
             break;
         }    
@@ -179,6 +180,7 @@ void HapticDevice::handler()
             calibrationTorque = 0.0F;
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
             std::cout << "\nstart of calibration" << std::endl;
+            useCalibrationTorque = true;
             state = HapticState::CalibratePosition;
             break;
         }            
@@ -187,7 +189,6 @@ void HapticDevice::handler()
         case HapticState::CalibratePosition:
         {
             hapticData.torqueLimit = maxCalTorque;
-            hapticData.feedForward = calibrationTorque;
             hapticData.goalPosition = -operationRange + (operationRange + operationRange) * counter / (noOfCalPositions - 1);
             auto error = setTorque();
             const float TorqueStep = 0.01F;     //value of torque increment/decrement
@@ -199,9 +200,13 @@ void HapticDevice::handler()
             //check if reference position is reached and stable 
             if(positionDeviation < PosDevThreshold)
             {
-                //store calibration point data here
-                //std::cout << "cal=" << hapticData.goalPosition << "  ff = " << hapticData.feedForward << "  err=" << error << "  dev=" << positionDeviation << std::endl;
-                std::cout << hapticData.goalPosition << ";" << hapticData.feedForward << std::endl;
+                //store feed-forward value
+                if(feedForwardArray.size() > counter)
+                {
+                    feedForwardArray[counter] = calibrationTorque;
+                }
+                //std::cout << "cal=" << hapticData.goalPosition << "  ff = " << calibrationTorque << "  err=" << error << "  dev=" << positionDeviation << std::endl;
+                std::cout << hapticData.goalPosition << ";" << calibrationTorque << std::endl;
                 positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
                 if(++counter >= noOfCalPositions)
                 {
@@ -219,7 +224,7 @@ void HapticDevice::handler()
             //     std::cout << "  tG=" << hapticData.torqueGain;
             //     std::cout << "  dG=" << hapticData.torqueGain * TD;
             //     std::cout << "  T=" << torque;
-            //     std::cout << "  ff=" << hapticData.feedForward;
+            //     std::cout << "  ff=" << calibrationTorque;
             //     std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
             //     std::cout << "   \r" << std::flush;
             // }   
@@ -234,6 +239,7 @@ void HapticDevice::handler()
         case HapticState::EndCalibration:
         {        
             std::cout << "end of calibration" << std::endl;
+            useCalibrationTorque = false;
             state = HapticState::HapticAction;
             break;
         }           
@@ -262,7 +268,6 @@ void HapticDevice::handler()
                         std::cout << "  tG=" << hapticData.torqueGain;
                         std::cout << "  dG=" << hapticData.torqueGain * TD;
                         std::cout << "  T=" << torque;
-                        std::cout << "  ff=" << hapticData.feedForward;
                         std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
                     }
@@ -314,8 +319,20 @@ float HapticDevice::setTorque()
     //calculate derivative term of torque
     float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
     float dTerm = KP * threshold(TD * deltaPosition, -dTermThreshold, dTermThreshold);
+    //calculate feed-forward term of torque
+    float ffTerm{0};
+    if(useCalibrationTorque)
+    {
+        ffTerm = calibrationTorque;
+    }
+    else
+    {
+        auto lowerIndex = static_cast<size_t>((noOfCalPositions - 1) * (filteredPosition + operationRange) / (operationRange + operationRange));
+        g_value[3] = lowerIndex;
+        
+    }
     //calculate requested torque with limit
-    torque = limit<float>(pTerm + dTerm + hapticData.feedForward, -hapticData.torqueLimit, hapticData.torqueLimit);
+    torque = limit<float>(pTerm + dTerm + ffTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
     //apply the requested torque to motor
     float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
     float vectorMagnitude = fabsf(torque);
@@ -325,7 +342,6 @@ float HapticDevice::setTorque()
 
     //XXX test
     g_value[2] = error;
-    g_value[3] = deltaPosition;
     g_value[4] = 0;
     g_value[5] = 0;
     g_value[6] = dTerm * 10;
