@@ -168,7 +168,6 @@ void HapticDevice::handler()
                 std::cout << name << " feed-forward data not restored; use calibration command" << std::endl;
                 feedForwardArray.assign(noOfCalPositions, 0.0F);
             }
-            useCalibrationTorque = false;
             state = HapticState::HapticAction;
             break;
         }    
@@ -180,7 +179,6 @@ void HapticDevice::handler()
             calibrationTorque = 0.0F;
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
             std::cout << "\nstart of calibration" << std::endl;
-            useCalibrationTorque = true;
             state = HapticState::CalibratePosition;
             break;
         }            
@@ -190,7 +188,7 @@ void HapticDevice::handler()
         {
             hapticData.torqueLimit = maxCalTorque;
             hapticData.goalPosition = -operationRange + (operationRange + operationRange) * counter / (noOfCalPositions - 1);
-            auto error = setTorque();
+            auto error = setTorque(true);
             const float TorqueStep = 0.01F;     //value of torque increment/decrement
             calibrationTorque = limit<float>(calibrationTorque + error * TorqueStep, -feedForwardLimit, feedForwardLimit);
             //calculate mean position deviation to check if position is reached and stable
@@ -239,7 +237,6 @@ void HapticDevice::handler()
         case HapticState::EndCalibration:
         {        
             std::cout << "end of calibration" << std::endl;
-            useCalibrationTorque = false;
             state = HapticState::HapticAction;
             break;
         }           
@@ -297,7 +294,7 @@ void HapticDevice::handler()
 
 //set torque proportional to goal position error
 //returns current error
-float HapticDevice::setTorque()
+float HapticDevice::setTorque(bool useCalibrationTorque)
 {
     if(hapticData.deltaPosLimit == 0)
     {

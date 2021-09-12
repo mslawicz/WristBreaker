@@ -59,7 +59,7 @@ public:
     float getOperationRange() const { return operationRange; }
     HapticData& getHapticData() { return hapticData; }
 private:
-    float setTorque();
+    float setTorque(bool useCalibrationTorque = false);
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
@@ -102,7 +102,6 @@ private:
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
     std::string memParamFFData;       //name of parameter in flash memory (feed forward data)
     std::vector<float> feedForwardArray;    //vector of feed-forward data
-    bool useCalibrationTorque{false};       //use calibration torque instead of feed-forward data
 };
 
 #endif /* HAPTIC_H_ */
