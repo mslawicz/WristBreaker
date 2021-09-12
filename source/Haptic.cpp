@@ -26,7 +26,7 @@ HapticDevice::HapticDevice
     float operationRange,    // the range of normal operation from reference position
     float TD,                //derivative time (see classic PID formula)
     float dTermThreshold,    //threshold for derivative term
-    size_t calibrationSections,  //number of calibration sections
+    size_t noOfCalPositions, //number of calibration positions
     float feedForwardLimit   //limit value of feed forward torque
 ) :
     pMotor(pMotor),
@@ -39,7 +39,7 @@ HapticDevice::HapticDevice
     derivativeFilter(5), //NOLINT
     TD(TD),
     dTermThreshold(dTermThreshold),
-    calibrationSections(calibrationSections),
+    noOfCalPositions(noOfCalPositions),
     feedForwardLimit(feedForwardLimit)
 {
     pMotor->setEnablePin(1);
@@ -87,7 +87,7 @@ void HapticDevice::handler()
         // state machine starts here and initializes variables
         case HapticState::Start:
         {
-            //restore device data from flash memory
+            //restore reference phase from flash memory
             memParamRefPhase = "/kv/" + name.substr(0, 3) + '_' + name.substr(name.size()-3, 3) + '_' + "refPhase";
             size_t dataSize = KvStore::getInstance().restoreData(memParamRefPhase, &referencePhase);
             if(sizeof(referencePhase) == dataSize)
@@ -95,18 +95,18 @@ void HapticDevice::handler()
                 if(isInRange<float>(referencePhase, 0.0F, FullCycle))
                 {
                     std::cout << name << " reference phase restored " << referencePhase << std::endl;
-                    state = HapticState::FFCheck;
+                    state = HapticState::FFRestore;
                 }
                 else
                 {
-                    std::cout << name << " restored reference phase out of range (" << referencePhase << "), calibration required" << std::endl;
+                    std::cout << name << " restored reference phase out of range (" << referencePhase << "); calibrating..." << std::endl;
                     state = HapticState::Move2Ref;
                 }
             }
             else
             {
                 //parameter not restored
-                std::cout << name << " reference phase not restored, calibration required" << std::endl;
+                std::cout << name << " reference phase not restored; calibrating..." << std::endl;
                 state = HapticState::Move2Ref;
             }
 
@@ -145,16 +145,30 @@ void HapticDevice::handler()
                 referencePhase = cropAngle<float>(currentPhase);
                 std::cout << name << " reference phase measured " << referencePhase << std::endl;
                 KvStore::getInstance().storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
-                state = HapticState::FFCheck;
+                state = HapticState::FFRestore;
             }
 
             break;
         }     
 
-        // check feedforward data
-        case HapticState::FFCheck:
+        // restore feedforward data
+        case HapticState::FFRestore:
         {        
-            state = HapticState::HapticAction; //XXX temp
+            //restore feed-forward data from flash memory
+            feedForwardArray.resize(noOfCalPositions, 0.0F);
+            memParamFFData = "/kv/" + name.substr(0, 3) + '_' + name.substr(name.size()-3, 3) + '_' + "FFData";
+            size_t dataSize = KvStore::getInstance().restoreData(memParamFFData, feedForwardArray.data());
+            if((noOfCalPositions * sizeof(float)) == dataSize)
+            {
+                std::cout << name << " feed-forward data restored" << std::endl;
+            }
+            else
+            {
+                //parameter not restored
+                std::cout << name << " feed-forward data not restored; use calibration command" << std::endl;
+                feedForwardArray.assign(noOfCalPositions, 0.0F);
+            }
+            state = HapticState::HapticAction;
             break;
         }    
 
@@ -174,7 +188,7 @@ void HapticDevice::handler()
         {
             hapticData.torqueLimit = maxCalTorque;
             hapticData.feedForward = calibrationTorque;
-            hapticData.goalPosition = -operationRange + (operationRange + operationRange) * counter / calibrationSections;
+            hapticData.goalPosition = -operationRange + (operationRange + operationRange) * counter / (noOfCalPositions - 1);
             auto error = setTorque();
             const float TorqueStep = 0.01F;     //value of torque increment/decrement
             calibrationTorque = limit<float>(calibrationTorque + error * TorqueStep, -feedForwardLimit, feedForwardLimit);
@@ -189,7 +203,7 @@ void HapticDevice::handler()
                 //std::cout << "cal=" << hapticData.goalPosition << "  ff = " << hapticData.feedForward << "  err=" << error << "  dev=" << positionDeviation << std::endl;
                 std::cout << hapticData.goalPosition << ";" << hapticData.feedForward << std::endl;
                 positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
-                if(++counter > calibrationSections)
+                if(++counter >= noOfCalPositions)
                 {
                     state = HapticState::EndCalibration;
                 }
