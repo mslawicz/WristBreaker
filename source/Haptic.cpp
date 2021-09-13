@@ -168,16 +168,16 @@ void HapticDevice::handler()
                 //parameter not restored
                 std::cout << name << " feed-forward data not restored; use calibration command" << std::endl;
                 feedForwardArray.assign(noOfCalPositions, 0.0F);
-                // feedForwardArray = std::vector<float>
-                // {
-                //     0, 0.05, 0, -0,05,
-                //     0, 0.05, 0, -0,05,
-                //     0, 0.05, 0, -0,05,
-                //     0, 0.05, 0, -0,05,
-                //     0, 0.05, 0, -0,05,
-                //     0, 0.05, 0, -0,05,
-                //     0
-                // };
+                feedForwardArray = std::vector<float>
+                {
+                    0, 0.05, 0, -0,05,
+                    0, 0.05, 0, -0,05,
+                    0, 0.05, 0, -0,05,
+                    0, 0.05, 0, -0,05,
+                    0, 0.05, 0, -0,05,
+                    0, 0.05, 0, -0,05,
+                    0
+                };
             }
             state = HapticState::HapticAction;
             break;
@@ -262,7 +262,6 @@ void HapticDevice::handler()
                 case HapticMode::Spring:
                 {
                     static AnalogIn kPpot(PA_5); hapticData.torqueGain = 3.0F * kPpot.read(); //XXX test
-                    //static AnalogIn dpPot(PA_6); hapticData.dGain = 10.0F * dpPot.read(); //XXX test
                     //static AnalogIn kDpot(PA_7); float DerivativeThreshold = 0.02F * kDpot.read(); //XXX test 3.3          
 
                     hapticData.torqueLimit = 1.0F;
@@ -341,6 +340,7 @@ float HapticDevice::setTorque(bool useCalibrationTorque)
         float lowerIndexPosition = lowerIndex * PositionInterval - operationRange;
         float positionIntervalPCT = (filteredPosition - lowerIndexPosition) / PositionInterval;
         ffTerm = feedForwardArray[lowerIndex] + (feedForwardArray[lowerIndex+1] - feedForwardArray[lowerIndex]) * positionIntervalPCT;
+        static AnalogIn dpPot(PA_6); ffTerm *= dpPot.read(); //XXX test
         g_value[3] = lowerIndex;      
     }
     //calculate requested torque with limit
