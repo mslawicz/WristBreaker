@@ -93,7 +93,6 @@ void HapticDevice::handler()
                 if(isInRange<float>(referencePhase, 0.0F, FullCycle))
                 {
                     std::cout << name << " reference phase restored " << referencePhase << std::endl;
-                    hapticData.deltaPosLimit = 0;
                     state = HapticState::HapticAction;
                 }
                 else
@@ -144,7 +143,6 @@ void HapticDevice::handler()
                 referencePhase = cropAngle<float>(currentPhase);
                 std::cout << name << " reference phase measured " << referencePhase << std::endl;
                 KvStore::getInstance().storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
-                hapticData.deltaPosLimit = 0;
                 state = HapticState::HapticAction;
             }
 
@@ -173,6 +171,7 @@ void HapticDevice::handler()
                         std::cout << "  pot=" << hapticData.auxData;
                         std::cout << "  tG=" << hapticData.torqueGain;
                         std::cout << "  dG=" << hapticData.torqueGain * TD;
+                        std::cout << "  TI=" << TI;
                         std::cout << "  T=" << torque;
                         std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
                         std::cout << "   \r" << std::flush;
@@ -227,15 +226,15 @@ float HapticDevice::setTorque()
     float pTerm = KP * error;
 
     //calculate integral term of torque
-    static AnalogIn TIpot(PA_6); TI = TIpot.read(); //XXX test 
-
+    static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
+    iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
 
     //calculate derivative term of torque
     float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
     float dTerm = KP * threshold(TD * deltaPosition, -dTermThreshold, dTermThreshold);
 
     //calculate requested torque with limit
-    torque = limit<float>(pTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
+    torque = limit<float>(pTerm + iTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
 
     //apply the requested torque to motor
     float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
@@ -248,7 +247,7 @@ float HapticDevice::setTorque()
     g_value[2] = error;
     g_value[3] = dTermThreshold;
     g_value[4] = TD * 0.01F;
-    g_value[5] = 0;
+    g_value[5] = iTerm;
     g_value[6] = dTerm * 10;
     g_value[7] = pTerm;
     g_value[9] = targetPosition;

@@ -91,6 +91,8 @@ private:
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic dynamic parameters of this device
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
+    float iTerm{0};         //integral term of torque
+    float integralLimit{0.06F};      //limit of integral term
 };
 
 #endif /* HAPTIC_H_ */
