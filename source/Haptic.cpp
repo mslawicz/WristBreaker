@@ -254,6 +254,5 @@ float HapticDevice::setTorque()
     g_value[9] = targetPosition;
 
     //static AnalogIn kDpot(PA_7); dTermThreshold = 0.03F * kDpot.read(); //XXX test 
-    //return hapticData.goalPosition - filteredPosition;
-    return error;
+    return hapticData.goalPosition - filteredPosition;
 }
