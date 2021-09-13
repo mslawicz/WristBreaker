@@ -44,9 +44,7 @@ public:
         float maxCalTorque,      // maximum torque value in calibration phase
         float operationRange,    // the range of normal operation from reference position
         float TD,                //derivative time (see classic PID formula)
-        float dTermThreshold,    //threshold for derivative term
-        size_t noOfCalPositions, //number of calibration positions
-        float feedForwardLimit   //limit value of feed forward torque
+        float dTermThreshold     //threshold for derivative term
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -59,7 +57,7 @@ public:
     float getOperationRange() const { return operationRange; }
     HapticData& getHapticData() { return hapticData; }
 private:
-    float setTorque(bool useCalibrationTorque = false);
+    float setTorque();
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
@@ -93,15 +91,9 @@ private:
     MedianFilter derivativeFilter;
     float TD;        //derivative time (multiplied by torque gain for derivative gain)
     float dTermThreshold;   //threshold for derivative term
-    size_t noOfCalPositions;    //number of calibration positions
-    float calibrationTorque{0}; //torque value used in calibration procedure
-    float feedForwardLimit;     //limit value of feed forward torque
-    size_t counter{0};          //position counter in calibration phase
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic parameters of this device
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
-    std::string memParamFFData;       //name of parameter in flash memory (feed forward data)
-    std::vector<float> feedForwardArray;    //vector of feed-forward data
 };
 
 #endif /* HAPTIC_H_ */
