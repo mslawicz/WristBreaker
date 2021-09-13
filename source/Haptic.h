@@ -43,6 +43,7 @@ public:
         float referencePosition,    // encoder reference (middle) position of the device
         float maxCalTorque,      // maximum torque value in calibration phase
         float operationRange,    // the range of normal operation from reference position
+        float TI,                //integral time (see classic PID formula; TI=1/Ti)
         float TD,                //derivative time (see classic PID formula)
         float dTermThreshold     //threshold for derivative term
     );
@@ -84,6 +85,7 @@ private:
     float operationRange;    //the range of normal operation measured from reference position
     MedianFilter positionFilter;
     MedianFilter derivativeFilter;
+    float TI;        //integral time (multiplied by torque gain for integral gain)
     float TD;        //derivative time (multiplied by torque gain for derivative gain)
     float dTermThreshold;   //threshold for derivative term
     float targetPosition{0};    //target position used in torque calculations

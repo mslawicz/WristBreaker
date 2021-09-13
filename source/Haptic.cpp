@@ -24,6 +24,7 @@ HapticDevice::HapticDevice
     float referencePosition,    // encoder reference (middle) position of the device
     float maxCalTorque,      // maximum torque value in calibration phase
     float operationRange,    // the range of normal operation from reference position
+    float TI,                //integral time (see classic PID formula; TI=1/Ti)
     float TD,                //derivative time (see classic PID formula)
     float dTermThreshold     //threshold for derivative term
 ) :
@@ -35,6 +36,7 @@ HapticDevice::HapticDevice
     operationRange(operationRange),
     positionFilter(5),   //NOLINT
     derivativeFilter(5), //NOLINT
+    TI(TI),
     TD(TD),
     dTermThreshold(dTermThreshold)
 {
@@ -224,10 +226,12 @@ float HapticDevice::setTorque()
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
 
+    //calculate integral term of torque
+    static AnalogIn TIpot(PA_6); TI = TIpot.read(); //XXX test 
+
+
     //calculate derivative term of torque
     float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
-    static AnalogIn kDpot(PA_7); dTermThreshold = 0.03F * kDpot.read(); //XXX test 
-    static AnalogIn TDpot(PA_6); TD = 8.0F * TDpot.read(); //XXX test 
     float dTerm = KP * threshold(TD * deltaPosition, -dTermThreshold, dTermThreshold);
 
     //calculate requested torque with limit
@@ -249,6 +253,7 @@ float HapticDevice::setTorque()
     g_value[7] = pTerm;
     g_value[9] = targetPosition;
 
+    //static AnalogIn kDpot(PA_7); dTermThreshold = 0.03F * kDpot.read(); //XXX test 
     //return hapticData.goalPosition - filteredPosition;
     return error;
 }
