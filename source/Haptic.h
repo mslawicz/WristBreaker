@@ -81,14 +81,13 @@ private:
     float positionDeviation{0};     //filtered position deviation
     float torque{0.0F};      // current torque of the motor
     float maxCalTorque;      // maximum torque value during calibration phase
-    float operationRange;    //the range of normal operation from reference position
-    float calibrationPosition{0};
+    float operationRange;    //the range of normal operation measured from reference position
     MedianFilter positionFilter;
     MedianFilter derivativeFilter;
     float TD;        //derivative time (multiplied by torque gain for derivative gain)
     float dTermThreshold;   //threshold for derivative term
     float targetPosition{0};    //target position used in torque calculations
-    HapticData hapticData;      //haptic parameters of this device
+    HapticData hapticData;      //haptic dynamic parameters of this device
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
 };
 
