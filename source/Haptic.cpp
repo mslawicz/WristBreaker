@@ -91,7 +91,8 @@ void HapticDevice::handler()
                 if(isInRange<float>(referencePhase, 0.0F, FullCycle))
                 {
                     std::cout << name << " reference phase restored " << referencePhase << std::endl;
-                    state = HapticState::FFRestore;
+                    hapticData.deltaPosLimit = 0;
+                    state = HapticState::HapticAction;
                 }
                 else
                 {
@@ -141,6 +142,7 @@ void HapticDevice::handler()
                 referencePhase = cropAngle<float>(currentPhase);
                 std::cout << name << " reference phase measured " << referencePhase << std::endl;
                 KvStore::getInstance().storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
+                hapticData.deltaPosLimit = 0;
                 state = HapticState::HapticAction;
             }
 
@@ -224,6 +226,8 @@ float HapticDevice::setTorque()
 
     //calculate derivative term of torque
     float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
+    static AnalogIn kDpot(PA_7); dTermThreshold = 0.03F * kDpot.read(); //XXX test 
+    static AnalogIn TDpot(PA_6); TD = 8.0F * TDpot.read(); //XXX test 
     float dTerm = KP * threshold(TD * deltaPosition, -dTermThreshold, dTermThreshold);
 
     //calculate requested torque with limit
@@ -238,7 +242,8 @@ float HapticDevice::setTorque()
 
     //XXX test
     g_value[2] = error;
-    g_value[4] = 0;
+    g_value[3] = dTermThreshold;
+    g_value[4] = TD * 0.01F;
     g_value[5] = 0;
     g_value[6] = dTerm * 10;
     g_value[7] = pTerm;
