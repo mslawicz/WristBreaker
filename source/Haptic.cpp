@@ -143,7 +143,7 @@ void HapticDevice::handler()
             {
                 referencePhase = cropAngle<float>(currentPhase);
                 std::cout << name << " reference phase measured " << referencePhase << std::endl;
-                KvStore::getInstance().storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
+                KvStore::storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
                 state = HapticState::HapticAction;
             }
 
