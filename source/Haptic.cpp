@@ -34,8 +34,8 @@ HapticDevice::HapticDevice
     referencePosition(referencePosition),
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
-    positionFilter(5),   //NOLINT
-    derivativeFilter(5), //NOLINT
+    positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    derivativeFilter(5), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
     TD(TD),
     dTermThreshold(dTermThreshold),
@@ -221,19 +221,22 @@ float HapticDevice::setTorque()
 
     //apply the requested torque to motor
     float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
+    static AnalogIn dPot(PA_6); float KD = 90e2F * dPot.read(); //XXX test 
+    float dPosition = filteredPosition - lastFilteredPosition;
+    auto deltaPhaseDamp = limit<float>((torque > 0 ? (QuarterCycle + KD * dPosition) : -1 * (QuarterCycle + KD * dPosition)), -QuarterCycle, QuarterCycle);
     float vectorMagnitude = fabsf(torque);
-    pMotor->setFieldVector(currentPhase + deltaPhase, vectorMagnitude);
+    pMotor->setFieldVector(currentPhase + deltaPhaseDamp, vectorMagnitude);
 
     //XXX test
     g_value[2] = error;
-    g_value[3] = dTermThreshold;
-    g_value[4] = 0;
+    g_value[3] = deltaPhase;
+    g_value[4] = deltaPhaseDamp;
     g_value[5] = 0;
     g_value[6] = 0;
     g_value[7] = pTerm;
     g_value[9] = targetPosition;
 
-    //static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
+    lastFilteredPosition = filteredPosition;
     //static AnalogIn kDpot(PA_7); dTermThreshold = 0.03F * kDpot.read(); //XXX test 
     return hapticData.goalPosition - filteredPosition;
 }

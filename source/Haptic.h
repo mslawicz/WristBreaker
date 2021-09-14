@@ -67,7 +67,7 @@ private:
     float encoderPosition{0};   // motor position read from encoder
     float currentPosition{0};   // current position of the device relative to reference position (not filtered)
     float filteredPosition{0};  // current position of the device relative to reference position (filtered)
-    float lastPosition{0};      // last position used for derivative calculations (not filtered)
+    float lastFilteredPosition{0};      // last position used for derivative calculations (filtered)
     float positionPeriod;   // position segment size of electric 360 degrees cycle
     float currentPhase{0};  // current electric phase of the motor
     float referencePhase{0};    // measured electric phase of the motor in the reference position; stored in flash
