@@ -1,4 +1,7 @@
 #include "Storage.h"
+#include <cstring>
+#include <cwchar>
+#include "fnet.h"
 
 KvStore::KvStore()
 {
@@ -30,7 +33,7 @@ void KvStore::list(const CommandVector&  /*cv*/)
     while(kv_iterator_next(it, static_cast<char*>(key), MaxKeySize) != MBED_ERROR_ITEM_NOT_FOUND)
     {
         std::cout << static_cast<char*>(key) << ", ";
-        memset(static_cast<char*>(key), 0, MaxKeySize);
+        fnet_memset_zero(static_cast<char*>(key), MaxKeySize);
     }
     kv_iterator_close(it);
     std::cout << std::endl;

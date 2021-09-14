@@ -9,13 +9,13 @@
 #define COMMANDER_H_
 
 #include "mbed.h"
-#include "USB.h"
 #include "Console.h"
 #include "Haptic.h"
+#include "USB.h"
 #include <chrono>
 #include <vector>
 
-struct JoystickData
+struct JoystickData     //NOLINT(altera-struct-pack-align)
 {
     int16_t X;
     int16_t Y;
@@ -35,7 +35,7 @@ public:
     explicit Commander(events::EventQueue& eventQueue);
     void displayIncomingReport(const CommandVector& /*cv*/);
 private:
-    struct SimData
+    struct SimData      //NOLINT(altera-struct-pack-align)
     {
         uint8_t flapsNumHandlePositions;    // flaps handle positions excluding retracted position
         uint8_t flapsHandleIndex;

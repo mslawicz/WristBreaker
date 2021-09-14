@@ -1,9 +1,10 @@
 #include "Commander.h"
-#include "Convert.h"
 #include "BLDC.h"
+#include "Convert.h"
 #include "Encoder.h"
-#include <iostream>
 #include <iomanip>
+#include <iostream>
+
 
 #define USB_VID     0x0483 //STElectronics
 #define USB_PID     0x5712 //joystick in FS mode +2

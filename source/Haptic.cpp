@@ -204,54 +204,35 @@ void HapticDevice::handler()
 //returns current error
 float HapticDevice::setTorque()
 {
-    if(hapticData.deltaPosLimit == 0)
-    {
-        //target position rate of change limit off
-        targetPosition = hapticData.goalPosition;
-    }
-    else
-    {
-        //limit the rate of change of target position
-        targetPosition += limit<float>(hapticData.goalPosition - targetPosition, -hapticData.deltaPosLimit, hapticData.deltaPosLimit);
-    }
-
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
 
     //calculate error from the goal position; positive error for CCW deflection
+    targetPosition = hapticData.goalPosition;
     float error = targetPosition - filteredPosition;
 
     //calculate proportional term of torque 
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
 
-    //calculate integral term of torque
-    static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
-    iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
-
-    //calculate derivative term of torque
-    float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
-    float dTerm = KP * threshold(TD * deltaPosition, -dTermThreshold, dTermThreshold);
-
     //calculate requested torque with limit
-    torque = limit<float>(pTerm + iTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
+    torque = limit<float>(pTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
 
     //apply the requested torque to motor
     float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
     float vectorMagnitude = fabsf(torque);
     pMotor->setFieldVector(currentPhase + deltaPhase, vectorMagnitude);
 
-    lastPosition = currentPosition;
-
     //XXX test
     g_value[2] = error;
     g_value[3] = dTermThreshold;
-    g_value[4] = TD * 0.01F;
-    g_value[5] = iTerm;
-    g_value[6] = dTerm * 10;
+    g_value[4] = 0;
+    g_value[5] = 0;
+    g_value[6] = 0;
     g_value[7] = pTerm;
     g_value[9] = targetPosition;
 
+    //static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
     //static AnalogIn kDpot(PA_7); dTermThreshold = 0.03F * kDpot.read(); //XXX test 
     return hapticData.goalPosition - filteredPosition;
 }

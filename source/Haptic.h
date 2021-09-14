@@ -8,11 +8,11 @@
 #ifndef HAPTIC_H_
 #define HAPTIC_H_
 
-#include <mbed.h>
 #include "Convert.h"
 #include "BLDC.h"
 #include "Encoder.h"
 #include "Filter.h"
+#include <mbed.h>
 #include <string>
 
 
@@ -22,7 +22,7 @@ enum class HapticMode
     MultiPosition
 };
 
-struct HapticData
+struct HapticData       //NOLINT(altera-struct-pack-align)
 {
     HapticMode hapticMode;      // haptic mode for haptic action phase
     float goalPosition;         // goal position of zero torque (relative to the reference position)
@@ -35,7 +35,7 @@ struct HapticData
 class HapticDevice
 {
 public:
-    HapticDevice
+    HapticDevice        //NOLINT(altera-struct-pack-align)
     (
         MotorBLDC* pMotor,      // pointer to BLDC motor object
         Encoder* pEncoder,      // pointer to motor position encoder object
