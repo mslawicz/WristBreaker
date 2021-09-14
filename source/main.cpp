@@ -15,11 +15,12 @@
  */
 
 #include "Console.h"
-#include "Statistics.h"
 #include "Commander.h"
+#include "Statistics.h"
 #include "Storage.h"
-#include <mbed.h>
 #include <iostream>
+#include <mbed.h>
+
 
 
 int main() // NOLINT(modernize-use-trailing-return-type)

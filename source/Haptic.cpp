@@ -38,10 +38,11 @@ HapticDevice::HapticDevice
     derivativeFilter(5), //NOLINT
     TI(TI),
     TD(TD),
-    dTermThreshold(dTermThreshold)
+    dTermThreshold(dTermThreshold),
+    hapticData{HapticMode::Spring, 0}
 {
     pMotor->setEnablePin(1);
-    positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());
+    positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());     //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 }
 
 HapticDevice::~HapticDevice()

@@ -20,7 +20,7 @@ public:
     void operator=(KvStore&&) = delete;
     static KvStore& getInstance();
     size_t restoreData(std::string& key, void* pData);
-    int storeData(std::string& key, const void* pData, size_t size);
+    static int storeData(std::string& key, const void* pData, size_t size);
     static void list(const CommandVector& cv);
     static void clear(const CommandVector& cv);
 private:

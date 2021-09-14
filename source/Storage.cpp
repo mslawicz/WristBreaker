@@ -1,7 +1,8 @@
 #include "Storage.h"
+#include "fnet.h"
 #include <cstring>
 #include <cwchar>
-#include "fnet.h"
+
 
 KvStore::KvStore()
 {
@@ -24,11 +25,11 @@ void KvStore::list(const CommandVector&  /*cv*/)
     int result = kv_iterator_open(&it, nullptr);
     if(result != 0)
     {
-        std::cout << "Error " << MBED_GET_ERROR_CODE(result) << " on parameters iteration" << std::endl;
+        std::cout << "Error " << MBED_GET_ERROR_CODE(result) << " on parameters iteration" << std::endl;    //NOLINT(hicpp-signed-bitwise)
         return;
     }
     const size_t MaxKeySize = 50;
-    char key[MaxKeySize] = {0}; //NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+    char key[MaxKeySize] = {0};     //NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
     std::cout << "Stored parameters: ";
     while(kv_iterator_next(it, static_cast<char*>(key), MaxKeySize) != MBED_ERROR_ITEM_NOT_FOUND)
     {
@@ -47,7 +48,7 @@ void KvStore::clear(const CommandVector&  /*cv*/)
     int result = kv_reset("/kv/");
     if(result != 0)
     {
-        std::cout << "Resetting parameter storage failed with error " << MBED_GET_ERROR_CODE(result) << std::endl;
+        std::cout << "Resetting parameter storage failed with error " << MBED_GET_ERROR_CODE(result) << std::endl;      //NOLINT(hicpp-signed-bitwise)
     }
     else
     {
@@ -64,7 +65,7 @@ size_t KvStore::restoreData(std::string& key, void* pData)
     int error = kv_get_info(key.c_str(), &info);
     if(0 != error)
     {
-        std::cout << "Parameter '" << key << "' info error " << MBED_GET_ERROR_CODE(error) << std::endl;
+        std::cout << "Parameter '" << key << "' info error " << MBED_GET_ERROR_CODE(error) << std::endl;        //NOLINT(hicpp-signed-bitwise)
         return 0;
     }
             
@@ -72,7 +73,7 @@ size_t KvStore::restoreData(std::string& key, void* pData)
     error = kv_get(key.c_str(), pData, info.size, &actualSize);
     if(0 != error)
     {
-        std::cout << "Parameter '" << key << "' restore error " << MBED_GET_ERROR_CODE(error) << std::endl;
+        std::cout << "Parameter '" << key << "' restore error " << MBED_GET_ERROR_CODE(error) << std::endl;     //NOLINT(hicpp-signed-bitwise)
         return 0;
     }
     
@@ -86,9 +87,9 @@ returns the error code or 0 if OK
 int KvStore::storeData(std::string& key, const void* pData, size_t size)
 {
     int error = kv_set(key.c_str(), pData, size, 0);
-    if(error)
+    if(0 != error)
     {
-        std::cout << "Parameter '" << key << "' store error " << MBED_GET_ERROR_CODE(error) << std::endl;
+        std::cout << "Parameter '" << key << "' store error " << MBED_GET_ERROR_CODE(error) << std::endl;       //NOLINT(hicpp-signed-bitwise)
     }
     return error;
 }
