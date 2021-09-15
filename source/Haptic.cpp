@@ -222,16 +222,17 @@ float HapticDevice::setTorque()
     //apply the requested torque to motor
     float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
     static AnalogIn dPot(PA_6); float KD = 90e2F * dPot.read(); //XXX test 
-    float dPosition = filteredPosition - lastFilteredPosition;
-    auto deltaPhaseDamp = limit<float>((torque > 0 ? (QuarterCycle + KD * dPosition) : -1 * (QuarterCycle + KD * dPosition)), -QuarterCycle, QuarterCycle);
+    float dPosition = lastFilteredPosition - filteredPosition;  //positive for CCW movement
+    float phaseShift = KD * dPosition;
+    auto deltaPhaseDamp = limit<float>(deltaPhase + phaseShift, -QuarterCycle, QuarterCycle);
     float vectorMagnitude = fabsf(torque);
     pMotor->setFieldVector(currentPhase + deltaPhaseDamp, vectorMagnitude);
 
     //XXX test
     g_value[2] = error;
     g_value[3] = deltaPhase;
-    g_value[4] = deltaPhaseDamp;
-    g_value[5] = 0;
+    g_value[4] = phaseShift;
+    g_value[5] = deltaPhaseDamp;
     g_value[6] = 0;
     g_value[7] = pTerm;
     g_value[9] = targetPosition;
