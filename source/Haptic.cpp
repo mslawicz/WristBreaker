@@ -215,7 +215,7 @@ float HapticDevice::setTorque()
     lastPosition = currentPosition;
     
     //calculate requested torque with limit
-    torque = limit<float>(pTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
+    torque = limit<float>(pTerm + iTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
 
     //apply the requested torque to motor
     float vectorMagnitude = fabsf(torque);
@@ -230,6 +230,7 @@ float HapticDevice::setTorque()
         std::cout << "  tG=" << hapticData.torqueGain;
         std::cout << "  TI=" << TI;
         std::cout << "  TD=" << TD;
+        std::cout << "  dThr=" << dThreshold;
         std::cout << "  T=" << torque;
         std::cout << "  cPh=" << currentPhase;
         std::cout << "   \r" << std::flush;
