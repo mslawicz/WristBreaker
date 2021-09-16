@@ -26,7 +26,7 @@ HapticDevice::HapticDevice
     float operationRange,    // the range of normal operation from reference position
     float TI,                //integral time (see classic PID formula; TI=1/Ti)
     float TD,                //derivative time (see classic PID formula)
-    float dTermThreshold     //threshold for derivative term
+    float dThreshold     //threshold for derivative term
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
@@ -38,7 +38,7 @@ HapticDevice::HapticDevice
     derivativeFilter(5), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
     TD(TD),
-    dTermThreshold(dTermThreshold),
+    dThreshold(dThreshold),
     hapticData{HapticMode::Spring, 0}
 {
     pMotor->setEnablePin(1);
@@ -205,16 +205,17 @@ float HapticDevice::setTorque()
     float pTerm = KP * error;
 
     //calculate integral term of torque
-    //static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
+    static AnalogIn TIpot(PA_7); TI = 0.03F * TIpot.read(); //XXX test 
     iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
 
     //calculate derivative term of torque
     float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
-    float dTerm = KP * threshold(TD * deltaPosition, -dTermThreshold, dTermThreshold);
+    static AnalogIn dPot(PA_6); float TD = 10.0F * dPot.read(); //XXX test 
+    float dTerm = KP * threshold(TD * deltaPosition, -dThreshold, dThreshold);
     lastPosition = currentPosition;
     
     //calculate requested torque with limit
-    torque = limit<float>(pTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
+    torque = limit<float>(pTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
 
     //apply the requested torque to motor
     float vectorMagnitude = fabsf(torque);
@@ -239,14 +240,13 @@ float HapticDevice::setTorque()
     g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
     g_value[3] = targetPosition;
-    g_value[4] = 0;
+    g_value[4] = deltaPosition;
     g_value[5] = 0;
     g_value[6] = pTerm;
     g_value[7] = iTerm;
     g_value[8] = dTerm;
     g_value[9] = torque;
 
-    //static AnalogIn dPot(PA_6); float KD = 10.0F * dPot.read(); //XXX test 
-    //static AnalogIn kDpot(PA_7); dTermThreshold = 0.03F * kDpot.read(); //XXX test 
+    //static AnalogIn kDpot(PA_7); dThreshold = 0.03F * kDpot.read(); //XXX test 
     return hapticData.targetPosition - filteredPosition;
 }

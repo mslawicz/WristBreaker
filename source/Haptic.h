@@ -45,7 +45,7 @@ public:
         float operationRange,    // the range of normal operation from reference position
         float TI,                //integral time (see classic PID formula; TI=1/Ti)
         float TD,                //derivative time (see classic PID formula)
-        float dTermThreshold     //threshold for derivative term
+        float dThreshold         //threshold for derivative term
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -87,7 +87,7 @@ private:
     MedianFilter derivativeFilter;  //filters position derivative
     float TI;        //integral time (multiplied by torque gain for integral gain)
     float TD;        //derivative time (multiplied by torque gain for derivative gain)
-    float dTermThreshold;   //threshold for derivative term
+    float dThreshold;       //threshold for derivative term
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic dynamic parameters of this device
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
@@ -99,5 +99,5 @@ private:
 
 /*
 recommended motor setup:
-57BLY12530 Spring: torqueGain = 0.9 (soft) ... 1.6 (hard); TD=5.6; dTermThreshold=0.03
+57BLY12530 Spring: torqueGain = 0.9 (soft) ... 1.6 (hard); TD=5.6; dThreshold=0.03
 */
