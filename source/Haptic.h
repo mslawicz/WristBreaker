@@ -25,7 +25,7 @@ enum class HapticMode
 struct HapticData       //NOLINT(altera-struct-pack-align)
 {
     HapticMode hapticMode;      // haptic mode for haptic action phase
-    float goalPosition;         // goal position of zero torque (relative to the reference position)
+    float targetPosition;       // the requested target position of zero torque (relative to the reference position)
     float torqueGain;           // gain for torque proportional term
     float torqueLimit;          // current maximum torque value
     float deltaPosLimit;        // value of allowed position change; off when ==0
@@ -92,6 +92,7 @@ private:
     HapticData hapticData;      //haptic dynamic parameters of this device
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
     float iTerm{0};         //integral term of torque
+    float integralLimit{0.06F};      //limit of integral term
 };
 
 #endif /* HAPTIC_H_ */

@@ -158,31 +158,8 @@ void HapticDevice::handler()
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    static AnalogIn kPpot(PA_5); hapticData.torqueGain = 3.0F * kPpot.read(); //XXX test
-                    //static AnalogIn kDpot(PA_7); float DerivativeThreshold = 0.02F * kDpot.read(); //XXX test 3.3          
-
                     hapticData.torqueLimit = 1.0F;
                     setTorque();
-
-                    //XXX test
-                    static int cnt = 0;
-                    if(cnt++ %200 == 0) // NOLINT
-                    {
-                        std::cout << "pos=" << filteredPosition;
-                        std::cout << "  pot=" << hapticData.auxData;
-                        std::cout << "  tG=" << hapticData.torqueGain;
-                        std::cout << "  dG=" << hapticData.torqueGain * TD;
-                        std::cout << "  TI=" << TI;
-                        std::cout << "  T=" << torque;
-                        std::cout << "  cPh=" << cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
-                        std::cout << "   \r" << std::flush;
-                    }
-
-                    //XXX set global variables
-                    g_value[0] = filteredPosition;
-                    g_value[1] = hapticData.goalPosition;
-                    g_value[8] = torque;
-
                     break;
                 }
 
@@ -205,37 +182,71 @@ void HapticDevice::handler()
 //returns current error
 float HapticDevice::setTorque()
 {
+    if(hapticData.deltaPosLimit == 0)
+    {
+        //target position rate of change limit off
+        targetPosition = hapticData.targetPosition;
+    }
+    else
+    {
+        //limit the rate of change of target position
+        targetPosition += limit<float>(hapticData.targetPosition - targetPosition, -hapticData.deltaPosLimit, hapticData.deltaPosLimit);
+    }
+
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
 
-    //calculate error from the goal position; positive error for CCW deflection
-    targetPosition = hapticData.goalPosition;
+    //calculate error from the interim target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
 
     //calculate proportional term of torque 
+    static AnalogIn kPpot(PA_5); hapticData.torqueGain = 3.0F * kPpot.read(); //XXX test
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
 
+    //calculate integral term of torque
+    //static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
+    iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
+
+    //calculate derivative term of torque
+    float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
+    float dTerm = KP * threshold(TD * deltaPosition, -dTermThreshold, dTermThreshold);
+    lastPosition = currentPosition;
+    
     //calculate requested torque with limit
     torque = limit<float>(pTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
 
-    //calculate requested motor electric phase
-    auto phaseShift = limit<float>(torque > 0 ? QuarterCycle : -QuarterCycle, -QuarterCycle, QuarterCycle);   //total phase shift from current phase
-
     //apply the requested torque to motor
     float vectorMagnitude = fabsf(torque);
-    pMotor->setFieldVector(currentPhase + phaseShift, vectorMagnitude);
+    pMotor->setFieldVector(currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle), vectorMagnitude);
 
     //XXX test
+    static int cnt = 0;
+    if(cnt++ %200 == 0) // NOLINT
+    {
+        std::cout << "pos=" << filteredPosition;
+        std::cout << "  pot=" << hapticData.auxData;
+        std::cout << "  tG=" << hapticData.torqueGain;
+        std::cout << "  TI=" << TI;
+        std::cout << "  TD=" << TD;
+        std::cout << "  T=" << torque;
+        std::cout << "  cPh=" << currentPhase;
+        std::cout << "   \r" << std::flush;
+    }
+
+    //XXX set global variables
+    g_value[0] = filteredPosition;
+    g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
-    g_value[3] = currentPhase;
+    g_value[3] = targetPosition;
     g_value[4] = 0;
     g_value[5] = 0;
-    g_value[6] = 0;
-    g_value[7] = pTerm;
-    g_value[9] = targetPosition;
+    g_value[6] = pTerm;
+    g_value[7] = iTerm;
+    g_value[8] = dTerm;
+    g_value[9] = torque;
 
     //static AnalogIn dPot(PA_6); float KD = 10.0F * dPot.read(); //XXX test 
     //static AnalogIn kDpot(PA_7); dTermThreshold = 0.03F * kDpot.read(); //XXX test 
-    return hapticData.goalPosition - filteredPosition;
+    return hapticData.targetPosition - filteredPosition;
 }
