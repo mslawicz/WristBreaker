@@ -104,13 +104,13 @@ void Commander::handler()
     rollActuatorData.auxData = pot;
 
     //XXX test of sinusoidal movement
-    //float zeroTest = 0.1F * sin(handlerCallCounter * 0.005F);
-    //rollActuatorData.targetPosition = zeroTest;
+    const float Ampl = 0.15F * pot;
+    float zeroTest = Ampl * sin(handlerCallCounter * 0.001F);
+    rollActuatorData.targetPosition = zeroTest;
     //static float fpos = 0.0F;
     //filterEMA<float>(fpos, 0.1F * (pot - 0.5F), 0.95F);
-    const float Ampl = 0.1F * pot;
-    float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
-    rollActuatorData.targetPosition = fpos;
+    //float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
+    //rollActuatorData.targetPosition = fpos;
 
     rollActuator.handler();
 

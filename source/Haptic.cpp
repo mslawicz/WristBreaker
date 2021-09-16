@@ -205,7 +205,7 @@ float HapticDevice::setTorque()
     float pTerm = KP * error;
 
     //calculate integral term of torque
-    static AnalogIn TIpot(PA_7); TI = 0.03F * TIpot.read(); //XXX test 
+    static AnalogIn TIpot(PA_7); TI = 0.2F * TIpot.read(); //XXX test 
     iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
 
     //calculate derivative term of torque
