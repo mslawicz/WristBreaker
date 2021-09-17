@@ -200,7 +200,7 @@ float HapticDevice::setTorque()
     float error = targetPosition - filteredPosition;
 
     //calculate proportional term of torque 
-    static AnalogIn kPpot(PA_5); hapticData.torqueGain = 3.0F * kPpot.read(); //XXX test
+    static AnalogIn kPpot(PA_5); hapticData.torqueGain = 2.0F * kPpot.read(); //XXX test
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
 
@@ -208,21 +208,20 @@ float HapticDevice::setTorque()
     //static AnalogIn TIpot(PA_7); TI = 0.2F * TIpot.read(); //XXX test 
     iTerm = 0; //limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
 
-    //calculate derivative term of torque
+    //calculate damping phase shift from position derivative
     float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
     static AnalogIn dPot(PA_6); float TD = 1e4F * dPot.read(); //XXX test 
-    float dampPhase = TD * deltaPosition;
-    float dTerm = 0; //KP * threshold(TD * deltaPosition, -dThreshold, dThreshold);
+    static AnalogIn dpTpot(PA_7); dThreshold = 0.01F * dpTpot.read(); //XXX test 
+    float dampPhase = TD * threshold<float>(deltaPosition, -dThreshold, dThreshold);
     lastPosition = currentPosition;
     
     //calculate requested torque with limit
-    torque = limit<float>(pTerm + iTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
-
-    float torquePhase = torque > 0 ? QuarterCycle : -QuarterCycle;
-    auto phaseShift = limit<float>(torquePhase + dampPhase, -QuarterCycle, QuarterCycle);
+    torque = limit<float>(pTerm + iTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
+    //calculate desired phase shift for torque and damping
+    auto phaseShift = limit<float>((torque > 0 ? QuarterCycle : -QuarterCycle) + dampPhase, -QuarterCycle, QuarterCycle);
 
     //apply the requested torque to motor
-    float vectorMagnitude = fabsf(torque);
+    float vectorMagnitude = sqrt(fabsf(torque));
     pMotor->setFieldVector(currentPhase + phaseShift, vectorMagnitude);
 
     //XXX test
@@ -249,7 +248,7 @@ float HapticDevice::setTorque()
     g_value[5] = phaseShift;
     g_value[6] = pTerm;
     g_value[7] = iTerm;
-    g_value[8] = dTerm;
+    g_value[8] = vectorMagnitude;
     g_value[9] = torque;
 
     //static AnalogIn kDpot(PA_7); dThreshold = 0.03F * kDpot.read(); //XXX test 
