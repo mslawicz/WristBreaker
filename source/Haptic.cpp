@@ -35,7 +35,7 @@ HapticDevice::HapticDevice
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    derivativeFilter(5), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    derivativeFilter(9), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
     TD(TD),
     dThreshold(dThreshold),
@@ -221,7 +221,7 @@ float HapticDevice::setTorque()
     auto phaseShift = limit<float>((torque > 0 ? QuarterCycle : -QuarterCycle) + dampPhase, -QuarterCycle, QuarterCycle);
 
     //apply the requested torque to motor
-    float vectorMagnitude = sqrt(fabsf(torque));
+    float vectorMagnitude = fabsf(torque);
     pMotor->setFieldVector(currentPhase + phaseShift, vectorMagnitude);
 
     //XXX test
