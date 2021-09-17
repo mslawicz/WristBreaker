@@ -178,7 +178,7 @@ void HapticDevice::handler()
     }
 }
 
-//set torque proportional to goal position error
+//set torque proportional to target position error
 //returns current error
 float HapticDevice::setTorque()
 {
@@ -205,21 +205,25 @@ float HapticDevice::setTorque()
     float pTerm = KP * error;
 
     //calculate integral term of torque
-    static AnalogIn TIpot(PA_7); TI = 0.2F * TIpot.read(); //XXX test 
-    iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
+    //static AnalogIn TIpot(PA_7); TI = 0.2F * TIpot.read(); //XXX test 
+    iTerm = 0; //limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
 
     //calculate derivative term of torque
     float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
-    static AnalogIn dPot(PA_6); float TD = 10.0F * dPot.read(); //XXX test 
-    float dTerm = KP * threshold(TD * deltaPosition, -dThreshold, dThreshold);
+    static AnalogIn dPot(PA_6); float TD = 1e4F * dPot.read(); //XXX test 
+    float dampPhase = TD * deltaPosition;
+    float dTerm = 0; //KP * threshold(TD * deltaPosition, -dThreshold, dThreshold);
     lastPosition = currentPosition;
     
     //calculate requested torque with limit
     torque = limit<float>(pTerm + iTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
 
+    float torquePhase = torque > 0 ? QuarterCycle : -QuarterCycle;
+    auto phaseShift = limit<float>(torquePhase + dampPhase, -QuarterCycle, QuarterCycle);
+
     //apply the requested torque to motor
     float vectorMagnitude = fabsf(torque);
-    pMotor->setFieldVector(currentPhase + (torque > 0 ? QuarterCycle : -QuarterCycle), vectorMagnitude);
+    pMotor->setFieldVector(currentPhase + phaseShift, vectorMagnitude);
 
     //XXX test
     static int cnt = 0;
@@ -228,9 +232,9 @@ float HapticDevice::setTorque()
         std::cout << "pos=" << filteredPosition;
         std::cout << "  pot=" << hapticData.auxData;
         std::cout << "  tG=" << hapticData.torqueGain;
-        std::cout << "  TI=" << TI;
+        //std::cout << "  TI=" << TI;
         std::cout << "  TD=" << TD;
-        std::cout << "  dThr=" << dThreshold;
+        //std::cout << "  dThr=" << dThreshold;
         std::cout << "  T=" << torque;
         std::cout << "  cPh=" << currentPhase;
         std::cout << "   \r" << std::flush;
@@ -241,8 +245,8 @@ float HapticDevice::setTorque()
     g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
     g_value[3] = targetPosition;
-    g_value[4] = deltaPosition;
-    g_value[5] = 0;
+    g_value[4] = dampPhase;
+    g_value[5] = phaseShift;
     g_value[6] = pTerm;
     g_value[7] = iTerm;
     g_value[8] = dTerm;
