@@ -135,8 +135,8 @@ void HapticDevice::handler()
             pMotor->setFieldVector(currentPhase, torque);
 
             //calculate mean position deviation to check if position is reached and stable
-            const float PosDevFilterStrength = 0.985F;
-            filterEMA<float>(positionDeviation, fabsf(filteredPosition), PosDevFilterStrength);
+            const float Alpha = 0.015F;
+            filterEMA<float>(positionDeviation, fabsf(filteredPosition), Alpha);
             const float PosDevThreshold = 0.01F;    //threshold for stable position
             //check if reference position is reached and stable 
             if(positionDeviation < PosDevThreshold)
@@ -209,10 +209,9 @@ float HapticDevice::setTorque()
     iTerm = 0; //limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
 
     //calculate derivative term of torque
-    //float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
     static float deltaPosition{0};
-    static AnalogIn dFpot(PA_6); float FilterStrength = dFpot.read(); //XXX test 
-    filterEMA<float>(deltaPosition, lastPosition - currentPosition, FilterStrength);
+    static AnalogIn dFpot(PA_6); float dAlpha = dFpot.read(); //XXX test 
+    filterEMA<float>(deltaPosition, lastPosition - currentPosition, dAlpha);
     static AnalogIn dPot(PA_7); float TD = 10.0F * dPot.read(); //XXX test 
     float dTerm = KP * threshold(TD * deltaPosition, -dThreshold, dThreshold);
     lastPosition = currentPosition;
@@ -233,7 +232,7 @@ float HapticDevice::setTorque()
         std::cout << "  tG=" << hapticData.torqueGain;
         std::cout << "  TI=" << TI;
         std::cout << "  TD=" << TD;
-        std::cout << "  Dfltr=" << FilterStrength;
+        std::cout << "  Dfltr=" << dAlpha;
         std::cout << "  dThr=" << dThreshold;
         std::cout << "  T=" << torque;
         std::cout << "  cPh=" << currentPhase;

@@ -12,11 +12,11 @@
 
 //EMA filter
 // filteredValue - variable to be filtered
-// newValue - new input value; its impact is proportional to (1-strength)
-// strength - filter strength: 0.0f no filtering, 1.0f for no input value impact
-template<typename Type> void filterEMA(Type& filteredValue, Type newValue, float strength)
+// newValue - new input value; its impact is proportional to alpha constant
+// alpha - smoothing factor: 0.0f for no input value impact; 1.0f no filtering 
+template<typename Type> void filterEMA(Type& filteredValue, Type newValue, float alpha)
 {
-    filteredValue = strength * filteredValue + (1.0F - strength) * newValue;
+    filteredValue = (1.0F - alpha) * filteredValue + alpha * newValue;
 }
 
 class MedianFilter
