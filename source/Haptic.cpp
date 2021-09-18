@@ -193,7 +193,7 @@ float HapticDevice::setTorque()
         targetPosition += limit<float>(hapticData.targetPosition - targetPosition, -hapticData.deltaPosLimit, hapticData.deltaPosLimit);
     }
 
-    //calculate the current motor electric phase
+    //calculate the current motor electric phase from shaft position
     currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
 
     //calculate error from the interim target position; positive error for CCW deflection
@@ -204,25 +204,22 @@ float HapticDevice::setTorque()
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
 
-    //calculate integral term of torque
-    //static AnalogIn TIpot(PA_7); TI = 0.2F * TIpot.read(); //XXX test 
-    iTerm = 0; //limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
-
     //calculate damping phase shift from position derivative
-    float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
-    static AnalogIn dPot(PA_6); float TD = 1e4F * dPot.read(); //XXX test 
-    static AnalogIn dpTpot(PA_7); dThreshold = 0.01F * dpTpot.read(); //XXX test 
-    float dampPhase = TD * threshold<float>(deltaPosition, -dThreshold, dThreshold);
-    lastPosition = currentPosition;
+    //float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
+    //lastPosition = currentPosition;
     
     //calculate requested torque with limit
-    torque = limit<float>(pTerm + iTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
-    //calculate desired phase shift for torque and damping
-    auto phaseShift = limit<float>((torque > 0 ? QuarterCycle : -QuarterCycle) + dampPhase, -QuarterCycle, QuarterCycle);
+    torque = limit<float>(pTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
+
+    //calculate motor phase to be applied in next step
+    static float targetPhase{currentPhase};
+    const float PhaseStep = 2.0F;   //maximum change of phase at a time
+    targetPhase += limit<float>(currentPhase - targetPhase, -PhaseStep, PhaseStep);
+    float newPhase = targetPhase + (torque > 0 ? QuarterCycle : -QuarterCycle);
 
     //apply the requested torque to motor
     float vectorMagnitude = fabsf(torque);
-    pMotor->setFieldVector(currentPhase + phaseShift, vectorMagnitude);
+    pMotor->setFieldVector(newPhase, vectorMagnitude);
 
     //XXX test
     static int cnt = 0;
@@ -244,13 +241,15 @@ float HapticDevice::setTorque()
     g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
     g_value[3] = targetPosition;
-    g_value[4] = dampPhase;
-    g_value[5] = phaseShift;
+    g_value[4] = currentPhase - referencePhase;
+    g_value[5] = targetPhase - referencePhase;
     g_value[6] = pTerm;
     g_value[7] = iTerm;
-    g_value[8] = vectorMagnitude;
+    g_value[8] = 0;
     g_value[9] = torque;
 
     //static AnalogIn kDpot(PA_7); dThreshold = 0.03F * kDpot.read(); //XXX test 
+    //static AnalogIn dPot(PA_6); float TD = 1e4F * dPot.read(); //XXX test 
+    //static AnalogIn dpTpot(PA_7); dThreshold = 0.01F * dpTpot.read(); //XXX test 
     return hapticData.targetPosition - filteredPosition;
 }
