@@ -45,7 +45,7 @@ public:
         float operationRange,    // the range of normal operation from reference position
         float TI,                //integral time (see classic PID formula; TI=1/Ti)
         float TD,                //derivative time (see classic PID formula)
-        float dThreshold         //threshold for derivative term
+        float dThreshold         //threshold for delta position (D term calculation)
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
