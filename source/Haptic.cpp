@@ -205,11 +205,14 @@ float HapticDevice::setTorque()
     float pTerm = KP * error;
 
     //calculate integral term of torque
-    static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
-    iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
+    //static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
+    iTerm = 0; //limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
 
     //calculate derivative term of torque
-    float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
+    //float deltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
+    static float deltaPosition{0};
+    static AnalogIn dFpot(PA_6); float FilterStrength = dFpot.read(); //XXX test 
+    filterEMA<float>(deltaPosition, lastPosition - currentPosition, FilterStrength);
     static AnalogIn dPot(PA_7); float TD = 10.0F * dPot.read(); //XXX test 
     float dTerm = KP * threshold(TD * deltaPosition, -dThreshold, dThreshold);
     lastPosition = currentPosition;
@@ -230,6 +233,7 @@ float HapticDevice::setTorque()
         std::cout << "  tG=" << hapticData.torqueGain;
         std::cout << "  TI=" << TI;
         std::cout << "  TD=" << TD;
+        std::cout << "  Dfltr=" << FilterStrength;
         std::cout << "  dThr=" << dThreshold;
         std::cout << "  T=" << torque;
         std::cout << "  cPh=" << currentPhase;
@@ -248,6 +252,5 @@ float HapticDevice::setTorque()
     g_value[8] = dTerm;
     g_value[9] = torque;
 
-    //static AnalogIn kDpot(PA_7); dThreshold = 0.03F * kDpot.read(); //XXX test 
     return hapticData.targetPosition - filteredPosition;
 }
