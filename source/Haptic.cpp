@@ -196,23 +196,26 @@ float HapticDevice::setTorque()
     //calculate the current motor electric phase
     currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
 
-    //calculate error from the goal position; positive error for CCW deflection
+    //calculate error from the target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
 
     //calculate proportional term of torque 
-    static AnalogIn KPpot(PA_5); hapticData.torqueGain = 2.0F * KPpot.read(); //XXX test
+    static AnalogIn KPpot(PA_5); hapticData.torqueGain = 3.0F * KPpot.read(); //XXX test
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
 
     //calculate integral term of torque
-    static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
+    //static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
     iTerm = 0; //limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
 
     //calculate derivative term of torque
     float deltaPosition = lastPosition - currentPosition;
     float filteredDeltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition);
+    static AnalogIn dTpot(PA_6); dThreshold = 0.01F * dTpot.read(); //XXX test 
+    auto cutDeltaPosition = threshold<float>(filteredDeltaPosition, -dThreshold, dThreshold);
     static AnalogIn TDpot(PA_7); TD = 10.0F * TDpot.read(); //XXX test
-    float dTerm = KP * threshold(TD * filteredDeltaPosition, -dThreshold, dThreshold);
+    float dTerm = KP * TD * cutDeltaPosition;
+    lastPosition = currentPosition;
 
     //calculate requested torque with limit
     torque = limit<float>(pTerm + iTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
@@ -221,8 +224,6 @@ float HapticDevice::setTorque()
     float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
     float vectorMagnitude = fabsf(torque);
     pMotor->setFieldVector(currentPhase + deltaPhase, vectorMagnitude);
-
-    lastPosition = currentPosition;
 
     //XXX test
     static int cnt = 0;
