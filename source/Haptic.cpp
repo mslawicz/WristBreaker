@@ -200,7 +200,7 @@ float HapticDevice::setTorque()
     float error = targetPosition - filteredPosition;
 
     //calculate proportional term of torque 
-    static AnalogIn KPpot(PA_5); hapticData.torqueGain = 3.0F * KPpot.read(); //XXX test
+    static AnalogIn KPpot(PA_5); hapticData.torqueGain = 2.5F * KPpot.read(); //XXX test
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
 
