@@ -141,7 +141,7 @@ void HapticDevice::handler()
             //check if reference position is reached and stable 
             if(positionDeviation < PosDevThreshold)
             {
-                referencePhase = cropAngle<float>(currentPhase);
+                referencePhase = cropAngle(currentPhase);
                 std::cout << name << " reference phase measured " << referencePhase << std::endl;
                 KvStore::storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
                 state = HapticState::HapticAction;
@@ -194,7 +194,7 @@ float HapticDevice::setTorque()
     }
 
     //calculate the current motor electric phase
-    currentPhase = cropAngle<float>(referencePhase + FullCycle * filteredPosition / positionPeriod);
+    currentPhase = cropAngle(referencePhase + FullCycle * filteredPosition / positionPeriod);
 
     //calculate error from the target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
