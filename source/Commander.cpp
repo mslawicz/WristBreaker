@@ -22,9 +22,9 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.2F,                   //NOLINT    maximum torque in calibration phase
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
-        0.0F,                   //NOLINT    integral time (see classic PID formula; TI=1/Ti)
-        5.6F,                   //NOLINT    derivative time (see classic PID formula)
-        0.015F                  //NOLINT    threshold for delta position (D term calculation)
+        0.03F,                  //NOLINT    integral time (see classic PID formula; TI=1/Ti)
+        3.6F,                   //NOLINT    derivative time (see classic PID formula)
+        0.004F                  //NOLINT    threshold for delta position (D term calculation)
     ),
     testPot(PC_5),   //XXX test
     systemPushbutton(BUTTON1)

@@ -14,7 +14,7 @@
 #define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
 #define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
 
-//crops float angle to the range 0...360 degrees
+//crops float type angle to the range 0...360 degrees
 float cropAngle(float angle);
 
 template<typename iType, typename oType> oType scale(iType iMin, iType iMax, iType input, oType oMin, oType oMax, bool limit = true)
