@@ -202,19 +202,16 @@ float HapticDevice::setTorque()
     float error = targetPosition - filteredPosition;
 
     //calculate proportional term of torque 
-    static AnalogIn KPpot(PA_5); hapticData.torqueGain = 2.5F * KPpot.read(); //XXX test
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
 
     //calculate integral term of torque
-    static AnalogIn TIpot(PA_6); TI = 0.03F * TIpot.read(); //XXX test 
     iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
 
     //calculate derivative term of torque
     float deltaPosition = lastPosition - currentPosition;
     float filteredDeltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition); 
     auto cutDeltaPosition = threshold<float>(filteredDeltaPosition, -dThreshold, dThreshold);
-    static AnalogIn TDpot(PA_7); TD = 10.0F * TDpot.read(); //XXX test
     float dTerm = KP * TD * cutDeltaPosition;
     lastPosition = currentPosition;
 
