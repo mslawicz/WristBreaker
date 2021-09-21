@@ -25,6 +25,7 @@ HapticDevice::HapticDevice
     float maxCalTorque,      // maximum torque value in calibration phase
     float operationRange,    // the range of normal operation from reference position
     float TI,                //integral time (see classic PID formula; TI=1/Ti)
+    float integralLimit,     //limit of integral term
     float TD,                //derivative time (see classic PID formula)
     float dThreshold     //threshold for derivative term
 ) :
@@ -37,6 +38,7 @@ HapticDevice::HapticDevice
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     derivativeFilter(5), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
+    integralLimit(integralLimit),
     TD(TD),
     dThreshold(dThreshold),
     hapticData{HapticMode::Spring, 0}

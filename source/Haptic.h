@@ -44,6 +44,7 @@ public:
         float maxCalTorque,      // maximum torque value in calibration phase
         float operationRange,    // the range of normal operation from reference position
         float TI,                //integral time (see classic PID formula; TI=1/Ti)
+        float integralLimit,     //limit of integral term
         float TD,                //derivative time (see classic PID formula)
         float dThreshold         //threshold for delta position (D term calculation)
     );
@@ -92,7 +93,7 @@ private:
     HapticData hapticData;      //haptic dynamic parameters of this device
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
     float iTerm{0};         //integral term of torque
-    float integralLimit{0.1F};      //limit of integral term
+    float integralLimit;      //limit of integral term
 };
 
 #endif /* HAPTIC_H_ */
