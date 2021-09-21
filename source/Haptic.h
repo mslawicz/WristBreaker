@@ -12,8 +12,10 @@
 #include "BLDC.h"
 #include "Encoder.h"
 #include "Filter.h"
+#include "Console.h"
 #include <mbed.h>
 #include <string>
+#include <vector>
 
 
 enum class HapticMode
@@ -58,6 +60,8 @@ public:
     float getCurrentPosition() const { return filteredPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }
     HapticData& getHapticData() { return hapticData; }
+    static void listHapticDevices(const CommandVector& cv);        //list all registered haptic devices
+    std::string getName() const { return name; }
 private:
     float setTorque();
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
@@ -94,6 +98,7 @@ private:
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
     float iTerm{0};         //integral term of torque
     float integralLimit;      //limit of integral term
+    static std::vector<HapticDevice*> hapticDevices;        //NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 };
 
 #endif /* HAPTIC_H_ */

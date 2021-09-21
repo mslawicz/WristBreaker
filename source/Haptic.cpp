@@ -16,6 +16,8 @@
 //global array for STM Studio tests
 float g_value[10];  //XXX test
 
+std::vector<HapticDevice*> HapticDevice::hapticDevices;     //NOLINT(fuchsia-statically-constructed-objects,cppcoreguidelines-avoid-non-const-global-variables)
+
 HapticDevice::HapticDevice
 (
     MotorBLDC* pMotor,      // pointer to BLDC motor object
@@ -45,6 +47,7 @@ HapticDevice::HapticDevice
 {
     pMotor->setEnablePin(1);
     positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());     //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    hapticDevices.push_back(this);
 }
 
 HapticDevice::~HapticDevice()
@@ -251,4 +254,22 @@ float HapticDevice::setTorque()
     g_value[9] = torque;
 
     return hapticData.targetPosition - filteredPosition;
+}
+
+//list all registered haptic devices
+void HapticDevice::listHapticDevices(const CommandVector& /*cv*/)
+{
+    if(hapticDevices.empty())
+    {
+        std::cout << "There are no registered haptic devices" << std::endl;
+    }
+    else
+    {
+        for(size_t index=0; index < hapticDevices.size(); index++)
+        {
+            std::cout << "device " << index << ": ";
+            std::cout << hapticDevices[index]->getName();
+            std::cout << std::endl;
+        }
+    }
 }
