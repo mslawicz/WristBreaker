@@ -38,6 +38,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
     Console::getInstance().registerCommand("rr", "display latest received report data from PC", callback(this, &Commander::displayIncomingReport));
     Console::getInstance().registerCommand("pec", "program the encoder AS5600 chip", callback(&AS5600::program));
     Console::getInstance().registerCommand("lhd", "list all registered haptic devices", callback(&HapticDevice::listHapticDevices));
+    Console::getInstance().registerCommand("chd", "calibrate haptic device <index>", callback(&HapticDevice::calibrationRequest));
     eventQueue.call_every(HandlerPeriod, this, &Commander::handler);
 }
 

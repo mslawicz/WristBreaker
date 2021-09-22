@@ -56,13 +56,14 @@ public:
     void operator=(HapticDevice const&) = delete;
     HapticDevice(HapticDevice&&) = delete;
     void operator=(HapticDevice&&) = delete;
-    void calibrationRequest(const CommandVector&);
+    static void calibrationRequest(const CommandVector& cv);        //start calibration
     void handler();
     float getCurrentPosition() const { return filteredPosition; }     //returns current position of the device relative to reference position
     float getOperationRange() const { return operationRange; }
     HapticData& getHapticData() { return hapticData; }
     static void listHapticDevices(const CommandVector& cv);        //list all registered haptic devices
     std::string getName() const { return name; }
+    void startCalibration() { state = HapticState::StartCalibration; }
 private:
     float setTorque();
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
@@ -81,6 +82,7 @@ private:
     enum class HapticState
     {
         Start,
+        StartCalibration,
         Move2Ref,
         HapticAction
     };

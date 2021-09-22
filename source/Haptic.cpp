@@ -57,11 +57,23 @@ HapticDevice::~HapticDevice()
 }
 
 // request calibration process
-void HapticDevice::calibrationRequest(const CommandVector& /*cv*/)
+void HapticDevice::calibrationRequest(const CommandVector& cv)
 {
-    if(HapticState::HapticAction == state)
+    if(cv.size() >= 2)
     {
-        //state = HapticState::StartCalibration;
+        uint8_t deviceIndex = stoi(cv[1]) - 1;
+        if(deviceIndex < hapticDevices.size())
+        {
+            std::cout << "calibrating haptic device " << static_cast<int>(deviceIndex) << std::endl;
+        }
+        else
+        {
+            std::cout << "error: haptic device of index " << cv[1] << " not found" << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << "error: missing device index" << std::endl;
     }
 }
 
@@ -111,10 +123,17 @@ void HapticDevice::handler()
             {
                 //parameter not restored
                 std::cout << name << " reference phase not restored; calibrating..." << std::endl;
-                state = HapticState::Move2Ref;
+                state = HapticState::StartCalibration;
             }
 
             positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
+            break;
+        }
+
+        // start calibration process of this device
+        case HapticState::StartCalibration:
+        {
+            state = HapticState::Move2Ref;
             break;
         }
 
@@ -274,7 +293,7 @@ void HapticDevice::listHapticDevices(const CommandVector& /*cv*/)
     {
         for(size_t index=0; index < hapticDevices.size(); index++)
         {
-            std::cout << "device " << index << ": ";
+            std::cout << "device " << index+1 << ": ";
             std::cout << hapticDevices[index]->getName();
             std::cout << std::endl;
         }
