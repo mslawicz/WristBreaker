@@ -209,7 +209,14 @@ float HapticDevice::setTorque()
     float pTerm = KP * error;
 
     //calculate integral term of torque
-    iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
+    if(hapticData.useIntegral)
+    {
+        iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
+    }
+    else
+    {
+        iTerm = 0;
+    }
 
     //calculate derivative term of torque
     float deltaPosition = lastPosition - currentPosition;

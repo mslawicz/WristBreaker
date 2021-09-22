@@ -27,6 +27,7 @@ enum class HapticMode
 struct HapticData       //NOLINT(altera-struct-pack-align)
 {
     HapticMode hapticMode;      // haptic mode for haptic action phase
+    bool useIntegral;           // wether integral term must be used in torque calculations
     float targetPosition;       // the requested target position of zero torque (relative to the reference position)
     float torqueGain;           // gain for torque proportional term
     float torqueLimit;          // current maximum torque value

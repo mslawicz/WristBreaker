@@ -100,6 +100,7 @@ void Commander::handler()
     float pot = testPot.read();
     HapticData& rollActuatorData = rollActuator.getHapticData();
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
+    rollActuatorData.useIntegral = (1 == systemPushbutton.read());
     rollActuatorData.targetPosition = 0;   //zeroPositionX,   //zero torque position from simulator
     static AnalogIn KPpot(PA_5); rollActuatorData.torqueGain = 2.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     //rollActuatorData.torqueGain = 1.22F;    //NOLINT
@@ -137,7 +138,7 @@ void Commander::handler()
 
     if(systemPushbutton.read() == 1)
     {
-        rollActuator.calibrationRequest(CommandVector{});
+        //rollActuator.calibrationRequest(CommandVector{});
     }
 
     //XXX test
