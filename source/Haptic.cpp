@@ -12,6 +12,7 @@
 #include <iostream>
 #include <ostream>
 #include <utility>
+#include <cctype>
 
 //global array for STM Studio tests
 float g_value[10];  //XXX test
@@ -61,15 +62,25 @@ void HapticDevice::calibrationRequest(const CommandVector& cv)
 {
     if(cv.size() >= 2)
     {
-        uint8_t deviceIndex = stoi(cv[1]) - 1;
-        if(deviceIndex < hapticDevices.size())
+        if(0 != isdigit(cv[1][0]))
         {
-            std::cout << "calibrating haptic device " << static_cast<int>(deviceIndex) << std::endl;
+            //the first character of the second argument is a digit
+            int deviceIndex = stoi(cv[1]) - 1;
+            if(deviceIndex < hapticDevices.size())
+            {
+                std::cout << "calibrating haptic device " << deviceIndex + 1 << std::endl;
+                hapticDevices[deviceIndex]->startCalibration();
+            }
+            else
+            {
+                std::cout << "error: haptic device of index " << cv[1] << " not found" << std::endl;
+            }
         }
         else
         {
-            std::cout << "error: haptic device of index " << cv[1] << " not found" << std::endl;
+            std::cout << "error: invalid haptic device index " << cv[1] << std::endl;
         }
+
     }
     else
     {
@@ -133,6 +144,7 @@ void HapticDevice::handler()
         // start calibration process of this device
         case HapticState::StartCalibration:
         {
+            std::cout << "device " << name << " calibration started" << std::endl;  //XXX for test only
             state = HapticState::Move2Ref;
             break;
         }
