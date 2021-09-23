@@ -11,5 +11,10 @@
 float cropAngle(float angle)
 {
     const float FullAngle = 360.0F;
-    return fmod(angle, FullAngle);
+    if(angle < 0)
+    {
+        int fullTurns = static_cast<int>(-angle / FullAngle);
+        angle += static_cast<float>(fullTurns) * FullAngle;
+    }
+    return fmodf(angle, FullAngle);
 }

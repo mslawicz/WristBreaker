@@ -137,11 +137,6 @@ void Commander::handler()
     placeData<char>('e', pData);
     PCLink.sendReport(2, hidData);
 
-    if(systemPushbutton.read() == 1)
-    {
-        //rollActuator.calibrationRequest(CommandVector{});
-    }
-
     //XXX test
     // static int cnt = 0;
     // if(cnt++ %200 == 0) // NOLINT
