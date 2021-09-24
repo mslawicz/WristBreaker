@@ -14,7 +14,7 @@ float cropAngle(float angle)
     if(angle < 0)
     {
         int fullTurns = static_cast<int>(-angle / FullAngle);
-        angle += static_cast<float>(fullTurns) * FullAngle;
+        angle += static_cast<float>(fullTurns + 1) * FullAngle;
     }
     return fmodf(angle, FullAngle);
 }
