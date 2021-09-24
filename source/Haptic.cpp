@@ -92,6 +92,7 @@ void HapticDevice::calibrationRequest(const CommandVector& cv)
 // to be called periodically
 void HapticDevice::handler()
 {
+    const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 0.1F;
     encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
     const float EncoderHalfRange = 0.5F;
@@ -145,9 +146,66 @@ void HapticDevice::handler()
         case HapticState::StartCalibration:
         {
             std::cout << "device " << name << " calibration started" << std::endl;  //XXX for test only
-            state = HapticState::Move2Ref;
+            currentPhase = 0.0F;
+            torque = 0.0F;
+            phaseStep = PhaseStep;
+            counter = 0;
+            referencePhase = 0.0F;
+            state = HapticState::Calibration;
             break;
         }
+
+        // calibration process
+        case HapticState::Calibration:
+        {
+            const float CalibrationRange = operationRange * 0.7F;
+            if(isInRange<float>(filteredPosition, -CalibrationRange, CalibrationRange) &&
+                (torque >= maxCalTorque))
+            {
+                referencePhase += currentPhase - FullCycle * filteredPosition / positionPeriod;
+                counter++;
+                g_value[5] = currentPhase - FullCycle * filteredPosition / positionPeriod;
+            }
+            //change direction of movement if out of calibration range
+            if(filteredPosition > CalibrationRange)
+            {
+                phaseStep = -PhaseStep;
+            }
+            if(currentPosition < -CalibrationRange)
+            {
+                phaseStep = PhaseStep;
+            }            
+            //move motor to next position
+            currentPhase += phaseStep;
+            //ramp of applied torque
+            const float TorqueRise = 0.005F;     // 0.5% of torque rise at a time
+            torque += maxCalTorque * TorqueRise;
+            torque = limit<float>(torque, 0, maxCalTorque);
+            //apply torque
+            pMotor->setFieldVector(currentPhase, torque);
+
+            //XXX set global variables
+            g_value[0] = filteredPosition;
+            g_value[4] = currentPhase;
+            g_value[9] = torque;            
+
+            if(counter > 2000)
+            {
+                referencePhase /= static_cast<float>(counter);
+                std::cout << "reference phase " << referencePhase;  //XXX for test only
+                std::cout << ", currentPhase " << cropAngle(referencePhase + FullCycle * filteredPosition / positionPeriod) << std::endl;  //XXX for test only
+                state = HapticState::EndCalibration;
+            }
+            break;
+        }
+
+        // end the calibration process
+        case HapticState::EndCalibration:
+        {
+            pMotor->setFieldVector(currentPhase, 0);    //XXX temp
+            //state = HapticState::HapticAction;
+            break;
+        }        
 
         // motor moves slowly and finds the reference position
         case HapticState::Move2Ref:

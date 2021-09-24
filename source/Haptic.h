@@ -83,6 +83,8 @@ private:
     {
         Start,
         StartCalibration,
+        Calibration,
+        EndCalibration,
         Move2Ref,
         HapticAction
     };
@@ -102,6 +104,8 @@ private:
     float iTerm{0};         //integral term of torque
     float integralLimit;      //limit of integral term
     static std::vector<HapticDevice*> hapticDevices;        //NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+    float phaseStep{0};        //phase change during calibration process
+    int counter{0};         //counter for calibration process
 };
 
 #endif /* HAPTIC_H_ */
