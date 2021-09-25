@@ -297,7 +297,7 @@ float HapticDevice::setTorque()
 
     //calculate motor speed
     float deltaPosition = lastPosition - currentPosition;
-    float speed = derivativeFilter.getMedian(lastPosition - currentPosition); 
+    float speed = derivativeFilter.getMedian(lastPosition - currentPosition);
     //auto cutDeltaPosition = threshold<float>(filteredDeltaPosition, -dThreshold, dThreshold);
     lastPosition = currentPosition;
 
@@ -311,10 +311,13 @@ float HapticDevice::setTorque()
     static AnalogIn KDpot(PA_6); KD = 50.0F * KDpot.read(); //XXX test;
     static float dTerm{0};
     float currentDTerm = KD * fabsf(speed);
-    filterEMA<float>(dTerm, currentDTerm, 0.005F);
     if(currentDTerm > dTerm)
     {
-        dTerm = currentDTerm;
+        filterEMA<float>(dTerm, currentDTerm, 0.1F);
+    }
+    else
+    {
+        filterEMA<float>(dTerm, currentDTerm, 0.005F);
     }
 
     //calculate flux vector angle
@@ -355,7 +358,7 @@ float HapticDevice::setTorque()
     g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
     g_value[3] = targetPosition;
-    g_value[4] = deltaPosition;
+    g_value[4] = speed * 10000;
     g_value[5] = phaseShift;
     g_value[6] = qTerm;
     g_value[7] = dTerm;
