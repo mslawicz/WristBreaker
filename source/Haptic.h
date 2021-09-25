@@ -109,11 +109,12 @@ private:
     uint16_t counter{0};         //counter for calibration process
     uint16_t noOfCalSteps;      //number of calibration steps
     float vD{0};            //direct component of magnetic flux vector
+    float speed{0};         //device speed
 };
 
 #endif /* HAPTIC_H_ */
 
 /*
 recommended motor setup:
-57BLY12530 Spring: torqueGain = 0.9 (soft) ... 1.6 (hard); TD=5.6;
+57BLY12530 Spring: torqueGain = 1.1 (soft) ... 2.8 (hard); KD=16;
 */

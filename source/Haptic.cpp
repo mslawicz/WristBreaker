@@ -297,7 +297,9 @@ float HapticDevice::driver()
 
     //calculate motor speed
     float deltaPosition = lastPosition - currentPosition;
-    float speed = derivativeFilter.getMedian(lastPosition - currentPosition);
+    const float SpeedSmooth = 0.1F;
+    filterEMA<float>(speed, deltaPosition, SpeedSmooth);
+    //float speed = derivativeFilter.getMedian(lastPosition - currentPosition);
     lastPosition = currentPosition;
 
     //calculate quadrature component of magnetic flux vector
