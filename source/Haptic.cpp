@@ -254,7 +254,7 @@ void HapticDevice::handler()
                 case HapticMode::Spring:
                 {
                     hapticData.torqueLimit = 1.0F;
-                    setTorque();
+                    driver();
                     break;
                 }
 
@@ -273,9 +273,9 @@ void HapticDevice::handler()
     }
 }
 
-//set torque proportional to target position error
-//returns current error
-float HapticDevice::setTorque()
+//drives the motor according to target position error and motor speed
+//returns current position error
+float HapticDevice::driver()
 {
     const float Rad2Deg = 57.2957795F;
     if(hapticData.deltaPosLimit == 0)
@@ -298,42 +298,43 @@ float HapticDevice::setTorque()
     //calculate motor speed
     float deltaPosition = lastPosition - currentPosition;
     float speed = derivativeFilter.getMedian(lastPosition - currentPosition);
-    //auto cutDeltaPosition = threshold<float>(filteredDeltaPosition, -dThreshold, dThreshold);
     lastPosition = currentPosition;
 
-    //calculate quadrapule component of flux vector
-    float KP = 0;//hapticData.torqueGain;
-    static AnalogIn KPpot(PA_5); KP = 3.0F * KPpot.read(); //XXX test;
-    float qTerm = KP * error;   //quadrapule component
+    //calculate quadrature component of magnetic flux vector
+    float KQ = 0;//hapticData.torqueGain;
+    static AnalogIn KQpot(PA_5); KQ = 3.0F * KQpot.read(); //XXX test;
+    float vQ = KQ * error;   //quadrature component
 
-    //calculate direct component of flux vector
+    //calculate direct component of magnetic flux vector
     float KD = 0;
     static AnalogIn KDpot(PA_6); KD = 50.0F * KDpot.read(); //XXX test;
-    static float dTerm{0};
-    float currentDTerm = KD * fabsf(speed);
-    if(currentDTerm > dTerm)
+    float currentVD = KD * fabsf(speed);
+    //envelope filter with fast rise and slow decay
+    const float RiseFactor = 0.1F;
+    const float DecayFactor = 0.005F;
+    if(currentVD > vD)
     {
-        filterEMA<float>(dTerm, currentDTerm, 0.1F);
+        filterEMA<float>(vD, currentVD, RiseFactor);
     }
     else
     {
-        filterEMA<float>(dTerm, currentDTerm, 0.005F);
+        filterEMA<float>(vD, currentVD, DecayFactor);
     }
 
     //calculate flux vector angle
     float phaseShift{0};
-    if(0 == dTerm)
+    if(0 == vD)
     {
-        phaseShift = qTerm > 0 ? QuarterCycle : -QuarterCycle;
+        phaseShift = vQ > 0 ? QuarterCycle : -QuarterCycle;
     }
     else
     {
-        phaseShift = Rad2Deg * atan2f(qTerm, dTerm);
+        phaseShift = Rad2Deg * atan2f(vQ, vD);
     }
     phaseShift = limit(phaseShift, -QuarterCycle, QuarterCycle);
 
     //calculate flux vector magnitude
-    auto magnitude = limit<float>(sqrtf(dTerm * dTerm + qTerm * qTerm), 0.0F, hapticData.torqueLimit);
+    auto magnitude = limit<float>(sqrtf(vD * vD + vQ * vQ), 0.0F, hapticData.torqueLimit);
 
     //apply calculated flux vector
     pMotor->setFieldVector(currentPhase + phaseShift, magnitude);
@@ -345,10 +346,9 @@ float HapticDevice::setTorque()
         std::cout << "pos=" << filteredPosition;
         std::cout << "  pot=" << hapticData.auxData;
         std::cout << "  tG=" << hapticData.torqueGain;
-        std::cout << "  TI=" << TI;
-        std::cout << "  TD=" << TD;
-        std::cout << "  dThr=" << dThreshold;
-        std::cout << "  T=" << torque;
+        std::cout << "  KQ=" << KQ;
+        std::cout << "  KD=" << KD;
+        std::cout << "  magn=" << magnitude;
         std::cout << "  cPh=" << currentPhase;
         std::cout << "   \r" << std::flush;
     }
@@ -360,8 +360,8 @@ float HapticDevice::setTorque()
     g_value[3] = targetPosition;
     g_value[4] = speed * 10000;
     g_value[5] = phaseShift;
-    g_value[6] = qTerm;
-    g_value[7] = dTerm;
+    g_value[6] = vQ;
+    g_value[7] = vD;
     g_value[8] = magnitude;
     g_value[9] = 0;
 

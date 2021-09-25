@@ -66,7 +66,7 @@ public:
     std::string getName() const { return name; }
     void startCalibration() { state = HapticState::StartCalibration; }
 private:
-    float setTorque();
+    float driver();
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
@@ -108,6 +108,7 @@ private:
     float phaseStep{0};        //phase change during calibration process
     uint16_t counter{0};         //counter for calibration process
     uint16_t noOfCalSteps;      //number of calibration steps
+    float vD{0};            //direct component of magnetic flux vector
 };
 
 #endif /* HAPTIC_H_ */
