@@ -40,7 +40,7 @@ HapticDevice::HapticDevice
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    derivativeFilter(5), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    derivativeFilter(9), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
     integralLimit(integralLimit),
     TD(TD),
@@ -204,8 +204,7 @@ void HapticDevice::handler()
         // end the calibration process
         case HapticState::EndCalibration:
         {
-            pMotor->setFieldVector(currentPhase, 0);    //XXX temp
-            //state = HapticState::HapticAction;
+            state = HapticState::HapticAction;
             break;
         }        
 
@@ -278,6 +277,7 @@ void HapticDevice::handler()
 //returns current error
 float HapticDevice::setTorque()
 {
+    const float Rad2Deg = 57.2957795F;
     if(hapticData.deltaPosLimit == 0)
     {
         //target position rate of change limit off
@@ -295,34 +295,45 @@ float HapticDevice::setTorque()
     //calculate error from the target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
 
-    //calculate proportional term of torque 
-    float KP = hapticData.torqueGain;
-    float pTerm = KP * error;
+    //calculate motor speed
+    float deltaPosition = lastPosition - currentPosition;
+    float speed = derivativeFilter.getMedian(lastPosition - currentPosition); 
+    //auto cutDeltaPosition = threshold<float>(filteredDeltaPosition, -dThreshold, dThreshold);
+    lastPosition = currentPosition;
 
-    //calculate integral term of torque
-    if(hapticData.useIntegral)
+    //calculate quadrapule component of flux vector
+    float KP = 0;//hapticData.torqueGain;
+    static AnalogIn KPpot(PA_5); KP = 3.0F * KPpot.read(); //XXX test;
+    float qTerm = KP * error;   //quadrapule component
+
+    //calculate direct component of flux vector
+    float KD = 0;
+    static AnalogIn KDpot(PA_6); KD = 50.0F * KDpot.read(); //XXX test;
+    static float dTerm{0};
+    float currentDTerm = KD * fabsf(speed);
+    filterEMA<float>(dTerm, currentDTerm, 0.005F);
+    if(currentDTerm > dTerm)
     {
-        iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
+        dTerm = currentDTerm;
+    }
+
+    //calculate flux vector angle
+    float phaseShift{0};
+    if(0 == dTerm)
+    {
+        phaseShift = qTerm > 0 ? QuarterCycle : -QuarterCycle;
     }
     else
     {
-        iTerm = 0;
+        phaseShift = Rad2Deg * atan2f(qTerm, dTerm);
     }
+    phaseShift = limit(phaseShift, -QuarterCycle, QuarterCycle);
 
-    //calculate derivative term of torque
-    float deltaPosition = lastPosition - currentPosition;
-    float filteredDeltaPosition = derivativeFilter.getMedian(lastPosition - currentPosition); 
-    auto cutDeltaPosition = threshold<float>(filteredDeltaPosition, -dThreshold, dThreshold);
-    float dTerm = KP * TD * cutDeltaPosition;
-    lastPosition = currentPosition;
+    //calculate flux vector magnitude
+    auto magnitude = limit<float>(sqrtf(dTerm * dTerm + qTerm * qTerm), 0.0F, hapticData.torqueLimit);
 
-    //calculate requested torque with limit
-    torque = limit<float>(pTerm + iTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
-
-    //apply the requested torque to motor
-    float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
-    float vectorMagnitude = fabsf(torque);
-    pMotor->setFieldVector(currentPhase + deltaPhase, vectorMagnitude);
+    //apply calculated flux vector
+    pMotor->setFieldVector(currentPhase + phaseShift, magnitude);
 
     //XXX test
     static int cnt = 0;
@@ -345,11 +356,11 @@ float HapticDevice::setTorque()
     g_value[2] = error;
     g_value[3] = targetPosition;
     g_value[4] = deltaPosition;
-    g_value[5] = filteredDeltaPosition;
-    g_value[6] = pTerm;
-    g_value[7] = iTerm;
-    g_value[8] = dTerm;
-    g_value[9] = torque;
+    g_value[5] = phaseShift;
+    g_value[6] = qTerm;
+    g_value[7] = dTerm;
+    g_value[8] = magnitude;
+    g_value[9] = 0;
 
     return hapticData.targetPosition - filteredPosition;
 }
