@@ -49,7 +49,8 @@ public:
         float TI,                //integral time (see classic PID formula; TI=1/Ti)
         float integralLimit,     //limit of integral term
         float TD,                //derivative time (see classic PID formula)
-        float dThreshold         //threshold for delta position (D term calculation)
+        float dThreshold,        //threshold for delta position (D term calculation)
+        uint16_t noOfCalSteps    //number of calibration steps
     );
     ~HapticDevice();
     HapticDevice(HapticDevice const&) = delete;
@@ -105,7 +106,8 @@ private:
     float integralLimit;      //limit of integral term
     static std::vector<HapticDevice*> hapticDevices;        //NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
     float phaseStep{0};        //phase change during calibration process
-    int counter{0};         //counter for calibration process
+    uint16_t counter{0};         //counter for calibration process
+    uint16_t noOfCalSteps;      //number of calibration steps
 };
 
 #endif /* HAPTIC_H_ */

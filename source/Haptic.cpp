@@ -30,7 +30,8 @@ HapticDevice::HapticDevice
     float TI,                //integral time (see classic PID formula; TI=1/Ti)
     float integralLimit,     //limit of integral term
     float TD,                //derivative time (see classic PID formula)
-    float dThreshold     //threshold for derivative term
+    float dThreshold,        //threshold for derivative term
+    uint16_t noOfCalSteps    //number of calibration steps
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
@@ -44,7 +45,8 @@ HapticDevice::HapticDevice
     integralLimit(integralLimit),
     TD(TD),
     dThreshold(dThreshold),
-    hapticData{HapticMode::Spring, 0}
+    noOfCalSteps(noOfCalSteps),
+    hapticData{HapticMode::Spring, false, 0}
 {
     pMotor->setEnablePin(1);
     positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());     //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
@@ -128,7 +130,7 @@ void HapticDevice::handler()
                 else
                 {
                     std::cout << name << " restored reference phase out of range (" << referencePhase << "); calibrating..." << std::endl;
-                    state = HapticState::Move2Ref;
+                    state = HapticState::StartCalibration;
                 }
             }
             else
@@ -189,11 +191,11 @@ void HapticDevice::handler()
             g_value[4] = currentPhase;
             g_value[9] = torque;            
 
-            if(counter > 2000)
+            if(counter >= noOfCalSteps)
             {
-                referencePhase /= static_cast<float>(counter);
-                std::cout << "reference phase " << referencePhase;  //XXX for test only
-                std::cout << ", currentPhase " << cropAngle(referencePhase + FullCycle * filteredPosition / positionPeriod) << std::endl;  //XXX for test only
+                referencePhase = cropAngle(referencePhase / static_cast<float>(counter));
+                std::cout << "device " << name << " has been calibrated with reference phase " << referencePhase << std::endl;
+                KvStore::storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
                 state = HapticState::EndCalibration;
             }
             break;
