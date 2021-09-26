@@ -24,7 +24,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
         0.03F,                  //NOLINT    integral time (see classic PID formula; TI=1/Ti)
         0.1F,                   //NOLINT    limit of integral term
-        3.6F,                   //NOLINT    derivative time (see classic PID formula)
+        18.0F,                  //NOLINT    gain of the direct flux component (for controller stability)
         0.004F,                 //NOLINT    threshold for delta position (D term calculation)
         500                     //NOLINT    number of calibration steps
     ),

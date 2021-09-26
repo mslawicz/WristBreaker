@@ -48,7 +48,7 @@ public:
         float operationRange,    // the range of normal operation from reference position
         float TI,                //integral time (see classic PID formula; TI=1/Ti)
         float integralLimit,     //limit of integral term
-        float TD,                //derivative time (see classic PID formula)
+        float KD,                //gain of the direct flux component (for controller stability)
         float dThreshold,        //threshold for delta position (D term calculation)
         uint16_t noOfCalSteps    //number of calibration steps
     );
@@ -97,7 +97,7 @@ private:
     MedianFilter positionFilter;    //filters current position
     MedianFilter derivativeFilter;  //filters position derivative
     float TI;        //integral time (multiplied by torque gain for integral gain)
-    float TD;        //derivative time (multiplied by torque gain for derivative gain)
+    float KD;        //gain of the direct flux component (for controller stability)
     float dThreshold;       //threshold for derivative term
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic dynamic parameters of this device

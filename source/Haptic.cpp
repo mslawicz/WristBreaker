@@ -29,7 +29,7 @@ HapticDevice::HapticDevice
     float operationRange,    // the range of normal operation from reference position
     float TI,                //integral time (see classic PID formula; TI=1/Ti)
     float integralLimit,     //limit of integral term
-    float TD,                //derivative time (see classic PID formula)
+    float KD,                //gain of the direct flux component (for controller stability)
     float dThreshold,        //threshold for derivative term
     uint16_t noOfCalSteps    //number of calibration steps
 ) :
@@ -43,7 +43,7 @@ HapticDevice::HapticDevice
     derivativeFilter(9), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
     integralLimit(integralLimit),
-    TD(TD),
+    KD(KD),
     dThreshold(dThreshold),
     noOfCalSteps(noOfCalSteps),
     hapticData{HapticMode::Spring, false, 0}
@@ -308,8 +308,6 @@ float HapticDevice::driver()
     float vQ = KQ * error;   //quadrature component
 
     //calculate direct component of magnetic flux vector
-    float KD = 0;
-    static AnalogIn KDpot(PA_6); KD = 50.0F * KDpot.read(); //XXX test;
     float currentVD = KD * fabsf(speed);
     //envelope filter with fast rise and slow decay
     const float RiseFactor = 0.1F;
