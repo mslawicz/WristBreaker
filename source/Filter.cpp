@@ -1,4 +1,5 @@
 #include "Filter.h"
+#include <cmath>
 
 MedianFilter::MedianFilter(size_t size) : 
     size(size)
@@ -53,7 +54,23 @@ float MovingAverageFilter::getFilterValue(float inputData)
     data.erase(data.begin());
     sum += inputData;
     data.push_back(inputData);
-    return sum / size;
+    return sum / static_cast<float>(size);
 }
 
-
+//calculates and returns new filter value
+float AEMAFilter::calculate(float input, float alpha)
+{
+    float delta = input - filteredValue;
+    //filtered deviation of input values
+    filteredDeviation = filteredDeviation * (1.0F - DeviationAlpha) + fabsf(delta) * DeviationAlpha;
+    //current alpha value scaled proportionally to current input change and nominal alpha
+    float scaledAlpha = alpha * fabsf(delta) / filteredDeviation;
+    //limit current alpha to max 1
+    if(scaledAlpha > 1.0F)
+    {
+        scaledAlpha = 1.0F;
+    }
+    //new filter value
+    filteredValue += delta * scaledAlpha;
+    return filteredValue;
+}

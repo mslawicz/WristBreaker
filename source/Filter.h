@@ -41,4 +41,15 @@ private:
     float sum{0.0F};      //current sum of all elements
 };
 
+//adaptive exponential moving average filter
+class AEMAFilter
+{
+public:
+    float calculate(float input, float alpha);
+private:
+    float filteredValue{0.0F};              // current filtered value
+    const float DeviationAlpha = 0.02F;     // filter strength for average deviation calculations
+    float filteredDeviation{0.0F};          // current filtered deviation value 
+};
+
 #endif /* FILTER_H_ */
