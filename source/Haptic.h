@@ -95,7 +95,7 @@ private:
     float maxCalTorque;      // maximum torque value during calibration phase
     float operationRange;    //the range of normal operation measured from reference position
     MedianFilter positionFilter;    //filters current position
-    MedianFilter derivativeFilter;  //filters position derivative
+    AEMAFilter derivativeFilter;  //filters position derivative
     float TI;        //integral time (multiplied by torque gain for integral gain)
     float KD;        //gain of the direct flux component (for controller stability)
     float dThreshold;       //threshold for derivative term
