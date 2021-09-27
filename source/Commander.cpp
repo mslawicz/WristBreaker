@@ -20,7 +20,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         new AS5600(PC_4),
         "roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
-        0.2F,                   //NOLINT    maximum torque in calibration phase
+        0.2F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
         0.035F,                 //NOLINT    integral time (see classic PID formula; TI=1/Ti)
         0.1F,                   //NOLINT    limit of integral term

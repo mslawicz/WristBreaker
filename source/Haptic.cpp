@@ -25,7 +25,7 @@ HapticDevice::HapticDevice
     Encoder* pEncoder,      // pointer to motor position encoder object
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
-    float maxCalTorque,      // maximum torque value in calibration phase
+    float maxCalMagnitude,      // maximum magnitude of flux vector value in calibration phase
     float operationRange,    // the range of normal operation from reference position
     float TI,                //integral time (see classic PID formula; TI=1/Ti)
     float integralLimit,     //limit of integral term
@@ -37,7 +37,7 @@ HapticDevice::HapticDevice
     pEncoder(pEncoder),
     name(std::move(name)),
     referencePosition(referencePosition),
-    maxCalTorque(maxCalTorque),
+    maxCalMagnitude(maxCalMagnitude),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
@@ -148,7 +148,7 @@ void HapticDevice::handler()
         {
             std::cout << "device " << name << " calibration started" << std::endl;  //XXX for test only
             currentPhase = 0.0F;
-            torque = 0.0F;
+            magnitude = 0.0F;
             phaseStep = PhaseStep;
             counter = 0;
             referencePhase = 0.0F;
@@ -161,7 +161,7 @@ void HapticDevice::handler()
         {
             const float CalibrationRange = operationRange * 0.7F;
             if(isInRange<float>(filteredPosition, -CalibrationRange, CalibrationRange) &&
-                (torque >= maxCalTorque))
+                (magnitude >= maxCalMagnitude))
             {
                 referencePhase += currentPhase - FullCycle * filteredPosition / positionPeriod;
                 counter++;
@@ -178,17 +178,17 @@ void HapticDevice::handler()
             }            
             //move motor to next position
             currentPhase += phaseStep;
-            //ramp of applied torque
-            const float TorqueRise = 0.005F;     // 0.5% of torque rise at a time
-            torque += maxCalTorque * TorqueRise;
-            torque = limit<float>(torque, 0, maxCalTorque);
-            //apply torque
-            pMotor->setFieldVector(currentPhase, torque);
+            //ramp of applied magnitude of flux vector
+            const float MagnitudeRise = 0.005F;     // 0.5% of magnitude rise at a time
+            magnitude += maxCalMagnitude * MagnitudeRise;
+            magnitude = limit<float>(magnitude, 0, maxCalMagnitude);
+            //set magnetic flux vector
+            pMotor->setFieldVector(currentPhase, magnitude);
 
             //XXX set global variables
             g_value[0] = filteredPosition;
             g_value[4] = currentPhase;
-            g_value[9] = torque;            
+            g_value[9] = magnitude;            
 
             if(counter >= noOfCalSteps)
             {
@@ -215,7 +215,7 @@ void HapticDevice::handler()
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    hapticData.torqueLimit = 1.0F;
+                    hapticData.magnitudeLimit = 1.0F;
                     driver();
                     break;
                 }
@@ -305,7 +305,7 @@ float HapticDevice::driver()
     phaseShift = limit(phaseShift, -QuarterCycle, QuarterCycle);
 
     //calculate flux vector magnitude
-    auto magnitude = limit<float>(sqrtf(vD * vD + vQ * vQ), 0.0F, hapticData.torqueLimit);
+    magnitude = limit<float>(sqrtf(vD * vD + vQ * vQ), 0.0F, hapticData.magnitudeLimit);
 
     //apply calculated flux vector
     pMotor->setFieldVector(currentPhase + phaseShift, magnitude);
