@@ -49,7 +49,6 @@ public:
         float TI,                //integral time (see classic PID formula; TI=1/Ti)
         float integralLimit,     //limit of integral term
         float KD,                //gain of the direct flux component (for controller stability)
-        float dThreshold,        //threshold for delta position (D term calculation)
         uint16_t noOfCalSteps    //number of calibration steps
     );
     ~HapticDevice();
@@ -94,10 +93,8 @@ private:
     float maxCalMagnitude;      // maximum flux vector magnitude value during calibration phase
     float operationRange;    //the range of normal operation measured from reference position
     MedianFilter positionFilter;    //filters current position
-    AEMAFilter derivativeFilter;  //filters position derivative
     float TI;        //integral time (multiplied by torque gain for integral gain)
     float KD;        //gain of the direct flux component (for controller stability)
-    float dThreshold;       //threshold for derivative term
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic dynamic parameters of this device
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)

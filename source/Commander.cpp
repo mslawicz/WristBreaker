@@ -25,7 +25,6 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.035F,                 //NOLINT    integral time (see classic PID formula; TI=1/Ti)
         0.1F,                   //NOLINT    limit of integral term
         18.0F,                  //NOLINT    gain of the direct flux component (for controller stability)
-        0.004F,                 //NOLINT    threshold for delta position (D term calculation)
         500                     //NOLINT    number of calibration steps
     ),
     testPot(PC_5),   //XXX test

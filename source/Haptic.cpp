@@ -30,7 +30,6 @@ HapticDevice::HapticDevice
     float TI,                //integral time (see classic PID formula; TI=1/Ti)
     float integralLimit,     //limit of integral term
     float KD,                //gain of the direct flux component (for controller stability)
-    float dThreshold,        //threshold for derivative term
     uint16_t noOfCalSteps    //number of calibration steps
 ) :
     pMotor(pMotor),
@@ -43,7 +42,6 @@ HapticDevice::HapticDevice
     TI(TI),
     integralLimit(integralLimit),
     KD(KD),
-    dThreshold(dThreshold),
     noOfCalSteps(noOfCalSteps),
     hapticData{HapticMode::Spring, false, 0}
 {
