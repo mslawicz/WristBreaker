@@ -86,7 +86,6 @@ private:
         StartCalibration,
         Calibration,
         EndCalibration,
-        Move2Ref,
         HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
@@ -116,5 +115,5 @@ private:
 
 /*
 recommended motor setup:
-57BLY12530 Spring: torqueGain = 1.1 (soft) ... 2.8 (hard); KD=16;
+57BLY12530 Spring: torqueGain = 1.0 (soft) ... 2.8 (hard); KD=18;
 */

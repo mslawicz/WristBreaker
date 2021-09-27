@@ -205,44 +205,7 @@ void HapticDevice::handler()
         {
             state = HapticState::HapticAction;
             break;
-        }        
-
-        // motor moves slowly and finds the reference position
-        case HapticState::Move2Ref:
-        {
-            // position error equals -filteredPosition
-            float error = -filteredPosition;
-
-            // calculate motor phase step proportional to error with the limit
-            const float PhaseStepGain = 2.5F * static_cast<float>(pMotor->getNoOfPoles());     // how fast motor should move while finding mid position
-            float phaseStep =  PhaseStepGain * error;
-            const float PhaseStepLimit = 0.1F * static_cast<float>(pMotor->getNoOfPoles());     // step limit in degrees of electrical revolution
-            phaseStep = limit<float>(phaseStep, -PhaseStepLimit, PhaseStepLimit);
-
-            //move motor in the direction of reference position
-            currentPhase += phaseStep;
-
-            //ramp of applied torque
-            const float TorqueRise = 0.005F;     // 0.5% of torque rise at a time
-            torque += maxCalTorque * TorqueRise;
-            torque = limit<float>(torque, 0, maxCalTorque);
-            pMotor->setFieldVector(currentPhase, torque);
-
-            //calculate mean position deviation to check if position is reached and stable
-            const float Alpha = 0.015F;
-            filterEMA<float>(positionDeviation, fabsf(filteredPosition), Alpha);
-            const float PosDevThreshold = 0.01F;    //threshold for stable position
-            //check if reference position is reached and stable 
-            if(positionDeviation < PosDevThreshold)
-            {
-                referencePhase = cropAngle(currentPhase);
-                std::cout << name << " reference phase measured " << referencePhase << std::endl;
-                KvStore::storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
-                state = HapticState::HapticAction;
-            }
-
-            break;
-        }          
+        }              
 
         //main haptic action
         case HapticState::HapticAction:
