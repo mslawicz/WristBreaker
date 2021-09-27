@@ -263,10 +263,20 @@ float HapticDevice::driver()
     filterEMA<float>(speed, deltaPosition, SpeedSmooth);
     lastPosition = currentPosition;
 
+    //calculate proportional term of quadrature component
+    float KP = hapticData.torqueGain;
+    float pTerm = KP * error;
+    //calculate integral term of quadrature component
+    if(hapticData.useIntegral)
+    {
+        iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
+    }
+    else
+    {
+        iTerm = 0;
+    }
     //calculate quadrature component of magnetic flux vector
-    float KQ = 0;//hapticData.torqueGain;
-    static AnalogIn KQpot(PA_5); KQ = 3.0F * KQpot.read(); //XXX test;
-    float vQ = KQ * error;   //quadrature component
+    float vQ = pTerm + iTerm;   //quadrature component
 
     //calculate direct component of magnetic flux vector
     float currentVD = KD * fabsf(speed);
@@ -307,7 +317,8 @@ float HapticDevice::driver()
         std::cout << "pos=" << filteredPosition;
         std::cout << "  pot=" << hapticData.auxData;
         std::cout << "  tG=" << hapticData.torqueGain;
-        std::cout << "  KQ=" << KQ;
+        std::cout << "  KP=" << KP;
+        std::cout << "  TI=" << TI;
         std::cout << "  KD=" << KD;
         std::cout << "  magn=" << magnitude;
         std::cout << "  cPh=" << currentPhase;

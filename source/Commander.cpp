@@ -22,7 +22,7 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.2F,                   //NOLINT    maximum torque in calibration phase
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
-        0.03F,                  //NOLINT    integral time (see classic PID formula; TI=1/Ti)
+        0.035F,                 //NOLINT    integral time (see classic PID formula; TI=1/Ti)
         0.1F,                   //NOLINT    limit of integral term
         18.0F,                  //NOLINT    gain of the direct flux component (for controller stability)
         0.004F,                 //NOLINT    threshold for delta position (D term calculation)
@@ -104,7 +104,7 @@ void Commander::handler()
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     rollActuatorData.useIntegral = (1 == systemPushbutton.read());
     rollActuatorData.targetPosition = 0;   //zeroPositionX,   //zero torque position from simulator
-    //static AnalogIn KPpot(PA_5); rollActuatorData.torqueGain = 2.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
+    static AnalogIn KPpot(PA_5); rollActuatorData.torqueGain = 3.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     //rollActuatorData.torqueGain = 1.22F;    //NOLINT
     rollActuatorData.deltaPosLimit = 0.0025F;    //range 0.5 / 200 Hz / 1 sec = 0.0025
     rollActuatorData.auxData = pot;
