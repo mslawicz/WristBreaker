@@ -201,7 +201,14 @@ void HapticDevice::handler()
         // end the calibration process
         case HapticState::EndCalibration:
         {
-            state = HapticState::HapticAction;
+            hapticData.magnitudeLimit = maxCalMagnitude;
+            hapticData.useIntegral = true;
+            float error = setActuator();
+            const float AllowedError = operationRange * 0.05F;
+            if(fabsf(error) < AllowedError)
+            {
+                state = HapticState::HapticAction;
+            }
             break;
         }              
 
@@ -214,7 +221,7 @@ void HapticDevice::handler()
                 case HapticMode::Spring:
                 {
                     hapticData.magnitudeLimit = 1.0F;
-                    driver();
+                    setActuator();
                     break;
                 }
 
@@ -235,7 +242,7 @@ void HapticDevice::handler()
 
 //drives the motor according to target position error and motor speed
 //returns current position error
-float HapticDevice::driver()
+float HapticDevice::setActuator()
 {
     const float Rad2Deg = 57.2957795F;
     if(hapticData.deltaPosLimit == 0)

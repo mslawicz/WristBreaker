@@ -65,7 +65,7 @@ public:
     std::string getName() const { return name; }
     void startCalibration() { state = HapticState::StartCalibration; }
 private:
-    float driver();
+    float setActuator();
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
