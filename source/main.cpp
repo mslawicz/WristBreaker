@@ -21,11 +21,32 @@
 #include <iostream>
 #include <mbed.h>
 
-
+float fastAtan(float x)
+{
+    return 1.8769167F*x*x*x - 17.696744955F*x*x + 59.77182299F*x;
+}
 
 int main() // NOLINT(modernize-use-trailing-return-type)
 {
     std::cout << "WristBreaker v1\n";
+
+    Timer stopwatch;
+    const int Steps = 10000;
+    stopwatch.start();
+    stopwatch.reset();
+    for(int k=0; k < Steps; k++)
+    {
+        float x = k / static_cast<float>(Steps);
+        atan2f(x, 1);
+    }
+    std::cout << "atan2f: " << stopwatch.read_us() << std::endl;
+    stopwatch.reset();
+    for(int k=0; k < Steps; k++)
+    {
+        float x = k / static_cast<float>(Steps);
+        fastAtan(x);
+    }
+    std::cout << "fastAtan: " << stopwatch.read_us() << std::endl;    
 
     // create and start console thread
     Thread consoleThread(osPriority_t::osPriorityLow4, OS_STACK_SIZE, nullptr, "console");
