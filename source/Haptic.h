@@ -84,7 +84,7 @@ private:
         Start,
         StartCalibration,
         Calibration,
-        EndCalibration,
+        Mov2Ref,
         HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine

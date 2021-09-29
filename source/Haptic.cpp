@@ -122,7 +122,8 @@ void HapticDevice::handler()
                 if(isInRange<float>(referencePhase, 0.0F, FullCycle))
                 {
                     std::cout << name << " reference phase restored " << referencePhase << std::endl;
-                    state = HapticState::HapticAction;
+                    targetPosition = currentPosition;      //assures smooth movements to another position
+                    state = HapticState::Mov2Ref;
                 }
                 else
                 {
@@ -193,18 +194,21 @@ void HapticDevice::handler()
                 referencePhase = cropAngle(referencePhase / static_cast<float>(counter));
                 std::cout << "device " << name << " has been calibrated with reference phase " << referencePhase << std::endl;
                 KvStore::storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
-                state = HapticState::EndCalibration;
+                targetPosition = filteredPosition;      //assures smooth movements to another position
+                state = HapticState::Mov2Ref;
             }
             break;
         }
 
         // end the calibration process
-        case HapticState::EndCalibration:
+        case HapticState::Mov2Ref:
         {
+            const float speedLimit = 0.0002F;   //slooow!
+            hapticData.deltaPosLimit = speedLimit;
             hapticData.magnitudeLimit = maxCalMagnitude;
             hapticData.useIntegral = true;
             float error = setActuator();
-            const float AllowedError = operationRange * 0.05F;
+            const float AllowedError = operationRange * 0.05F;  //error must be within 5% of operation range
             if(fabsf(error) < AllowedError)
             {
                 state = HapticState::HapticAction;
