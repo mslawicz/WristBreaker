@@ -120,7 +120,7 @@ void Commander::handler()
     rollActuator.handler();
 
     //prepare data to be sent to simulator 
-    // convert +-90 degrees deflection to <-1,1> range
+    // convert +-operationalRange deflection to <-1,1> range
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
 
     //we do not send joystick reports in this version 
