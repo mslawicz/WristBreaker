@@ -40,7 +40,7 @@ HapticDevice::HapticDevice
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    derivativeFilter(9), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    derivativeFilter(5), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
     integralLimit(integralLimit),
     KD(KD),
@@ -208,7 +208,7 @@ void HapticDevice::handler()
         {
             const float speedLimit = 0.0002F;   //slooow!
             hapticData.deltaPosLimit = speedLimit;
-            hapticData.magnitudeLimit = maxCalMagnitude;
+            hapticData.torqueLimit = maxCalTorque;
             hapticData.useIntegral = true;
             float error = setActuator();
             const float AllowedError = operationRange * 0.05F;  //error must be within 5% of operation range
@@ -286,8 +286,10 @@ float HapticDevice::setActuator()
     //calculate derivative term of torque
     float deltaPosition = lastPosition - currentPosition;
     static float filteredDeltaPosition{0.0F};
-    static AnalogIn KApot(PA_6); float dAlpha = 0.5F * KApot.read(); //XXX test;
-    filterEMA(filteredDeltaPosition, deltaPosition, dAlpha); 
+    auto medianDeltaPosition = derivativeFilter.getMedian(deltaPosition);
+    static AnalogIn KApot(PA_6); float dAlpha = 0.3F * KApot.read(); //XXX test;
+    filteredDeltaPosition = aemaFilter.calculate(medianDeltaPosition, dAlpha);
+    //filterEMA(filteredDeltaPosition, medianDeltaPosition, dAlpha); 
     auto cutDeltaPosition = filteredDeltaPosition; //threshold<float>(filteredDeltaPosition, -dThreshold, dThreshold);
     static AnalogIn KDpot(PA_7); float TD = 20.0F * KDpot.read(); //XXX test;
     float dTerm = KP * TD * cutDeltaPosition;
@@ -310,7 +312,8 @@ float HapticDevice::setActuator()
         std::cout << "  KP=" << hapticData.torqueGain;
         std::cout << "  dA=" << dAlpha;
         std::cout << "  TD=" << TD;
-        std::cout << "  dThr=" << dThreshold;
+        std::cout << "  med=" << medianDeltaPosition;
+        std::cout << "  flt=" << filteredDeltaPosition;
         std::cout << "  T=" << torque;
         std::cout << "  cPh=" << currentPhase;
         std::cout << "   \r" << std::flush;
@@ -318,10 +321,10 @@ float HapticDevice::setActuator()
 
     //XXX set global variables
     g_value[0] = filteredPosition;
-    g_value[1] = hapticData.targetPosition;
+    g_value[1] = targetPosition;
     g_value[2] = error;
-    g_value[3] = targetPosition;
-    g_value[4] = deltaPosition;
+    g_value[3] = deltaPosition;
+    g_value[4] = medianDeltaPosition;
     g_value[5] = filteredDeltaPosition;
     g_value[6] = pTerm;
     g_value[7] = iTerm;

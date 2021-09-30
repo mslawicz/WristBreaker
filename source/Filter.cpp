@@ -64,7 +64,7 @@ float AEMAFilter::calculate(float input, float alpha)
     //filtered deviation of input values
     filteredDeviation = filteredDeviation * (1.0F - DeviationAlpha) + fabsf(delta) * DeviationAlpha;
     //current alpha value scaled proportionally to current input change and nominal alpha
-    float scaledAlpha = alpha * fabsf(delta) / filteredDeviation;
+    float scaledAlpha = (filteredDeviation == 0) ? 1.0F : alpha * fabsf(delta) / filteredDeviation;
     //limit current alpha to max 1
     if(scaledAlpha > 1.0F)
     {

@@ -109,6 +109,7 @@ private:
     uint16_t noOfCalSteps;      //number of calibration steps
     float vD{0};            //direct component of magnetic flux vector
     float speed{0};         //device speed
+    AEMAFilter aemaFilter;
 };
 
 #endif /* HAPTIC_H_ */
