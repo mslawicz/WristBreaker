@@ -288,6 +288,7 @@ float HapticDevice::setActuator()
     float vQ = pTerm + iTerm;   //quadrature component
 
     //calculate direct component of magnetic flux vector
+    static AnalogIn KDpot(PA_7); KD = 30.0F * KDpot.read(); //XXX test
     float currentVD = KD * fabsf(speed);
     //envelope filter with fast rise and slow decay
     const float RiseFactor = 0.1F;
