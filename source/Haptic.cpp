@@ -40,7 +40,7 @@ HapticDevice::HapticDevice
     maxCalTorque(maxCalTorque),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    derivativeFilter(5), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    deltaPositionFilter(5),     //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
     integralLimit(integralLimit),
     KD(KD),
@@ -285,11 +285,9 @@ float HapticDevice::setActuator()
 
     //calculate derivative term of torque
     float deltaPosition = lastPosition - currentPosition;
-    static float filteredDeltaPosition{0.0F};
-    auto medianDeltaPosition = derivativeFilter.getMedian(deltaPosition);
+    auto medianDeltaPosition = deltaPositionFilter.getMedian(deltaPosition);
     static AnalogIn KApot(PA_6); float dAlpha = 0.3F * KApot.read(); //XXX test;
-    filteredDeltaPosition = aemaFilter.calculate(medianDeltaPosition, dAlpha);
-    //filterEMA(filteredDeltaPosition, medianDeltaPosition, dAlpha); 
+    filteredDeltaPosition = deltaPositionSmoothFilter.calculate(medianDeltaPosition, dAlpha);
     auto cutDeltaPosition = filteredDeltaPosition; //threshold<float>(filteredDeltaPosition, -dThreshold, dThreshold);
     static AnalogIn KDpot(PA_7); float TD = 20.0F * KDpot.read(); //XXX test;
     float dTerm = KP * TD * cutDeltaPosition;

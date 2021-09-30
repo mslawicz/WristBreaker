@@ -94,7 +94,7 @@ private:
     float maxCalTorque;      // maximum torque value during calibration phase
     float operationRange;    //the range of normal operation measured from reference position
     MedianFilter positionFilter;    //filters current position
-    MedianFilter derivativeFilter;  //filters position derivative
+    MedianFilter deltaPositionFilter;  //filters position change value
     float TI;        //integral time (multiplied by torque gain for integral gain)
     float KD;        //gain of the direct flux component (for controller stability)
     float dThreshold;       //threshold for derivative term
@@ -109,7 +109,8 @@ private:
     uint16_t noOfCalSteps;      //number of calibration steps
     float vD{0};            //direct component of magnetic flux vector
     float speed{0};         //device speed
-    AEMAFilter aemaFilter;
+    AEMAFilter deltaPositionSmoothFilter;
+    float filteredDeltaPosition{0.0F};      //filtered value of delta position
 };
 
 #endif /* HAPTIC_H_ */
