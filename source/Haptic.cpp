@@ -25,23 +25,26 @@ HapticDevice::HapticDevice
     Encoder* pEncoder,      // pointer to motor position encoder object
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
-    float maxCalMagnitude,      // maximum magnitude of flux vector value in calibration phase
+    float maxCalTorque,      // maximum torque value in calibration phase
     float operationRange,    // the range of normal operation from reference position
     float TI,                //integral time (see classic PID formula; TI=1/Ti)
     float integralLimit,     //limit of integral term
     float KD,                //gain of the direct flux component (for controller stability)
+    float dThreshold,        //threshold for derivative term
     uint16_t noOfCalSteps    //number of calibration steps
 ) :
     pMotor(pMotor),
     pEncoder(pEncoder),
     name(std::move(name)),
     referencePosition(referencePosition),
-    maxCalMagnitude(maxCalMagnitude),
+    maxCalTorque(maxCalTorque),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    derivativeFilter(9), //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
     integralLimit(integralLimit),
     KD(KD),
+    dThreshold(dThreshold),
     noOfCalSteps(noOfCalSteps),
     hapticData{HapticMode::Spring, false, 0}
 {
@@ -147,7 +150,7 @@ void HapticDevice::handler()
         {
             std::cout << "device " << name << " calibration started" << std::endl;  //XXX for test only
             currentPhase = 0.0F;
-            magnitude = 0.0F;
+            torque = 0.0F;
             phaseStep = PhaseStep;
             counter = 0;
             referencePhase = 0.0F;
@@ -160,7 +163,7 @@ void HapticDevice::handler()
         {
             const float CalibrationRange = operationRange * 0.7F;
             if(isInRange<float>(filteredPosition, -CalibrationRange, CalibrationRange) &&
-                (magnitude >= maxCalMagnitude))
+                (torque >= maxCalTorque))
             {
                 referencePhase += currentPhase - FullCycle * filteredPosition / positionPeriod;
                 counter++;
@@ -177,17 +180,17 @@ void HapticDevice::handler()
             }            
             //move motor to next position
             currentPhase += phaseStep;
-            //ramp of applied magnitude of flux vector
-            const float MagnitudeRise = 0.005F;     // 0.5% of magnitude rise at a time
-            magnitude += maxCalMagnitude * MagnitudeRise;
-            magnitude = limit<float>(magnitude, 0, maxCalMagnitude);
-            //set magnetic flux vector
-            pMotor->setFieldVector(currentPhase, magnitude);
+            //ramp of applied torque
+            const float TorqueRise = 0.005F;     // 0.5% of torque rise at a time
+            torque += maxCalTorque * TorqueRise;
+            torque = limit<float>(torque, 0, maxCalTorque);
+            //apply torque
+            pMotor->setFieldVector(currentPhase, torque);
 
             //XXX set global variables
             g_value[0] = filteredPosition;
             g_value[4] = currentPhase;
-            g_value[9] = magnitude;            
+            g_value[9] = torque;            
 
             if(counter >= noOfCalSteps)
             {
@@ -200,7 +203,7 @@ void HapticDevice::handler()
             break;
         }
 
-        // end the calibration process
+        // slowly move to reference position
         case HapticState::Mov2Ref:
         {
             const float speedLimit = 0.0002F;   //slooow!
@@ -224,7 +227,7 @@ void HapticDevice::handler()
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    hapticData.magnitudeLimit = 1.0F;
+                    hapticData.torqueLimit = 1.0F;
                     setActuator();
                     break;
                 }
@@ -244,11 +247,10 @@ void HapticDevice::handler()
     }
 }
 
-//drives the motor according to target position error and motor speed
+//set torque proportional to target position error
 //returns current position error
 float HapticDevice::setActuator()
 {
-    const float Rad2Deg = 57.2957795F;
     if(hapticData.deltaPosLimit == 0)
     {
         //target position rate of change limit off
@@ -266,16 +268,12 @@ float HapticDevice::setActuator()
     //calculate error from the target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
 
-    //calculate motor speed
-    float deltaPosition = lastPosition - currentPosition;
-    const float SpeedSmooth = 0.1F;
-    filterEMA<float>(speed, deltaPosition, SpeedSmooth);
-    lastPosition = currentPosition;
-
-    //calculate proportional term of quadrature component
+    //calculate proportional term of torque 
+    static AnalogIn KPpot(PA_5); hapticData.torqueGain = 3.0F * KPpot.read(); //XXX test;
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
-    //calculate integral term of quadrature component
+
+    //calculate integral term of torque
     if(hapticData.useIntegral)
     {
         iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
@@ -284,41 +282,24 @@ float HapticDevice::setActuator()
     {
         iTerm = 0;
     }
-    //calculate quadrature component of magnetic flux vector
-    float vQ = pTerm + iTerm;   //quadrature component
 
-    //calculate direct component of magnetic flux vector
-    static AnalogIn KDpot(PA_7); KD = 30.0F * KDpot.read(); //XXX test
-    float currentVD = KD * fabsf(speed);
-    //envelope filter with fast rise and slow decay
-    const float RiseFactor = 0.1F;
-    const float DecayFactor = 0.005F;
-    if(currentVD > vD)
-    {
-        filterEMA<float>(vD, currentVD, RiseFactor);
-    }
-    else
-    {
-        filterEMA<float>(vD, currentVD, DecayFactor);
-    }
+    //calculate derivative term of torque
+    float deltaPosition = lastPosition - currentPosition;
+    static float filteredDeltaPosition{0.0F};
+    static AnalogIn KApot(PA_6); float dAlpha = 0.5F * KApot.read(); //XXX test;
+    filterEMA(filteredDeltaPosition, deltaPosition, dAlpha); 
+    auto cutDeltaPosition = filteredDeltaPosition; //threshold<float>(filteredDeltaPosition, -dThreshold, dThreshold);
+    static AnalogIn KDpot(PA_7); float TD = 20.0F * KDpot.read(); //XXX test;
+    float dTerm = KP * TD * cutDeltaPosition;
+    lastPosition = currentPosition;
 
-    //calculate flux vector angle
-    float phaseShift{0};
-    if(0 == vD)
-    {
-        phaseShift = vQ > 0 ? QuarterCycle : -QuarterCycle;
-    }
-    else
-    {
-        phaseShift = Rad2Deg * atan2f(vQ, vD);
-    }
-    phaseShift = limit(phaseShift, -QuarterCycle, QuarterCycle);
+    //calculate requested torque with limit
+    torque = limit<float>(pTerm + iTerm + dTerm, -hapticData.torqueLimit, hapticData.torqueLimit);
 
-    //calculate flux vector magnitude
-    magnitude = limit<float>(sqrtf(vD * vD + vQ * vQ), 0.0F, hapticData.magnitudeLimit);
-
-    //apply calculated flux vector
-    pMotor->setFieldVector(currentPhase + phaseShift, magnitude);
+    //apply the requested torque to motor
+    float deltaPhase = torque > 0 ? QuarterCycle : -QuarterCycle;
+    float vectorMagnitude = fabsf(torque);
+    pMotor->setFieldVector(currentPhase + deltaPhase, vectorMagnitude);
 
     //XXX test
     static int cnt = 0;
@@ -326,11 +307,11 @@ float HapticDevice::setActuator()
     {
         std::cout << "pos=" << filteredPosition;
         std::cout << "  pot=" << hapticData.auxData;
-        std::cout << "  tG=" << hapticData.torqueGain;
-        std::cout << "  KP=" << KP;
-        std::cout << "  TI=" << TI;
-        std::cout << "  KD=" << KD;
-        std::cout << "  magn=" << magnitude;
+        std::cout << "  KP=" << hapticData.torqueGain;
+        std::cout << "  dA=" << dAlpha;
+        std::cout << "  TD=" << TD;
+        std::cout << "  dThr=" << dThreshold;
+        std::cout << "  T=" << torque;
         std::cout << "  cPh=" << currentPhase;
         std::cout << "   \r" << std::flush;
     }
@@ -340,12 +321,12 @@ float HapticDevice::setActuator()
     g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
     g_value[3] = targetPosition;
-    g_value[4] = speed * 10000;
-    g_value[5] = phaseShift;
-    g_value[6] = vQ;
-    g_value[7] = vD;
-    g_value[8] = magnitude;
-    g_value[9] = 0;
+    g_value[4] = deltaPosition;
+    g_value[5] = filteredDeltaPosition;
+    g_value[6] = pTerm;
+    g_value[7] = iTerm;
+    g_value[8] = dTerm;
+    g_value[9] = torque;
 
     return hapticData.targetPosition - filteredPosition;
 }

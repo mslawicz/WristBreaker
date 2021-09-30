@@ -30,7 +30,7 @@ struct HapticData       //NOLINT(altera-struct-pack-align)
     bool useIntegral;           // wether integral term must be used in torque calculations
     float targetPosition;       // the requested target position of zero torque (relative to the reference position)
     float torqueGain;           // gain for torque proportional term
-    float magnitudeLimit;       // current maximum magnitude of flux vector
+    float torqueLimit;          // current maximum torque value
     float deltaPosLimit;        // value of allowed position change; off when ==0
     float auxData;              // auxilary data for testing
 };
@@ -44,11 +44,12 @@ public:
         Encoder* pEncoder,      // pointer to motor position encoder object
         std::string name,       // name of the device
         float referencePosition,    // encoder reference (middle) position of the device
-        float maxCalMagnitude,   // maximum flux vector magnitude value in calibration phase
+        float maxCalTorque,      // maximum torque value in calibration phase
         float operationRange,    // the range of normal operation from reference position
         float TI,                //integral time (see classic PID formula; TI=1/Ti)
         float integralLimit,     //limit of integral term
         float KD,                //gain of the direct flux component (for controller stability)
+        float dThreshold,        //threshold for delta position (D term calculation)
         uint16_t noOfCalSteps    //number of calibration steps
     );
     ~HapticDevice();
@@ -89,12 +90,14 @@ private:
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
     float positionDeviation{0};     //filtered position deviation
-    float magnitude{0.0F};      // current magnitude of flux vector
-    float maxCalMagnitude;      // maximum flux vector magnitude value during calibration phase
+    float torque{0.0F};      // current torque of the motor
+    float maxCalTorque;      // maximum torque value during calibration phase
     float operationRange;    //the range of normal operation measured from reference position
     MedianFilter positionFilter;    //filters current position
+    MedianFilter derivativeFilter;  //filters position derivative
     float TI;        //integral time (multiplied by torque gain for integral gain)
     float KD;        //gain of the direct flux component (for controller stability)
+    float dThreshold;       //threshold for derivative term
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic dynamic parameters of this device
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
@@ -112,5 +115,5 @@ private:
 
 /*
 recommended motor setup:
-57BLY12530 Spring: torqueGain = 1.0 (soft) ... 2.8 (hard); TI=0.035; KD=18;
+57BLY12530 Spring: torqueGain = 1.1 (soft) ... 2.8 (hard); KD=16;
 */
