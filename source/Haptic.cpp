@@ -262,14 +262,15 @@ float HapticDevice::setActuator()
     //calculate the current motor electric phase
     currentPhase = cropAngle(referencePhase + FullCycle * filteredPosition / positionPeriod);
 
+    static float followPhase{currentPhase};
+    float deltaPhase = angleDifference(currentPhase, followPhase);
+    static AnalogIn KDPpot(PA_6); float dPhaseLimit = 10.0F * KDPpot.read();
+    deltaPhase = limit<float>(deltaPhase, -dPhaseLimit, dPhaseLimit);
+    followPhase += deltaPhase;
+
+
     //calculate error from the target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
-
-    //calculate motor speed
-    float deltaPosition = lastPosition - currentPosition;
-    static AnalogIn KApot(PA_6); float alpha = 0.3F * KApot.read();
-    filterEMA<float>(speed, deltaPosition, alpha);
-    lastPosition = currentPosition;
 
     //calculate proportional term of magnetic flux vector magnitude
     float KP = hapticData.torqueGain;
@@ -293,8 +294,6 @@ float HapticDevice::setActuator()
 
     //calculate magnetic flux vector angle
     float phaseShift = (force > 0 ? QuarterCycle : -QuarterCycle);
-    static AnalogIn KDpot(PA_7); KD = 1000.0F * KDpot.read();
-    phaseShift += speed * KD * QuarterCycle;
     phaseShift = limit(phaseShift, -QuarterCycle, QuarterCycle);
 
     //apply calculated flux vector
@@ -309,7 +308,7 @@ float HapticDevice::setActuator()
         std::cout << "  tG=" << hapticData.torqueGain;
         std::cout << "  KP=" << KP;
         std::cout << "  TI=" << TI;
-        std::cout << "  KD=" << KD;
+        std::cout << "  dPL=" << dPhaseLimit;
         std::cout << "  magn=" << magnitude;
         std::cout << "  cPh=" << currentPhase;
         std::cout << "   \r" << std::flush;
@@ -319,9 +318,9 @@ float HapticDevice::setActuator()
     g_value[0] = filteredPosition;
     g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
-    g_value[3] = targetPosition;
-    g_value[4] = speed * 10000;
-    g_value[5] = phaseShift;
+    g_value[3] = currentPhase;
+    g_value[4] = 10 * (deltaPhase + HalfCycle);
+    g_value[5] = followPhase;
     g_value[6] = pTerm;
     g_value[7] = iTerm;
     g_value[8] = magnitude;

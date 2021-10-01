@@ -67,6 +67,7 @@ public:
 private:
     float setActuator();
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
+    const float HalfCycle = 180.0F;    // 1/2 of electric cycle in degrees
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     MotorBLDC* pMotor;      // BLDC motor
     Encoder* pEncoder;      // motor position encoder
