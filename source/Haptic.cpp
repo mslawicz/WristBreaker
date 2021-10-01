@@ -248,7 +248,6 @@ void HapticDevice::handler()
 //returns current position error
 float HapticDevice::setActuator()
 {
-    const float Rad2Deg = 57.2957795F;
     if(hapticData.deltaPosLimit == 0)
     {
         //target position rate of change limit off
@@ -268,14 +267,15 @@ float HapticDevice::setActuator()
 
     //calculate motor speed
     float deltaPosition = lastPosition - currentPosition;
-    const float SpeedSmooth = 0.1F;
-    filterEMA<float>(speed, deltaPosition, SpeedSmooth);
+    static AnalogIn KApot(PA_6); float alpha = 0.3F * KApot.read();
+    filterEMA<float>(speed, deltaPosition, alpha);
     lastPosition = currentPosition;
 
-    //calculate proportional term of quadrature component
+    //calculate proportional term of magnetic flux vector magnitude
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
-    //calculate integral term of quadrature component
+
+    //calculate integral term of magnetic flux vector magnitude
     if(hapticData.useIntegral)
     {
         iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
@@ -284,38 +284,18 @@ float HapticDevice::setActuator()
     {
         iTerm = 0;
     }
-    //calculate quadrature component of magnetic flux vector
-    float vQ = pTerm + iTerm;   //quadrature component
 
-    //calculate direct component of magnetic flux vector
-    static AnalogIn KDpot(PA_7); KD = 30.0F * KDpot.read(); //XXX test
-    float currentVD = KD * fabsf(speed);
-    //envelope filter with fast rise and slow decay
-    const float RiseFactor = 0.1F;
-    const float DecayFactor = 0.005F;
-    if(currentVD > vD)
-    {
-        filterEMA<float>(vD, currentVD, RiseFactor);
-    }
-    else
-    {
-        filterEMA<float>(vD, currentVD, DecayFactor);
-    }
+    //calculate force
+    float force = pTerm + iTerm;
 
-    //calculate flux vector angle
-    float phaseShift{0};
-    if(0 == vD)
-    {
-        phaseShift = vQ > 0 ? QuarterCycle : -QuarterCycle;
-    }
-    else
-    {
-        phaseShift = Rad2Deg * atan2f(vQ, vD);
-    }
+    //calculate magnetic flux vector magnitude
+    magnitude = limit<float>(fabsf(force), 0.0F, hapticData.magnitudeLimit);
+
+    //calculate magnetic flux vector angle
+    float phaseShift = (force > 0 ? QuarterCycle : -QuarterCycle);
+    static AnalogIn KDpot(PA_7); KD = 1000.0F * KDpot.read();
+    phaseShift += speed * KD * QuarterCycle;
     phaseShift = limit(phaseShift, -QuarterCycle, QuarterCycle);
-
-    //calculate flux vector magnitude
-    magnitude = limit<float>(sqrtf(vD * vD + vQ * vQ), 0.0F, hapticData.magnitudeLimit);
 
     //apply calculated flux vector
     pMotor->setFieldVector(currentPhase + phaseShift, magnitude);
@@ -342,8 +322,8 @@ float HapticDevice::setActuator()
     g_value[3] = targetPosition;
     g_value[4] = speed * 10000;
     g_value[5] = phaseShift;
-    g_value[6] = vQ;
-    g_value[7] = vD;
+    g_value[6] = pTerm;
+    g_value[7] = iTerm;
     g_value[8] = magnitude;
     g_value[9] = 0;
 
