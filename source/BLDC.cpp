@@ -22,7 +22,7 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
     this->phaseC.period_us(PwmPeriodUs);
 }
 
-// returns sine(argument)
+// returns space vector modulation value
 // argument in degrees
 float MotorBLDC::getSvmValue(float argument)
 {
@@ -39,7 +39,7 @@ float MotorBLDC::getSvmValue(float argument)
 
     if (argument >= FullCycle)
     {
-        argument = std::fmod(argument, FullCycle);
+        argument = std::fmodf(argument, FullCycle);
     }
 
     if (argument >= HalfCycle)
@@ -84,9 +84,6 @@ void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
     double pwmDutyA = halfDuty + halfDuty * magnitude * getSvmValue(electricAngle - OneThirdCycle);
     double pwmDutyB = halfDuty + halfDuty * magnitude * getSvmValue(electricAngle);
     double pwmDutyC = halfDuty + halfDuty * magnitude * getSvmValue(electricAngle + OneThirdCycle);
-    // double pwmDutyA = magnitude * halfDuty * (1 + getSvmValue(electricAngle - OneThirdCycle));
-    // double pwmDutyB = magnitude * halfDuty * (1 + getSvmValue(electricAngle));
-    // double pwmDutyC = magnitude * halfDuty * (1 + getSvmValue(electricAngle + OneThirdCycle));    
 
     // drive PWM outputs with calculated PWM duties
     phaseA.write(pwmDutyA);
