@@ -291,8 +291,8 @@ float HapticDevice::setActuator()
     static AnalogIn KDpot(PA_7); KD = 30.0F * KDpot.read(); //XXX test
     float currentVD = KD * fabsf(speed);
     //envelope filter with fast rise and slow decay
-    const float RiseFactor = 0.1F;
-    const float DecayFactor = 0.005F;
+    const float RiseFactor = 0.99F;
+    const float DecayFactor = 0.99F;
     if(currentVD > vD)
     {
         filterEMA<float>(vD, currentVD, RiseFactor);
