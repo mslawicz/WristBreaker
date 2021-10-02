@@ -268,8 +268,13 @@ float HapticDevice::setActuator()
 
     //calculate motor speed
     float deltaPosition = lastPosition - currentPosition;
-    const float SpeedSmooth = 0.1F;
-    filterEMA<float>(speed, deltaPosition, SpeedSmooth);
+    const float FastSmooth = 0.05F;
+    const float SlowSmooth = 0.03F;
+    static float fastDeltaPos{0};
+    static float slowDeltaPos{0};
+    filterEMA<float>(fastDeltaPos, deltaPosition, FastSmooth);
+    filterEMA<float>(slowDeltaPos, deltaPosition, SlowSmooth);
+    speed = fastDeltaPos - slowDeltaPos;
     lastPosition = currentPosition;
 
     //calculate proportional term of quadrature component
@@ -339,9 +344,9 @@ float HapticDevice::setActuator()
     g_value[0] = filteredPosition;
     g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
-    g_value[3] = targetPosition;
-    g_value[4] = speed * 10000;
-    g_value[5] = phaseShift;
+    g_value[3] = fastDeltaPos;
+    g_value[4] = slowDeltaPos;
+    g_value[5] = speed;
     g_value[6] = vQ;
     g_value[7] = vD;
     g_value[8] = magnitude;
