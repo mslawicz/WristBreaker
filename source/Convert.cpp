@@ -26,13 +26,13 @@ float angleDifference(float angle1, float angle2)
     const float FullCycle = 360.0F;    // full electric cycle in degrees
     float dAngle = angle1 - angle2;
     //the difference must be in the range <-180,180>
-    if(dAngle > HalfCycle)
-    {
-        dAngle -= FullCycle;
-    } 
-    else if(dAngle < -HalfCycle)
-    {
-        dAngle += FullCycle;
-    }
+    // if(dAngle > HalfCycle)
+    // {
+    //     dAngle -= FullCycle;
+    // } 
+    // else if(dAngle < -HalfCycle)
+    // {
+    //     dAngle += FullCycle;
+    // }
     return dAngle;
 }

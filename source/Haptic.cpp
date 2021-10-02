@@ -260,14 +260,15 @@ float HapticDevice::setActuator()
     }
 
     //calculate the current motor electric phase
-    currentPhase = cropAngle(referencePhase + FullCycle * filteredPosition / positionPeriod);
+    //currentPhase = cropAngle(referencePhase + FullCycle * filteredPosition / positionPeriod);
+    currentPhase = referencePhase + FullCycle * filteredPosition / positionPeriod;
 
     static float chasingPhase{currentPhase};
     float deltaPhase = angleDifference(currentPhase, chasingPhase);
-    static AnalogIn KDPpot(PA_6); float dPhaseLimit = 10.0F * KDPpot.read();
+    static AnalogIn KDPpot(PA_6); float dPhaseLimit = 20.0F * KDPpot.read();
     deltaPhase = limit<float>(deltaPhase, -dPhaseLimit, dPhaseLimit);
     chasingPhase += deltaPhase;
-    chasingPhase = cropAngle(chasingPhase);
+    //chasingPhase = cropAngle(chasingPhase);
 
     //calculate error from the target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
@@ -319,7 +320,7 @@ float HapticDevice::setActuator()
     g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
     g_value[3] = currentPhase;
-    g_value[4] = phaseShift + HalfCycle;
+    g_value[4] = currentPhase + phaseShift;
     g_value[5] = chasingPhase;
     g_value[6] = pTerm;
     g_value[7] = iTerm;
