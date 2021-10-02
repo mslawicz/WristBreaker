@@ -85,4 +85,6 @@ template<typename T> bool isInRange(T value, T min, T max)
     return ((value >= min) && (value <= max));
 }
 
+float angleDifference(float angle1, float angle2);
+
 #endif /* CONVERT_H_ */
