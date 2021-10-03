@@ -272,9 +272,10 @@ float HapticDevice::setActuator()
     float KP = hapticData.torqueGain;
     float pTerm = KP * error;
     //calculate integral term of quadrature component
+    float TI = hapticData.integralTime;       //integral time (see classic PID formula; TI=1/Ti)
     if(hapticData.useIntegral)
     {
-        iTerm = limit<float>(iTerm + KP * hapticData.TI * error, -integralLimit, integralLimit);
+        iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
     }
     else
     {
@@ -284,7 +285,8 @@ float HapticDevice::setActuator()
     float vQ = pTerm + iTerm;   //quadrature component
 
     //calculate direct component of magnetic flux vector
-    float currentVD = hapticData.directGain * fabsf(speed);
+    float KD = hapticData.directGain;       //gain of the flux vector direct component (damping)
+    float currentVD =  KD * fabsf(speed);
     //envelope filter with fast rise and slow decay
     const float RiseFactor = 0.1F;
     const float DecayFactor = 0.005F;
@@ -321,10 +323,9 @@ float HapticDevice::setActuator()
     {
         std::cout << "pos=" << filteredPosition;
         std::cout << "  pot=" << hapticData.auxData;
-        std::cout << "  tG=" << hapticData.torqueGain;
         std::cout << "  KP=" << KP;
-        std::cout << "  TI=" << hapticData.TI;
-        std::cout << "  KD=" << hapticData.directGain;
+        std::cout << "  TI=" << TI;
+        std::cout << "  KD=" << KD;
         std::cout << "  magn=" << magnitude;
         std::cout << "  cPh=" << currentPhase;
         std::cout << "   \r" << std::flush;

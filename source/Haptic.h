@@ -30,7 +30,7 @@ struct HapticData       //NOLINT(altera-struct-pack-align)
     bool useIntegral;           // wether integral term must be used in torque calculations
     float targetPosition;       // the requested target position of zero torque (relative to the reference position)
     float torqueGain;           // gain of the flux vector quadrature component (torque)
-    float TI;                   // integral time (see classic PID formula; TI=1/Ti)
+    float integralTime;         // integral time (see classic PID formula; TI=1/Ti)
     float directGain;           // gain of the flux vector direct component (damping)
     float magnitudeLimit;       // current maximum magnitude of flux vector
     float deltaPosLimit;        // value of allowed position change; off when ==0
