@@ -22,7 +22,6 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.2F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
-        0.035F,                 //NOLINT    integral time (see classic PID formula; TI=1/Ti)
         0.1F,                   //NOLINT    limit of integral term
         500                     //NOLINT    number of calibration steps
     ),
@@ -103,6 +102,7 @@ void Commander::handler()
     rollActuatorData.useIntegral = (1 == systemPushbutton.read());
     rollActuatorData.targetPosition = 0;   //zeroPositionX,   //zero torque position from simulator
     static AnalogIn KPpot(PA_5); rollActuatorData.torqueGain = 3.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
+    rollActuatorData.TI = 0.035F;                 //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     static AnalogIn KDpot(PA_7); rollActuatorData.directGain = 30.0F * KDpot.read(); //XXX test
     rollActuatorData.deltaPosLimit = 0.0025F;    //range 0.5 / 200 Hz / 1 sec = 0.0025
     rollActuatorData.auxData = pot;

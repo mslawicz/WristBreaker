@@ -27,7 +27,6 @@ HapticDevice::HapticDevice
     float referencePosition,    // encoder reference (middle) position of the device
     float maxCalMagnitude,      // maximum magnitude of flux vector value in calibration phase
     float operationRange,    // the range of normal operation from reference position
-    float TI,                //integral time (see classic PID formula; TI=1/Ti)
     float integralLimit,     //limit of integral term
     uint16_t noOfCalSteps    //number of calibration steps
 ) :
@@ -38,7 +37,6 @@ HapticDevice::HapticDevice
     maxCalMagnitude(maxCalMagnitude),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    TI(TI),
     integralLimit(integralLimit),
     noOfCalSteps(noOfCalSteps),
     hapticData{HapticMode::Spring, false, 0}
@@ -276,7 +274,7 @@ float HapticDevice::setActuator()
     //calculate integral term of quadrature component
     if(hapticData.useIntegral)
     {
-        iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
+        iTerm = limit<float>(iTerm + KP * hapticData.TI * error, -integralLimit, integralLimit);
     }
     else
     {
@@ -325,7 +323,7 @@ float HapticDevice::setActuator()
         std::cout << "  pot=" << hapticData.auxData;
         std::cout << "  tG=" << hapticData.torqueGain;
         std::cout << "  KP=" << KP;
-        std::cout << "  TI=" << TI;
+        std::cout << "  TI=" << hapticData.TI;
         std::cout << "  KD=" << hapticData.directGain;
         std::cout << "  magn=" << magnitude;
         std::cout << "  cPh=" << currentPhase;
