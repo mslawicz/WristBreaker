@@ -29,7 +29,6 @@ HapticDevice::HapticDevice
     float operationRange,    // the range of normal operation from reference position
     float TI,                //integral time (see classic PID formula; TI=1/Ti)
     float integralLimit,     //limit of integral term
-    float KD,                //gain of the direct flux component (for controller stability)
     uint16_t noOfCalSteps    //number of calibration steps
 ) :
     pMotor(pMotor),
@@ -41,7 +40,6 @@ HapticDevice::HapticDevice
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     TI(TI),
     integralLimit(integralLimit),
-    KD(KD),
     noOfCalSteps(noOfCalSteps),
     hapticData{HapticMode::Spring, false, 0}
 {
@@ -288,8 +286,7 @@ float HapticDevice::setActuator()
     float vQ = pTerm + iTerm;   //quadrature component
 
     //calculate direct component of magnetic flux vector
-    static AnalogIn KDpot(PA_7); KD = 30.0F * KDpot.read(); //XXX test
-    float currentVD = KD * fabsf(speed);
+    float currentVD = hapticData.directGain * fabsf(speed);
     //envelope filter with fast rise and slow decay
     const float RiseFactor = 0.1F;
     const float DecayFactor = 0.005F;
@@ -329,7 +326,7 @@ float HapticDevice::setActuator()
         std::cout << "  tG=" << hapticData.torqueGain;
         std::cout << "  KP=" << KP;
         std::cout << "  TI=" << TI;
-        std::cout << "  KD=" << KD;
+        std::cout << "  KD=" << hapticData.directGain;
         std::cout << "  magn=" << magnitude;
         std::cout << "  cPh=" << currentPhase;
         std::cout << "   \r" << std::flush;

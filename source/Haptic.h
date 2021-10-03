@@ -29,7 +29,8 @@ struct HapticData       //NOLINT(altera-struct-pack-align)
     HapticMode hapticMode;      // haptic mode for haptic action phase
     bool useIntegral;           // wether integral term must be used in torque calculations
     float targetPosition;       // the requested target position of zero torque (relative to the reference position)
-    float torqueGain;           // gain for torque proportional term
+    float torqueGain;           // gain of the flux vector quadrature component (torque)
+    float directGain;           // gain of the flux vector direct component (damping)
     float magnitudeLimit;       // current maximum magnitude of flux vector
     float deltaPosLimit;        // value of allowed position change; off when ==0
     float auxData;              // auxilary data for testing
@@ -48,7 +49,6 @@ public:
         float operationRange,    // the range of normal operation from reference position
         float TI,                //integral time (see classic PID formula; TI=1/Ti)
         float integralLimit,     //limit of integral term
-        float KD,                //gain of the direct flux component (for controller stability)
         uint16_t noOfCalSteps    //number of calibration steps
     );
     ~HapticDevice();
@@ -95,7 +95,6 @@ private:
     float operationRange;    //the range of normal operation measured from reference position
     MedianFilter positionFilter;    //filters current position
     float TI;        //integral time (multiplied by torque gain for integral gain)
-    float KD;        //gain of the direct flux component (for controller stability)
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic dynamic parameters of this device
     std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
