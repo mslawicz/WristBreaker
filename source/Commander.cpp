@@ -92,29 +92,30 @@ void Commander::handler()
 
     //calculate pilot's yoke input
     float currentPositionX = rollActuator.getCurrentPosition();     // current poition X of the yoke
-    float zeroPositionX = rollActuator.getOperationRange() * simData.yokeXreference;   // requested zero torque position from simulator
-    float pilotInputX = currentPositionX - zeroPositionX;
+    float zeroPositionX = rollActuator.getOperationRange() * limit<float>(simData.yokeXreference, -1.0F, 1.0F);   // requested zero torque position from simulator
+    float pilotInputX = currentPositionX - zeroPositionX;   //pilot's X deflection from zero position
 
     //XXX test of haptic device
     float pot = testPot.read();
     HapticData& rollActuatorData = rollActuator.getHapticData();
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    rollActuatorData.useIntegral = (1 == systemPushbutton.read());
-    rollActuatorData.targetPosition = 0;   //zeroPositionX,   //zero torque position from simulator
+    rollActuatorData.useIntegral = ((simData.simFlags & 0x01U) != 0U);  //use integral when autopilot is on
+    rollActuatorData.targetPosition = zeroPositionX;   //zero torque position from simulator
     static AnalogIn KPpot(PA_5); rollActuatorData.torqueGain = 3.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     rollActuatorData.integralTime = 0.035F;      //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     static AnalogIn KDpot(PA_7); rollActuatorData.directGain = 30.0F * KDpot.read(); //XXX test
-    rollActuatorData.deltaPosLimit = 0.0025F;    //range 0.5 / 200 Hz / 1 sec = 0.0025
+    static AnalogIn KLpot(PA_6); rollActuatorData.deltaPosLimit = 0.0025F * KLpot.read(); //XXX test
+    //rollActuatorData.deltaPosLimit = 0.0025F;    //range 0.5 / 200 Hz / 1 sec = 0.0025
     rollActuatorData.auxData = pot;
 
     //XXX test of sinusoidal movement
     //const float Ampl = 0.15F * pot;
     //float zeroTest = Ampl * sin(handlerCallCounter * 0.001F);
     //rollActuatorData.targetPosition = zeroTest;
-    static float fpos = 0.0F;
-    filterEMA<float>(fpos, 0.3F * (pot - 0.5F), 0.95F);
+    //static float fpos = 0.0F;
+    //filterEMA<float>(fpos, 0.3F * (pot - 0.5F), 0.95F);
     //float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
-    rollActuatorData.targetPosition = fpos;
+    //rollActuatorData.targetPosition = fpos;
 
     rollActuator.handler();
 
@@ -167,6 +168,7 @@ void Commander::parseReportData()
     simData.flapsNumHandlePositions = parseData<uint8_t>(pData);
     simData.flapsHandleIndex = parseData<uint8_t>(pData);
     simData.yokeXreference = parseData<float>(pData);
+    simData.simFlags = parseData<uint32_t>(pData);
 }
 
 /*
