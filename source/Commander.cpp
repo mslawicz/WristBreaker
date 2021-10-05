@@ -40,6 +40,8 @@ Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue.call_every(HandlerPeriod, this, &Commander::handler);
 }
 
+//XXX test!!!
+void fn(int i) {}
 
 void Commander::handler()
 {
@@ -138,16 +140,18 @@ void Commander::handler()
     PCLink.sendReport(2, hidData);
 
     //XXX test
-    // static int cnt = 0;
-    // if(cnt++ %200 == 0) // NOLINT
-    // {
-    //     std::cout << "posX=" << currentPositionX;
-    //     std::cout << "  pot=" << pot;
-    //     std::cout << "  zeroX=" << zeroPositionX;
-    //     std::cout << "  pilX=" << pilotInputX;
-    //     std::cout << "  yokeX=" << simData.yokeXposition;
-    //     std::cout << "   \r" << std::flush;
-    // }
+    static DigitalOut marker(PF_2);
+    static SPI testSPI(PE_6, PE_5, PE_2, PE_4, use_gpio_ssel);
+    static const int BufferSize = 4;
+    static uint8_t wrBuffer1[BufferSize] = {0x21, 0x22, 0x23, 0x24};
+    static uint8_t wrBuffer2[BufferSize] = {0x25, 0x26, 0x27, 0x28};
+    static uint8_t rdBuffer[BufferSize];
+    marker.write(1);
+    //testSPI.write((const char*)wrBuffer, (int)BufferSize, (char*)rdBuffer, (int)BufferSize);
+    //testSPI.write(0x87);
+    testSPI.transfer<uint8_t>(wrBuffer1, BufferSize, rdBuffer, BufferSize, callback(fn));
+    testSPI.transfer<uint8_t>(wrBuffer2, BufferSize, rdBuffer, BufferSize, callback(fn));
+    marker.write(0);
 }
 
 /*
