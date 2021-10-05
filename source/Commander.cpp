@@ -40,9 +40,6 @@ Commander::Commander(events::EventQueue& eventQueue) :
     eventQueue.call_every(HandlerPeriod, this, &Commander::handler);
 }
 
-//XXX test!!!
-void fn(int i) {}
-
 void Commander::handler()
 {
     // heart beat
@@ -149,8 +146,8 @@ void Commander::handler()
     marker.write(1);
     //testSPI.write((const char*)wrBuffer, (int)BufferSize, (char*)rdBuffer, (int)BufferSize);
     //testSPI.write(0x87);
-    testSPI.transfer<uint8_t>(wrBuffer1, BufferSize, rdBuffer, BufferSize, callback(fn));
-    testSPI.transfer<uint8_t>(wrBuffer2, BufferSize, rdBuffer, BufferSize, callback(fn));
+    testSPI.transfer<uint8_t>(wrBuffer1, BufferSize, rdBuffer, BufferSize, callback(this, &Commander::fn));
+    testSPI.transfer<uint8_t>(wrBuffer2, BufferSize, rdBuffer, BufferSize, callback(this, &Commander::fn));
     marker.write(0);
 }
 

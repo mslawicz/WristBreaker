@@ -58,6 +58,9 @@ private:
     AnalogIn testPot;                           // XXX test potentiometer
     DigitalIn systemPushbutton;                 // Nucleo board blue button
     SimData simData{0};                         // data received and calculated from simConnect
+    //void fn(int k) { k++; } //XXX test !!!
+    DigitalOut mk{PG_1};  //XXX test !!!
+    void fn(int k) { mk=1; mk=0; } //XXX test !!!
 };
 
 #endif /* COMMANDER_H_ */
