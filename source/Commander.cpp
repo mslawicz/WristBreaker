@@ -140,17 +140,12 @@ void Commander::handler()
     static DigitalOut marker(PF_2);
     static SPI SPIdev1(PE_6, PE_5, PE_2, PE_4, use_gpio_ssel);
     static SPI SPIdev2(PE_6, PE_5, PE_2, PG_15, use_gpio_ssel);
-    static const int BufferSize = 4;
-    static uint8_t wrBuffer1[BufferSize] = {0x21, 0x22, 0x23, 0x24};
-    static uint8_t wrBuffer2[BufferSize];
+    static const int BufferSize = 6;
+    static uint8_t wrBuffer1[BufferSize] = {0x21, 0x22, 0x23, 0x24, 0x25, 0x26};
+    static uint8_t wrBuffer2[BufferSize] = {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
     static uint8_t rdBuffer[BufferSize];
     marker.write(1);
-    SPIdev1.write((const char*)wrBuffer1, (int)BufferSize, (char*)rdBuffer, (int)BufferSize);
-    int rx = SPIdev2.write(0x87);
-    SPIdev1.write(rx + 1);
-    for(int k=0; k<BufferSize; k++) { wrBuffer1[k] = rdBuffer[k] | 0x10;}
     SPIdev1.transfer<uint8_t>(wrBuffer1, BufferSize, rdBuffer, BufferSize, callback(this, &Commander::fn));
-    for(int k=0; k<BufferSize; k++) { wrBuffer2[k] = rdBuffer[k] + 4;}
     SPIdev2.transfer<uint8_t>(wrBuffer2, BufferSize, rdBuffer, BufferSize, callback(this, &Commander::fn));
     marker.write(0);
 }
