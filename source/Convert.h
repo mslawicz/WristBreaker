@@ -87,4 +87,16 @@ template<typename T> bool isInRange(T value, T min, T max)
 
 float angleDifference(float angle1, float angle2);
 
+template <typename T> unsigned char getParityBit(T data)
+{
+    const unsigned char BitsInByte = 8; 
+    unsigned char bits = BitsInByte * sizeof(T);
+    while (bits > 1)
+    {
+        bits >>= 1;     //NOLINT(hicpp-signed-bitwise)
+        data ^= (data >> bits);
+    }
+    return data & 1;
+}
+
 #endif /* CONVERT_H_ */
