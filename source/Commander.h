@@ -58,8 +58,6 @@ private:
     AnalogIn testPot;                           // XXX test potentiometer
     DigitalIn systemPushbutton;                 // Nucleo board blue button
     SimData simData{0};                         // data received and calculated from simConnect
-    DigitalOut mk{PG_1};  //XXX test !!!
-    void fn(int eventMask) { mk=1; mk=0; } //XXX test; eventMask gets callback event mask (expected SPI_EVENT_COMPLETE)
 };
 
 #endif /* COMMANDER_H_ */
