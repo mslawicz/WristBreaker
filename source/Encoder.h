@@ -40,6 +40,7 @@ class AS5048A : public Encoder
 public:
     explicit AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS);
     float getValue() override { return 0; }
+    void test();    //XXX test
 private:
     SPI interface;   
 };

@@ -75,3 +75,8 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
 {
     // TODO(AS5048A): initialize encoder here
 }
+
+void AS5048A::test()    //XXX test
+{
+
+}
