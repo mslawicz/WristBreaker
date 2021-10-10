@@ -74,13 +74,45 @@ void AS5600::program(const CommandVector& /*cv*/)
 AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
     interface(MOSI, MISO, SCLK, CS, use_gpio_ssel)
 {
-    // TODO(AS5048A): initialize encoder here
+    const int DataLength = 8;       //8-bit transmission
+    const int Mode = 1;             //Mode 1: POL=0, PHA=1
+    interface.format(DataLength, Mode);
 }
 
 void AS5048A::test()    //XXX test
 { 
-    const uint16_t command = 0xFFFF;
-    wrBuffer[0] = HI8(command);
-    wrBuffer[1] = LO8(command);
-    interface.write(reinterpret_cast<char*>(wrBuffer), DataSize, reinterpret_cast<char*>(rdBuffer), DataSize);
+    writeData(0x0016, Access::Write);
+    writeData(0x00A5, Access::Write);
+    writeData(0x0016, Access::Read);
+    const uint16_t command = 0x3FFD;
+    writeData(command, Access::Read);
+    //writeData(command, Access::Read, true); //asynchronous read
+}
+
+//write data to encoder / read previously requested data
+void AS5048A::writeData(uint16_t data, Access access, bool async)
+{
+    const uint8_t AccessPosition = 14U;
+    data |= static_cast<uint16_t>(static_cast<uint16_t>(access) << AccessPosition);
+    const uint8_t ParityPosition = 15U;
+    data |= static_cast<uint16_t>(getParityBit<uint16_t>(data) << ParityPosition);
+    wrBuffer[0] = HI8(data);
+    wrBuffer[1] = LO8(data);
+    if(async)
+    {
+        interface.transfer<uint8_t>(reinterpret_cast<uint8_t*>(wrBuffer), DataSize, reinterpret_cast<uint8_t*>(rdBuffer), DataSize, callback(this, &AS5048A::readCallback));
+    }
+    else
+    {
+        interface.write(reinterpret_cast<char*>(wrBuffer), DataSize, reinterpret_cast<char*>(rdBuffer), DataSize);
+    }
+}
+
+//callback on asynchronous data reception
+void AS5048A::readCallback(int event)
+{
+    if(event == SPI_EVENT_COMPLETE)     //NOLINT(hicpp-signed-bitwise)
+    {
+        //check read data here
+    }
 }

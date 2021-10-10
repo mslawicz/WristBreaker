@@ -11,6 +11,12 @@
 #include <mbed.h>
 #include "Console.h"
 
+enum struct Access: uint8_t
+{
+    Write = 0,
+    Read = 1
+};
+
 class Encoder
 {
 public:
@@ -41,11 +47,13 @@ public:
     explicit AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS);
     float getValue() override { return 0; }
     void test();    //XXX test
+    void writeData(uint16_t data, Access access, bool async = false);
 private:
+    void readCallback(int event);
     SPI interface;   
     static const int DataSize{2};
-    uint8_t wrBuffer[DataSize];     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
-    uint8_t rdBuffer[DataSize];     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
+    uint8_t wrBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
+    uint8_t rdBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
 };
 
 #endif /* ENCODER_H_ */
