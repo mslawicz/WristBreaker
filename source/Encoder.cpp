@@ -6,6 +6,7 @@
  */
 
 #include "Encoder.h"
+#include "Convert.h"
 #include <iostream>
 #include <iomanip>
 #include <chrono>
@@ -78,7 +79,8 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
 
 void AS5048A::test()    //XXX test
 { 
-    uint8_t wrBuffer[] = { 0xFF, 0xFF};
-    uint8_t rdBuffer[DataSize];
+    const uint16_t command = 0xFFFF;
+    wrBuffer[0] = HI8(command);
+    wrBuffer[1] = LO8(command);
     interface.write(reinterpret_cast<char*>(wrBuffer), DataSize, reinterpret_cast<char*>(rdBuffer), DataSize);
 }

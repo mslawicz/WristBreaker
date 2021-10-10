@@ -43,7 +43,9 @@ public:
     void test();    //XXX test
 private:
     SPI interface;   
-    const int DataSize{2};
+    static const int DataSize{2};
+    uint8_t wrBuffer[DataSize];     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
+    uint8_t rdBuffer[DataSize];     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
 };
 
 #endif /* ENCODER_H_ */
