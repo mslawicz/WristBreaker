@@ -77,6 +77,8 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
 }
 
 void AS5048A::test()    //XXX test
-{
-
+{ 
+    uint8_t wrBuffer[] = { 0xFF, 0xFF};
+    uint8_t rdBuffer[DataSize];
+    interface.write(reinterpret_cast<char*>(wrBuffer), DataSize, reinterpret_cast<char*>(rdBuffer), DataSize);
 }

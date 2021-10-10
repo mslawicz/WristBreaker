@@ -43,6 +43,7 @@ public:
     void test();    //XXX test
 private:
     SPI interface;   
+    const int DataSize{2};
 };
 
 #endif /* ENCODER_H_ */
