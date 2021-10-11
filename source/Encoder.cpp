@@ -81,10 +81,10 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
 
 void AS5048A::test()    //XXX test
 { 
-    // sendData(0x0016, Access::Write);
-    // sendData(0x00A5, Access::Write);
-    // sendData(0x0000, Access::Read);
-    // sendData(0x0016, Access::Read);
+    //sendData(0x3FFD, Access::Read);
+    //sendData(0x3FFE, Access::Read);
+    //sendData(0x3FFF, Access::Read);
+    //sendData(0x3FFF, Access::Read);
 }
 
 //send 16-bit data to encoder / receive previously requested data
@@ -111,6 +111,7 @@ void AS5048A::sendData(uint16_t data, Access access, bool async)
 //callback on asynchronous data reception
 void AS5048A::onReceptionCallback(int event)
 {
+    testPin = 1;
     if(event == SPI_EVENT_COMPLETE)     //NOLINT(hicpp-signed-bitwise)
     {
         const uint8_t Byte = 8U;
@@ -122,11 +123,12 @@ void AS5048A::onReceptionCallback(int event)
             value = static_cast<float>(data & Mask14) / static_cast<float>(Mask14);
         }
     }
+    testPin = 0;
 }
 
 //request of asynchronous encoder readback
 void AS5048A::readRequest()
 {
-    const uint16_t command = 0x3FFF;
-    sendData(command, Access::Read, true); //asynchronous read
+    const uint16_t command = 0x3FFF;        //command: read angle value
+    sendData(command, Access::Read, true);  //asynchronous read
 }
