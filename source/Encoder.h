@@ -45,15 +45,16 @@ class AS5048A : public Encoder
 {
 public:
     explicit AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS);
-    float getValue() override { return 0; }
+    float getValue() override { return value; }
     void test();    //XXX test
-    void writeData(uint16_t data, Access access, bool async = false);
+    void sendData(uint16_t data, Access access, bool async = false);
 private:
-    void readCallback(int event);
+    void onReceptionCallback(int event);
     SPI interface;   
     static const int DataSize{2};
     uint8_t wrBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
     uint8_t rdBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
+    float value{0};        //normalized encoder value; range <0,1>
 };
 
 #endif /* ENCODER_H_ */

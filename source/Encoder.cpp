@@ -81,16 +81,17 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
 
 void AS5048A::test()    //XXX test
 { 
-    writeData(0x0016, Access::Write);
-    writeData(0x00A5, Access::Write);
-    writeData(0x0016, Access::Read);
-    const uint16_t command = 0x3FFD;
-    writeData(command, Access::Read);
-    //writeData(command, Access::Read, true); //asynchronous read
+    // sendData(0x0016, Access::Write);
+    // sendData(0x00A5, Access::Write);
+    // sendData(0x0000, Access::Read);
+    // sendData(0x0016, Access::Read);
+    const uint16_t command = 0x3FFF;
+    //sendData(command, Access::Read);
+    sendData(command, Access::Read, true); //asynchronous read
 }
 
-//write data to encoder / read previously requested data
-void AS5048A::writeData(uint16_t data, Access access, bool async)
+//send 16-bit data to encoder / receive previously requested data
+void AS5048A::sendData(uint16_t data, Access access, bool async)
 {
     const uint8_t AccessPosition = 14U;
     data |= static_cast<uint16_t>(static_cast<uint16_t>(access) << AccessPosition);
@@ -100,19 +101,28 @@ void AS5048A::writeData(uint16_t data, Access access, bool async)
     wrBuffer[1] = LO8(data);
     if(async)
     {
-        interface.transfer<uint8_t>(reinterpret_cast<uint8_t*>(wrBuffer), DataSize, reinterpret_cast<uint8_t*>(rdBuffer), DataSize, callback(this, &AS5048A::readCallback));
+        //initialize asynchronously data transfer / read data in callback function
+        interface.transfer<uint8_t>(reinterpret_cast<uint8_t*>(wrBuffer), DataSize, reinterpret_cast<uint8_t*>(rdBuffer), DataSize, callback(this, &AS5048A::onReceptionCallback));
     }
     else
     {
+        //write data to encoder and read previously requested data
         interface.write(reinterpret_cast<char*>(wrBuffer), DataSize, reinterpret_cast<char*>(rdBuffer), DataSize);
     }
 }
 
 //callback on asynchronous data reception
-void AS5048A::readCallback(int event)
+void AS5048A::onReceptionCallback(int event)
 {
     if(event == SPI_EVENT_COMPLETE)     //NOLINT(hicpp-signed-bitwise)
     {
-        //check read data here
+        const uint8_t Byte = 8U;
+        uint16_t data = (rdBuffer[0] << Byte) + rdBuffer[1];
+        if(getParityBit<uint16_t>(data) == 0)
+        {
+            //parity bit OK
+            const uint16_t Mask14 = 0x3FFF;
+            value = static_cast<float>(data & Mask14) / static_cast<float>(Mask14);
+        }
     }
 }

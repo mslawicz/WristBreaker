@@ -318,18 +318,18 @@ float HapticDevice::setActuator()
     pMotor->setFieldVector(currentPhase + phaseShift, magnitude);
 
     //XXX test
-    static int cnt = 0;
-    if(cnt++ %200 == 0) // NOLINT
-    {
-        std::cout << "pos=" << filteredPosition;
-        std::cout << "  pot=" << hapticData.auxData;
-        std::cout << "  KP=" << KP;
-        std::cout << "  TI=" << TI;
-        std::cout << "  KD=" << KD;
-        std::cout << "  magn=" << magnitude;
-        std::cout << "  cPh=" << currentPhase;
-        std::cout << "   \r" << std::flush;
-    }
+    // static int cnt = 0;
+    // if(cnt++ %200 == 0) // NOLINT
+    // {
+    //     std::cout << "pos=" << filteredPosition;
+    //     std::cout << "  pot=" << hapticData.auxData;
+    //     std::cout << "  KP=" << KP;
+    //     std::cout << "  TI=" << TI;
+    //     std::cout << "  KD=" << KD;
+    //     std::cout << "  magn=" << magnitude;
+    //     std::cout << "  cPh=" << currentPhase;
+    //     std::cout << "   \r" << std::flush;
+    // }
 
     //XXX set global variables
     g_value[0] = filteredPosition;
