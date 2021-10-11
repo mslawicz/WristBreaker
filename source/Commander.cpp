@@ -139,6 +139,7 @@ void Commander::handler()
     //XXX test of AS5048 encoder
     static AS5048A encoderTest(PE_6, PE_5, PE_2, PE_4);
     encoderTest.test();
+    encoderTest.readRequest();
 
     static int cnt = 0;
     if(cnt++ %100 == 0) // NOLINT

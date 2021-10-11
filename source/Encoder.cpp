@@ -85,9 +85,6 @@ void AS5048A::test()    //XXX test
     // sendData(0x00A5, Access::Write);
     // sendData(0x0000, Access::Read);
     // sendData(0x0016, Access::Read);
-    const uint16_t command = 0x3FFF;
-    //sendData(command, Access::Read);
-    sendData(command, Access::Read, true); //asynchronous read
 }
 
 //send 16-bit data to encoder / receive previously requested data
@@ -125,4 +122,11 @@ void AS5048A::onReceptionCallback(int event)
             value = static_cast<float>(data & Mask14) / static_cast<float>(Mask14);
         }
     }
+}
+
+//request of asynchronous encoder readback
+void AS5048A::readRequest()
+{
+    const uint16_t command = 0x3FFF;
+    sendData(command, Access::Read, true); //asynchronous read
 }
