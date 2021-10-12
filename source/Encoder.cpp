@@ -144,13 +144,14 @@ void AS5048A::onReceptionCallback(int event)
         uint16_t data = (rdBuffer[0] << Byte) + rdBuffer[1];
         if(getParityBit<uint16_t>(data) == 0)
         {
-            //parity bit OK and data should not be discarded
+            //parity bit OK
             const uint16_t Mask14 = 0x3FFF;
-            value = static_cast<float>(data & Mask14) / static_cast<float>(Mask14);
+            data &= Mask14;
             if(reverse)
             {
-                value = 1.0F - value;
+                data = Mask14 - data;
             }
+            value = static_cast<float>(data) / static_cast<float>(Mask14 + 1U);     //range <0,1)
         }
     }
 }
