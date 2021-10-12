@@ -81,14 +81,14 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
 
 void AS5048A::test()    //XXX test
 { 
-    //sendData(0x3FFD, Access::Read);
-    //sendData(0x3FFE, Access::Read);
-    //sendData(0x3FFF, Access::Read);
-    //sendData(0x3FFF, Access::Read);
+    //transmit(0x3FFD, Access::Read);
+    //transmit(0x3FFE, Access::Read);
+    //transmit(0x3FFF, Access::Read);
+    //transmit(0x3FFF, Access::Read);
 }
 
 //send 16-bit data to encoder / receive previously requested data
-void AS5048A::sendData(uint16_t data, Access access, bool async)
+void AS5048A::transmit(uint16_t data, Access access, bool async)
 {
     const uint8_t AccessPosition = 14U;
     data |= static_cast<uint16_t>(static_cast<uint16_t>(access) << AccessPosition);
@@ -130,5 +130,5 @@ void AS5048A::onReceptionCallback(int event)
 void AS5048A::readRequest()
 {
     const uint16_t command = 0x3FFF;        //command: read angle value
-    sendData(command, Access::Read, true);  //asynchronous read
+    transmit(command, Access::Read, true);  //asynchronous read
 }

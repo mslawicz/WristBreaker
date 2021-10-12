@@ -50,7 +50,7 @@ public:
     void readRequest();
     void test();    //XXX test
 private:
-    void sendData(uint16_t data, Access access, bool async = false);
+    void transmit(uint16_t data, Access access, bool async = false);
     void onReceptionCallback(int event);
     SPI interface;   
     static const int DataSize{2};
