@@ -117,10 +117,8 @@ void AS5048A::onReceptionCallback(int event)
         if(getParityBit<uint16_t>(data) == 0)
         {
             //parity bit OK and data should not be discarded
-            testPin = 1;
             const uint16_t Mask14 = 0x3FFF;
             value = static_cast<float>(data & Mask14) / static_cast<float>(Mask14);
-            testPin = 0;
         }
     }
 }
