@@ -83,7 +83,7 @@ void AS5048A::displayStatus()    //display status of the encoder chip
 { 
     transmit(0x0001U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     transmit(0x3FFDU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    std::cout << "encoder AS5048A, value=";
+    std::cout << "encoder AS5048A, value=" << value;
     transmit(0x3FFEU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     //now the read buffer contains the response of 0x3FFD command
     const uint8_t CompHighBit = 3U;
