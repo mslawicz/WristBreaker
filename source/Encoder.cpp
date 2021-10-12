@@ -81,15 +81,22 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
 
 void AS5048A::test()    //XXX test
 { 
-    //transmit(0x3FFD, Access::Read);
-    //transmit(0x3FFE, Access::Read);
-    //transmit(0x3FFF, Access::Read);
-    //transmit(0x3FFF, Access::Read);
+    static int cnt = 0;
+    if(cnt++ %10 == 0) // NOLINT
+    {
+        transmit(0x3FFD, Access::Read);
+        transmit(0x3FFE, Access::Read);
+        transmit(0x0000, Access::Read);
+    }
 }
 
 //send 16-bit data to encoder / receive previously requested data
 void AS5048A::transmit(uint16_t data, Access access, bool async)
 {
+    if(data != 0x3FFF)
+    {
+        discardData = true;
+    }
     const uint8_t AccessPosition = 14U;
     data |= static_cast<uint16_t>(static_cast<uint16_t>(access) << AccessPosition);
     const uint8_t ParityPosition = 15U;
@@ -111,19 +118,20 @@ void AS5048A::transmit(uint16_t data, Access access, bool async)
 //callback on asynchronous data reception
 void AS5048A::onReceptionCallback(int event)
 {
-    testPin = 1;
     if(event == SPI_EVENT_COMPLETE)     //NOLINT(hicpp-signed-bitwise)
     {
         const uint8_t Byte = 8U;
         uint16_t data = (rdBuffer[0] << Byte) + rdBuffer[1];
-        if(getParityBit<uint16_t>(data) == 0)
+        if((getParityBit<uint16_t>(data) == 0) && (!discardData))
         {
-            //parity bit OK
+            //parity bit OK and data should not be discarded
+            testPin = 1;
             const uint16_t Mask14 = 0x3FFF;
             value = static_cast<float>(data & Mask14) / static_cast<float>(Mask14);
+            testPin = 0;
         }
+        discardData = false;
     }
-    testPin = 0;
 }
 
 //request of asynchronous encoder readback
