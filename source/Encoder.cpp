@@ -79,11 +79,27 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
     interface.format(DataLength, Mode);
 }
 
-void AS5048A::test()    //XXX test
+void AS5048A::displayStatus()    //display status of the encoder chip
 { 
-    transmit(0x3FFD, Access::Read);
-    transmit(0x3FFE, Access::Read);
-    transmit(0x3FFF, Access::Read);
+    transmit(0x0001U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    transmit(0x3FFDU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    std::cout << "encoder AS5048A, value=";
+    transmit(0x3FFEU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    //now the read buffer contains the response of 0x3FFD command
+    const uint8_t CompHighBit = 3U;
+    std::cout << ", comp high=" << (static_cast<uint16_t>(rdBuffer[0] >> CompHighBit) & 1U);
+    const uint8_t CompLowBit = 2U;
+    std::cout << ", comp low=" << (static_cast<uint16_t>(rdBuffer[0] >> CompLowBit) & 1U);
+    const uint8_t COFBit = 1U;
+    std::cout << ", COF=" << (static_cast<uint16_t>(rdBuffer[0] >> COFBit) & 1U);
+    const uint8_t OCFBit = 0U;
+    std::cout << ", OCF=" << (static_cast<uint16_t>(rdBuffer[0] >> OCFBit) & 1U);
+    std::cout << ", AGC=" << std::hex << "0x" << static_cast<uint16_t>(rdBuffer[1]);     
+    transmit(0x3FFFU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    //now the read buffer contains the response of 0x3FFE command
+    const uint8_t Byte = 8U;
+    const uint16_t DataMask = 0x3FFFU;        //14-bit data mask
+    std::cout << ", mag=" << std::hex << "0x" << (static_cast<uint16_t>((rdBuffer[0] << Byte) + rdBuffer[1]) & DataMask) << std::endl;
 }
 
 //send 16-bit data to encoder / receive previously requested data

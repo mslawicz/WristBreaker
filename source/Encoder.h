@@ -28,6 +28,7 @@ public:
     Encoder& operator=(Encoder&&) = default;
     virtual float getValue() =0;
     void readRequest() {};
+    void displayStatus() {};
 };
 
 // 12-bit rotary magnetic encoder with analog output
@@ -47,8 +48,8 @@ class AS5048A : public Encoder
 public:
     explicit AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS);
     float getValue() override { return value; }
-    void readRequest();
-    void test();    //XXX test
+    void readRequest();     //asynchronous value read request
+    void displayStatus();    //display status of the encoder chip
 private:
     void transmit(uint16_t data, Access access, bool async = false);
     void onReceptionCallback(int event);

@@ -140,19 +140,13 @@ void Commander::handler()
     static AS5048A encoderTest(PE_6, PE_5, PE_2, PE_4);
     static int cnt = 0;
     cnt++;
-    if(cnt %9 == 0) // NOLINT
+    if(cnt %50 == 0) // NOLINT
     {
-        encoderTest.test();
+        encoderTest.displayStatus();
     }
     else
     {
         encoderTest.readRequest();
-    }
-
-    if(cnt %133 == 0) // NOLINT
-    {
-        std::cout << "encoder=" << encoderTest.getValue();
-        std::cout << "   \r" << std::flush;
     }
 }
 
