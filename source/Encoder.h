@@ -35,18 +35,19 @@ public:
 class AS5600 : public Encoder
 {
 public:
-    explicit AS5600(PinName input);
-    float getValue() override { return analogInput.read(); }
+    explicit AS5600(PinName input, bool reverse = false);
+    float getValue() override;
     static void program(const CommandVector& /*cv*/);
 private:
     AnalogIn analogInput;
+    bool reverse;
 };
 
 // 14-bit rotary magnetic encoder with SPI output
 class AS5048A : public Encoder
 {
 public:
-    explicit AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS);
+    explicit AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS, bool reverse = false);
     float getValue() override { return value; }
     void readRequest();     //asynchronous value read request
     void displayStatus();    //display status of the encoder chip
@@ -54,6 +55,7 @@ private:
     void transmit(uint16_t data, Access access, bool async = false);
     void onReceptionCallback(int event);
     SPI interface;   
+    bool reverse;
     static const int DataSize{2};
     uint8_t wrBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
     uint8_t rdBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)

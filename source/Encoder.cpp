@@ -11,10 +11,21 @@
 #include <iomanip>
 #include <chrono>
 
-AS5600::AS5600(PinName input) :
-    analogInput(input)
+AS5600::AS5600(PinName input, bool reverse) :
+    analogInput(input),
+    reverse(reverse)
 {
 }
+
+float AS5600::getValue()
+{
+    float value = analogInput.read();
+    if(reverse)
+    {
+        value = 1.0F - value;
+    }
+    return value;
+}    
 
 // program the encoder AS5600 chip via I2C
 void AS5600::program(const CommandVector& /*cv*/)
@@ -71,8 +82,9 @@ void AS5600::program(const CommandVector& /*cv*/)
 
 }
 
-AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS) :
-    interface(MOSI, MISO, SCLK, CS, use_gpio_ssel)
+AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS, bool reverse) :
+    interface(MOSI, MISO, SCLK, CS, use_gpio_ssel),
+    reverse(reverse)
 {
     const int DataLength = 8;       //8-bit transmission
     const int Mode = 1;             //Mode 1: POL=0, PHA=1
@@ -135,6 +147,10 @@ void AS5048A::onReceptionCallback(int event)
             //parity bit OK and data should not be discarded
             const uint16_t Mask14 = 0x3FFF;
             value = static_cast<float>(data & Mask14) / static_cast<float>(Mask14);
+            if(reverse)
+            {
+                value = 1.0F - value;
+            }
         }
     }
 }

@@ -137,7 +137,7 @@ void Commander::handler()
     PCLink.sendReport(2, hidData);
 
     //XXX test of AS5048 encoder
-    static AS5048A encoderTest(PE_6, PE_5, PE_2, PE_4);
+    static AS5048A encoderTest(PE_6, PE_5, PE_2, PE_4, true);
     static int cnt = 0;
     cnt++;
     if(cnt %50 == 0) // NOLINT
