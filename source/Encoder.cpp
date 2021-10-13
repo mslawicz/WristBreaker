@@ -93,25 +93,54 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS, bool reve
 
 void AS5048A::displayStatus()    //display status of the encoder chip
 { 
-    transmit(0x0001U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    transmit(0x3FFDU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    std::cout << "encoder AS5048A, value=" << value;
-    transmit(0x3FFEU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    //now the read buffer contains the response of 0x3FFD command
-    const uint8_t CompHighBit = 3U;
-    std::cout << ", comp high=" << (static_cast<uint16_t>(rdBuffer[0] >> CompHighBit) & 1U);
-    const uint8_t CompLowBit = 2U;
-    std::cout << ", comp low=" << (static_cast<uint16_t>(rdBuffer[0] >> CompLowBit) & 1U);
-    const uint8_t COFBit = 1U;
-    std::cout << ", COF=" << (static_cast<uint16_t>(rdBuffer[0] >> COFBit) & 1U);
-    const uint8_t OCFBit = 0U;
-    std::cout << ", OCF=" << (static_cast<uint16_t>(rdBuffer[0] >> OCFBit) & 1U);
-    std::cout << ", AGC=" << std::hex << "0x" << static_cast<uint16_t>(rdBuffer[1]);     
-    transmit(0x3FFFU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    //now the read buffer contains the response of 0x3FFE command
-    const uint8_t Byte = 8U;
-    const uint16_t DataMask = 0x3FFFU;        //14-bit data mask
-    std::cout << ", mag=" << std::hex << "0x" << (static_cast<uint16_t>((rdBuffer[0] << Byte) + rdBuffer[1]) & DataMask) << std::endl;
+    uint16_t compHigh{0};
+    uint16_t compLow{0};
+    uint16_t COF{0};
+    uint16_t OCF{0};
+    uint16_t AGC{0};
+    uint16_t magnitude{0};
+    const uint8_t NoOfAttempts = 3;
+    uint8_t attempts = NoOfAttempts;
+    uint8_t error{0};
+    do
+    {
+        transmit(0x0001U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+        transmit(0x3FFDU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+        transmit(0x3FFEU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+        //now the read buffer contains the response of 0x3FFD command
+        const uint8_t CompHighBit = 3U;
+        compHigh = static_cast<uint16_t>(rdBuffer[0] >> CompHighBit) & 1U;
+        const uint8_t CompLowBit = 2U;
+        compLow = static_cast<uint16_t>(rdBuffer[0] >> CompLowBit) & 1U;
+        const uint8_t COFBit = 1U;
+        COF = static_cast<uint16_t>(rdBuffer[0] >> COFBit) & 1U;
+        const uint8_t OCFBit = 0U;
+        OCF = static_cast<uint16_t>(rdBuffer[0] >> OCFBit) & 1U;
+        AGC = static_cast<uint16_t>(rdBuffer[1]);
+        transmit(0x3FFFU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+        //now the read buffer contains the response of 0x3FFE command
+        const uint8_t Byte = 8U;
+        const uint16_t DataMask = 0x3FFFU;        //14-bit data mask
+        magnitude = static_cast<uint16_t>((rdBuffer[0] << Byte) + rdBuffer[1]) & DataMask;
+        const uint8_t ErrorFlagMask = 0x40;
+        error = rdBuffer[0] & ErrorFlagMask;
+    } while((--attempts > 0) && (error != 0));
+
+    std::cout << "encoder AS5048A";
+    if(error != 0)
+    {
+        std::cout << " status readout error" << std::endl;
+    }
+    else
+    {
+        std::cout << ", value=" << value;
+        std::cout << ", comp high=" << compHigh;
+        std::cout << ", comp low=" << compLow;
+        std::cout << ", COF=" << COF;
+        std::cout << ", OCF=" << OCF;
+        std::cout << ", AGC=" << std::hex << "0x" << AGC; 
+        std::cout << ", mag=" << std::hex << "0x" << magnitude << std::endl;
+    }
 }
 
 //send 16-bit data to encoder / receive previously requested data
@@ -142,7 +171,9 @@ void AS5048A::onReceptionCallback(int event)
     {
         const uint8_t Byte = 8U;
         uint16_t data = (rdBuffer[0] << Byte) + rdBuffer[1];
-        if(getParityBit<uint16_t>(data) == 0)
+        const uint8_t ErrorFlagMask = 0x40;
+        uint8_t errorFlag = rdBuffer[0] & ErrorFlagMask;
+        if((getParityBit<uint16_t>(data) == 0) && (errorFlag == 0))
         {
             //parity bit OK
             const uint16_t Mask14 = 0x3FFF;
@@ -153,12 +184,24 @@ void AS5048A::onReceptionCallback(int event)
             }
             value = static_cast<float>(data) / static_cast<float>(Mask14 + 1U);     //range <0,1)
         }
+        else
+        {
+            valueRdError = true;
+        }
     }
 }
 
 //request of asynchronous encoder readback
 void AS5048A::readRequest()
 {
+    if(valueRdError)
+    {
+        //data error occured - clear error flags
+        transmit(0x0001U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+        //request angle value for the next readout
+        transmit(0x3FFFU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+        valueRdError = false;
+    }
     const uint16_t command = 0x3FFF;        //command: read angle value
     transmit(command, Access::Read, true);  //asynchronous read
 }

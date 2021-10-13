@@ -60,6 +60,7 @@ private:
     uint8_t wrBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
     uint8_t rdBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
     float value{0};        //normalized encoder value; range <0,1>
+    bool valueRdError{false};   //flag indicating parity error during angle value readout
 };
 
 #endif /* ENCODER_H_ */
