@@ -37,6 +37,7 @@ class AS5600 : public Encoder
 public:
     explicit AS5600(PinName input, bool reverse = false);
     float getValue() override;
+    void displayStatus();    //display status of the encoder chip
     static void program(const CommandVector& /*cv*/);
 private:
     AnalogIn analogInput;

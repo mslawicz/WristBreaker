@@ -27,6 +27,11 @@ float AS5600::getValue()
     return value;
 }    
 
+void AS5600::displayStatus()    //display status of the encoder chip
+{ 
+    std::cout << "encoder AS5600, value=" << getValue() << std::endl;
+}
+
 // program the encoder AS5600 chip via I2C
 void AS5600::program(const CommandVector& /*cv*/)
 {
@@ -99,32 +104,28 @@ void AS5048A::displayStatus()    //display status of the encoder chip
     uint16_t OCF{0};
     uint16_t AGC{0};
     uint16_t magnitude{0};
-    const uint8_t NoOfAttempts = 3;
-    uint8_t attempts = NoOfAttempts;
     uint8_t error{0};
-    do
-    {
-        transmit(0x0001U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        transmit(0x3FFDU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        transmit(0x3FFEU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        //now the read buffer contains the response of 0x3FFD command
-        const uint8_t CompHighBit = 3U;
-        compHigh = static_cast<uint16_t>(rdBuffer[0] >> CompHighBit) & 1U;
-        const uint8_t CompLowBit = 2U;
-        compLow = static_cast<uint16_t>(rdBuffer[0] >> CompLowBit) & 1U;
-        const uint8_t COFBit = 1U;
-        COF = static_cast<uint16_t>(rdBuffer[0] >> COFBit) & 1U;
-        const uint8_t OCFBit = 0U;
-        OCF = static_cast<uint16_t>(rdBuffer[0] >> OCFBit) & 1U;
-        AGC = static_cast<uint16_t>(rdBuffer[1]);
-        transmit(0x3FFFU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-        //now the read buffer contains the response of 0x3FFE command
-        const uint8_t Byte = 8U;
-        const uint16_t DataMask = 0x3FFFU;        //14-bit data mask
-        magnitude = static_cast<uint16_t>((rdBuffer[0] << Byte) + rdBuffer[1]) & DataMask;
-        const uint8_t ErrorFlagMask = 0x40;
-        error = rdBuffer[0] & ErrorFlagMask;
-    } while((--attempts > 0) && (error != 0));
+
+    transmit(0x0001U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    transmit(0x3FFDU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    transmit(0x3FFEU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    //now the read buffer contains the response of 0x3FFD command
+    const uint8_t CompHighBit = 3U;
+    compHigh = static_cast<uint16_t>(rdBuffer[0] >> CompHighBit) & 1U;
+    const uint8_t CompLowBit = 2U;
+    compLow = static_cast<uint16_t>(rdBuffer[0] >> CompLowBit) & 1U;
+    const uint8_t COFBit = 1U;
+    COF = static_cast<uint16_t>(rdBuffer[0] >> COFBit) & 1U;
+    const uint8_t OCFBit = 0U;
+    OCF = static_cast<uint16_t>(rdBuffer[0] >> OCFBit) & 1U;
+    AGC = static_cast<uint16_t>(rdBuffer[1]);
+    transmit(0x3FFFU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    //now the read buffer contains the response of 0x3FFE command
+    const uint8_t Byte = 8U;
+    const uint16_t DataMask = 0x3FFFU;        //14-bit data mask
+    magnitude = static_cast<uint16_t>((rdBuffer[0] << Byte) + rdBuffer[1]) & DataMask;
+    const uint8_t ErrorFlagMask = 0x40;
+    error = rdBuffer[0] & ErrorFlagMask;
 
     std::cout << "encoder AS5048A";
     if(error != 0)
