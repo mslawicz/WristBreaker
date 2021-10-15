@@ -28,7 +28,7 @@ public:
     Encoder& operator=(Encoder&&) = default;
     virtual float getValue() =0;
     void readRequest() {};
-    void displayStatus() {};
+    virtual void displayStatus() =0;
 };
 
 // 12-bit rotary magnetic encoder with analog output
@@ -37,7 +37,7 @@ class AS5600 : public Encoder
 public:
     explicit AS5600(PinName input, bool reverse = false);
     float getValue() override;
-    void displayStatus();    //display status of the encoder chip
+    void displayStatus() override;    //display status of the encoder chip
     static void program(const CommandVector& /*cv*/);
 private:
     AnalogIn analogInput;
@@ -51,7 +51,7 @@ public:
     explicit AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS, bool reverse = false);
     float getValue() override { return value; }
     void readRequest();     //asynchronous value read request
-    void displayStatus();    //display status of the encoder chip
+    void displayStatus() override;    //display status of the encoder chip
 private:
     void transmit(uint16_t data, Access access, bool async = false);
     void onReceptionCallback(int event);

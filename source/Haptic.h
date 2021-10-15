@@ -64,6 +64,8 @@ public:
     static void listHapticDevices(const CommandVector& cv);        //list all registered haptic devices
     std::string getName() const { return name; }
     void startCalibration() { state = HapticState::StartCalibration; }
+    void displayStatus();   //display status of this haptic device
+    static void statusRequest(const CommandVector& cv);        //display status
 private:
     float setActuator();
     const float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
@@ -105,6 +107,7 @@ private:
     uint16_t noOfCalSteps;      //number of calibration steps
     float vD{0};            //direct component of magnetic flux vector
     float speed{0};         //device speed
+    bool isCalibrated{false};   //true if calibrated
 };
 
 #endif /* HAPTIC_H_ */

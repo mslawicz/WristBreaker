@@ -118,6 +118,7 @@ void HapticDevice::handler()
                 if(isInRange<float>(referencePhase, 0.0F, FullCycle))
                 {
                     std::cout << name << " reference phase restored " << referencePhase << std::endl;
+                    isCalibrated = true;
                     targetPosition = currentPosition;      //assures smooth movements to another position
                     state = HapticState::Mov2Ref;
                 }
@@ -147,6 +148,7 @@ void HapticDevice::handler()
             phaseStep = PhaseStep;
             counter = 0;
             referencePhase = 0.0F;
+            isCalibrated = false;            
             state = HapticState::Calibration;
             break;
         }
@@ -191,6 +193,7 @@ void HapticDevice::handler()
                 std::cout << "device " << name << " has been calibrated with reference phase " << referencePhase << std::endl;
                 KvStore::storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
                 targetPosition = filteredPosition;      //assures smooth movements to another position
+                isCalibrated = true;
                 state = HapticState::Mov2Ref;
             }
             break;
@@ -361,5 +364,55 @@ void HapticDevice::listHapticDevices(const CommandVector& /*cv*/)
             std::cout << hapticDevices[index]->getName();
             std::cout << std::endl;
         }
+    }
+}
+
+//display status of haptic device
+void HapticDevice::displayStatus()
+{
+    std::cout << getName() << ", ";
+    if(isCalibrated)
+    {
+        std::cout << "calibrated, ref phase=" << referencePhase << std::endl;
+    }
+    else
+    {
+        std::cout << "not calibrated" << std::endl;
+    }
+    std::cout << "ref pos=" << referencePosition << ", rel pos=" << filteredPosition;
+    std::cout << ", tar pos=" << targetPosition << ", oper range=" << -operationRange << "..." << operationRange  << std::endl;
+    std::cout << "motor poles=" << static_cast<int>(pMotor->getNoOfPoles()) << ", cur phase=" << currentPhase;
+    std::cout << ", I=" << magnitude << std::endl;
+    pEncoder->displayStatus();
+}
+
+// request status display
+void HapticDevice::statusRequest(const CommandVector& cv)
+{
+    if(cv.size() >= 2)
+    {
+        if(0 != isdigit(cv[1][0]))
+        {
+            //the first character of the second argument is a digit
+            int deviceIndex = stoi(cv[1]) - 1;
+            if(deviceIndex < hapticDevices.size())
+            {
+                std::cout << "device " << deviceIndex+1 << ": ";
+                hapticDevices[deviceIndex]->displayStatus();
+            }
+            else
+            {
+                std::cout << "error: haptic device of index " << cv[1] << " not found" << std::endl;
+            }
+        }
+        else
+        {
+            std::cout << "error: invalid haptic device index " << cv[1] << std::endl;
+        }
+
+    }
+    else
+    {
+        std::cout << "error: missing device index" << std::endl;
     }
 }
