@@ -25,6 +25,17 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.1F,                   //NOLINT    limit of integral term
         500                     //NOLINT    number of calibration steps
     ),
+    throttleActuator
+    (
+        new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 22),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+        new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
+        "throttle actuator",
+        0.75F,                  //NOLINT    device reference position (encoder value)
+        0.1F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
+        0.25F,                  //NOLINT    range of normal operation calculated from reference position
+        0.1F,                   //NOLINT    limit of integral term
+        500                     //NOLINT    number of calibration steps
+    ),
     testPot(PC_5),   //XXX test
     systemPushbutton(BUTTON1)
 {
@@ -136,10 +147,6 @@ void Commander::handler()
     placeData<char>('k', pData);
     placeData<char>('e', pData);
     PCLink.sendReport(2, hidData);
-
-    //XXX test of AS5048 encoder
-    static AS5048A encoderTest(PE_6, PE_5, PE_2, PE_4, true);
-    encoderTest.readRequest();
 }
 
 /*
