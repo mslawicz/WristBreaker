@@ -110,7 +110,7 @@ void Commander::handler()
     float pot = testPot.read();
     HapticData& rollActuatorData = rollActuator.getHapticData();
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    rollActuatorData.useIntegral = (simData.simFlags.Flag.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
+    rollActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
     rollActuatorData.targetPosition = zeroPositionX;   //zero torque position from simulator
     static AnalogIn KPpot(PA_5); rollActuatorData.torqueGain = 3.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     rollActuatorData.integralTime = 0.035F;      //NOLINT    integral time (see classic PID formula; TI=1/Ti)
@@ -167,7 +167,7 @@ void Commander::parseReportData()
     simData.flapsNumHandlePositions = parseData<uint8_t>(pData);
     simData.flapsHandleIndex = parseData<uint8_t>(pData);
     simData.yokeXreference = parseData<float>(pData);
-    simData.simFlags.Register = parseData<typeof(SimFlags::Register)>(pData);   //NOLINT(cppcoreguidelines-pro-type-union-access)
+    simData.simFlags.allFields = parseData<typeof(SimFlags::allFields)>(pData);   //NOLINT(cppcoreguidelines-pro-type-union-access)
 }
 
 /*

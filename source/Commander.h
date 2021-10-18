@@ -31,11 +31,11 @@ struct JoystickData     //NOLINT(altera-struct-pack-align)
 
 union SimFlags
 {
-    uint32_t Register;
+    uint32_t allFields;
     struct Fields
     {
         uint8_t autopilot :1;
-    } Flag;
+    } fields;
 };
 
 class Commander
