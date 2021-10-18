@@ -241,6 +241,9 @@ void HapticDevice::handler()
         default:
             break;
     }
+
+    //request of the encoder readout (to be used in the next pass)
+    pEncoder->readRequest();
 }
 
 //drives the motor according to target position error and motor speed
@@ -381,7 +384,7 @@ void HapticDevice::displayStatus()
     }
     std::cout << "ref pos=" << referencePosition << ", rel pos=" << filteredPosition;
     std::cout << ", tar pos=" << targetPosition << ", oper range=" << -operationRange << "..." << operationRange  << std::endl;
-    std::cout << "motor poles=" << static_cast<int>(pMotor->getNoOfPoles()) << ", cur phase=" << currentPhase;
+    std::cout << "motor poles=" << std::dec << static_cast<int>(pMotor->getNoOfPoles()) << ", cur phase=" << currentPhase;
     std::cout << ", magn=" << magnitude << std::endl;
     pEncoder->displayStatus();
 }
