@@ -29,6 +29,15 @@ struct JoystickData     //NOLINT(altera-struct-pack-align)
     uint32_t buttons;
 };
 
+union SimFlags
+{
+    uint32_t Register;
+    struct Fields
+    {
+        uint8_t autopilot :1;
+    } Flag;
+};
+
 class Commander
 {
 public:
@@ -43,7 +52,7 @@ private:
         bool flapsHandleSetRequest;
         float yokeXreference;       // yoke X reference position received from simulator (w/o vibrations)
         float yokeXposition;        // yoke X axis position sent to simulator
-        uint32_t simFlags;          // bit flags received from simulator
+        SimFlags simFlags;          // bit flags received from simulator
     };
     void handler();
     void parseReportData();                     // parse received report data

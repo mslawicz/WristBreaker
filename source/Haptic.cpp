@@ -382,7 +382,7 @@ void HapticDevice::displayStatus()
     std::cout << "ref pos=" << referencePosition << ", rel pos=" << filteredPosition;
     std::cout << ", tar pos=" << targetPosition << ", oper range=" << -operationRange << "..." << operationRange  << std::endl;
     std::cout << "motor poles=" << static_cast<int>(pMotor->getNoOfPoles()) << ", cur phase=" << currentPhase;
-    std::cout << ", I=" << magnitude << std::endl;
+    std::cout << ", magn=" << magnitude << std::endl;
     pEncoder->displayStatus();
 }
 
