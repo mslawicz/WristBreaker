@@ -65,7 +65,6 @@ private:
     std::vector<uint8_t> receivedReport;        // received report data from PC
     HapticDevice rollActuator;                  // yoke roll axis actuator
     HapticDevice throttleActuator;              // throttle lever actuator
-    AnalogIn testPot;                           // XXX test potentiometer
     DigitalIn systemPushbutton;                 // Nucleo board blue button
     SimData simData{0};                         // data received and calculated from simConnect
 };

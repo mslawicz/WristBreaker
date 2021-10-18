@@ -34,7 +34,6 @@ struct HapticData       //NOLINT(altera-struct-pack-align)
     float directGain;           // gain of the flux vector direct component (damping)
     float magnitudeLimit;       // current maximum magnitude of flux vector
     float deltaPosLimit;        // value of allowed position change; off when ==0
-    float auxData;              // auxilary data for testing
 };
 
 class HapticDevice

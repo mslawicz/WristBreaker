@@ -36,7 +36,6 @@ Commander::Commander(events::EventQueue& eventQueue) :
         0.1F,                   //NOLINT    limit of integral term
         500                     //NOLINT    number of calibration steps
     ),
-    testPot(PC_5),   //XXX test
     systemPushbutton(BUTTON1)
 {
     std::cout << "Commander object created\n";
@@ -106,29 +105,28 @@ void Commander::handler()
     float zeroPositionX = rollActuator.getOperationRange() * limit<float>(simData.yokeXreference, -1.0F, 1.0F);   // requested zero torque position from simulator
     float pilotInputX = currentPositionX - zeroPositionX;   //pilot's X deflection from zero position
 
-    //XXX test of haptic device
-    float pot = testPot.read();
+    //serve yoke roll actuator
     HapticData& rollActuatorData = rollActuator.getHapticData();
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     rollActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
     rollActuatorData.targetPosition = zeroPositionX;   //zero torque position from simulator
-    static AnalogIn KPpot(PA_5); rollActuatorData.torqueGain = 3.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     rollActuatorData.integralTime = 0.035F;      //NOLINT    integral time (see classic PID formula; TI=1/Ti)
+    rollActuatorData.deltaPosLimit = 0.0025F;    //range 0.5 / 200 Hz / 1 sec = 0.0025
+    rollActuator.handler();
+
+    //serve throttle lever actuator
+    HapticData& throttleActuatorData = throttleActuator.getHapticData();
+    throttleActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
+    throttleActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
+    throttleActuatorData.targetPosition = 0;   //zero torque position
+    throttleActuatorData.integralTime = 0.035F;      //NOLINT    integral time (see classic PID formula; TI=1/Ti)
+    throttleActuatorData.deltaPosLimit = 0.0025F;    //range 0.5 / 200 Hz / 1 sec = 0.0025
+    throttleActuator.handler();    
+
+    
+    static AnalogIn KPpot(PA_5); rollActuatorData.torqueGain = 3.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KDpot(PA_7); rollActuatorData.directGain = 30.0F * KDpot.read(); //XXX test
     static AnalogIn KLpot(PA_6); rollActuatorData.deltaPosLimit = 0.0025F * KLpot.read(); //XXX test
-    //rollActuatorData.deltaPosLimit = 0.0025F;    //range 0.5 / 200 Hz / 1 sec = 0.0025
-    rollActuatorData.auxData = pot;
-
-    //XXX test of sinusoidal movement
-    //const float Ampl = 0.15F * pot;
-    //float zeroTest = Ampl * sin(handlerCallCounter * 0.001F);
-    //rollActuatorData.targetPosition = zeroTest;
-    //static float fpos = 0.0F;
-    //filterEMA<float>(fpos, 0.3F * (pot - 0.5F), 0.95F);
-    //float fpos = ((handlerCallCounter / 200) & 1) ? Ampl : -Ampl;
-    //rollActuatorData.targetPosition = fpos;
-
-    rollActuator.handler();
 
     //prepare data to be sent to simulator 
     // convert +-operationalRange deflection to <-1,1> range
