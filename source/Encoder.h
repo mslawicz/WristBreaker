@@ -27,7 +27,7 @@ public:
     Encoder(Encoder&&) = default;
     Encoder& operator=(Encoder&&) = default;
     virtual float getValue() =0;
-    void readRequest() {};
+    virtual void readRequest() =0;
     virtual void displayStatus() =0;
 };
 
@@ -38,6 +38,7 @@ public:
     explicit AS5600(PinName input, bool reverse = false);
     float getValue() override;
     void displayStatus() override;    //display status of the encoder chip
+    void readRequest() override {}
     static void program(const CommandVector& /*cv*/);
 private:
     AnalogIn analogInput;
@@ -50,7 +51,7 @@ class AS5048A : public Encoder
 public:
     explicit AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS, bool reverse = false);
     float getValue() override { return value; }
-    void readRequest();     //asynchronous value read request
+    void readRequest() override;     //asynchronous value read request
     void displayStatus() override;    //display status of the encoder chip
 private:
     void transmit(uint16_t data, Access access, bool async = false);
@@ -61,7 +62,6 @@ private:
     uint8_t wrBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
     uint8_t rdBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
     float value{0};        //normalized encoder value; range <0,1>
-    bool valueRdError{false};   //flag indicating parity error during angle value readout
 };
 
 #endif /* ENCODER_H_ */
