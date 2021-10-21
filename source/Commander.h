@@ -43,6 +43,7 @@ class Commander
 public:
     explicit Commander(events::EventQueue& eventQueue);
     void displayIncomingReport(const CommandVector& /*cv*/);
+    void handler();
 private:
     struct SimData      //NOLINT(altera-struct-pack-align)
     {
@@ -54,7 +55,6 @@ private:
         float yokeXposition;        // yoke X axis position sent to simulator
         SimFlags simFlags;          // bit flags received from simulator
     };
-    void handler();
     void parseReportData();                     // parse received report data
     events::EventQueue& eventQueue;             // event queue of the Commander's thread
     DigitalOut heartBeatLed;                    // Commander heartbeat LED

@@ -41,8 +41,14 @@ int main() // NOLINT(modernize-use-trailing-return-type)
     // create main object
     Commander commander(mainEventQueue);
 
-    // process the event queue
-    mainEventQueue.dispatch_forever();
+    //main loop
+    while(true)
+    {
+        // process the event queue
+        mainEventQueue.dispatch_once();
+        commander.handler();
+        ThisThread::sleep_for(1ms);
+    }
 
     return 0;
 }

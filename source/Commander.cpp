@@ -48,7 +48,6 @@ Commander::Commander(events::EventQueue& eventQueue) :
     Console::getInstance().registerCommand("lhd", "list all registered haptic devices", callback(&HapticDevice::listHapticDevices));
     Console::getInstance().registerCommand("chd", "calibrate haptic device <index>", callback(&HapticDevice::calibrationRequest));
     Console::getInstance().registerCommand("dshd", "display status of haptic device <index>", callback(&HapticDevice::statusRequest));
-    eventQueue.call_every(HandlerPeriod, this, &Commander::handler);
 }
 
 void Commander::handler()
