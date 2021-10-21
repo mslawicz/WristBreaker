@@ -10,8 +10,7 @@
 #define USB_PID     0x5712 //joystick in FS mode +2
 #define USB_VER     0x0001 //WristBreaker ver. 1
 
-Commander::Commander(events::EventQueue& eventQueue) :
-    eventQueue(eventQueue),
+Commander::Commander() :
     heartBeatLed(LED2),
     PCLink(USB_VID, USB_PID, USB_VER),
     rollActuator

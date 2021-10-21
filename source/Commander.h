@@ -41,7 +41,7 @@ union SimFlags
 class Commander
 {
 public:
-    explicit Commander(events::EventQueue& eventQueue);
+    explicit Commander();
     void displayIncomingReport(const CommandVector& /*cv*/);
     void handler();
 private:
@@ -56,7 +56,6 @@ private:
         SimFlags simFlags;          // bit flags received from simulator
     };
     void parseReportData();                     // parse received report data
-    events::EventQueue& eventQueue;             // event queue of the Commander's thread
     DigitalOut heartBeatLed;                    // Commander heartbeat LED
     const std::chrono::milliseconds HandlerPeriod{5};     // period of the handler calls
     uint32_t handlerCallCounter{0};             // counter of the handler calls 

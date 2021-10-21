@@ -34,20 +34,14 @@ int main() // NOLINT(modernize-use-trailing-return-type)
     Console::getInstance().registerCommand("h", "help (display command list)", callback(&Console::getInstance(), &Console::displayHelp));
     Console::getInstance().registerCommand("lt", "list threads", callback(listThreads));
 
-    // main event queue
-    const int MaxEvents = 32;
-    events::EventQueue mainEventQueue(MaxEvents * EVENTS_EVENT_SIZE, nullptr);
-
     // create main object
-    Commander commander(mainEventQueue);
+    Commander commander;
 
     //main loop
     while(true)
     {
-        // process the event queue
-        mainEventQueue.dispatch_once();
         commander.handler();
-        ThisThread::sleep_for(1ms);
+        ThisThread::sleep_for(std::chrono::milliseconds(5));
     }
 
     return 0;
