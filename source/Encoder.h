@@ -50,6 +50,7 @@ public:
     explicit AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS, bool reverse = false);
     float getValue() override;
     void displayStatus() override;    //display status of the encoder chip
+    static Mutex spiMutex;      //NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 private:
     void transmit(uint16_t data, Access access);
     SPI interface;   

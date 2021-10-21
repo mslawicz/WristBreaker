@@ -11,6 +11,8 @@
 #include <iomanip>
 #include <chrono>
 
+Mutex AS5048A::spiMutex;    //NOLINT(fuchsia-statically-constructed-objects,cppcoreguidelines-avoid-non-const-global-variables)
+
 AS5600::AS5600(PinName input, bool reverse) :
     analogInput(input),
     reverse(reverse)
@@ -106,6 +108,7 @@ void AS5048A::displayStatus()    //display status of the encoder chip
     uint16_t magnitude{0};
     uint16_t error{0};
 
+    spiMutex.lock();
     transmit(0x0001U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     transmit(0x0000U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     transmit(0x3FFDU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
@@ -127,6 +130,7 @@ void AS5048A::displayStatus()    //display status of the encoder chip
     magnitude = static_cast<uint16_t>((rdBuffer[0] << Byte) + rdBuffer[1]) & DataMask;
     const uint8_t ErrorFlagBit = 2U;
     error = static_cast<uint16_t>(rdBuffer[0] >> ErrorFlagBit) & 1U;
+    spiMutex.unlock();
 
     std::cout << "encoder AS5048A";
     std::cout << ", value=" << value;
@@ -156,9 +160,11 @@ void AS5048A::transmit(uint16_t data, Access access)
 float AS5048A::getValue()
 {
     const uint16_t command = 0x3FFF;        //command: read angle value
+    spiMutex.lock();
     transmit(command, Access::Read);        //send command and read the response of the previous command
     const uint8_t Byte = 8U;
     uint16_t data = (rdBuffer[0] << Byte) + rdBuffer[1];
+    spiMutex.unlock();
     if(getParityBit<uint16_t>(data) == 0)
     {
         //parity bit OK
