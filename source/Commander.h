@@ -66,6 +66,7 @@ private:
     HapticDevice throttleActuator;              // throttle lever actuator
     DigitalIn systemPushbutton;                 // Nucleo board blue button
     SimData simData{0};                         // data received and calculated from simConnect
+    Timer sendTimer;                            // measures time between usb reports sending
 };
 
 #endif /* COMMANDER_H_ */

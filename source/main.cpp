@@ -18,6 +18,7 @@
 #include "Commander.h"
 #include "Statistics.h"
 #include "Storage.h"
+#include <chrono>
 #include <iostream>
 #include <mbed.h>
 
@@ -38,10 +39,11 @@ int main() // NOLINT(modernize-use-trailing-return-type)
     Commander commander;
 
     //main loop
+    const auto MainLoopSleepTime = std::chrono::milliseconds(1);
     while(true)
     {
         commander.handler();
-        ThisThread::sleep_for(std::chrono::milliseconds(5));
+        ThisThread::sleep_for(MainLoopSleepTime);
     }
 
     return 0;

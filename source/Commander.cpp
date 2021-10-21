@@ -2,8 +2,10 @@
 #include "BLDC.h"
 #include "Convert.h"
 #include "Encoder.h"
+#include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <ratio>
 
 
 #define USB_VID     0x0483 //STElectronics
@@ -41,6 +43,7 @@ Commander::Commander() :
 
     // connect USB HID device
     PCLink.connect();
+    sendTimer.start();
 
     Console::getInstance().registerCommand("rr", "display latest received report data from PC", callback(this, &Commander::displayIncomingReport));
     Console::getInstance().registerCommand("pec", "program the encoder AS5600 chip", callback(&AS5600::program));
@@ -132,17 +135,22 @@ void Commander::handler()
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
-    //send USB HID report 2
-    std::vector<uint8_t> hidData;
-    const size_t HidDataSize = 63;
-    hidData.resize(HidDataSize);
-    uint8_t* pData = hidData.data();
-    placeData<float>(simData.yokeXposition , pData);
-    placeData<char>('y', pData);
-    placeData<char>('o', pData);
-    placeData<char>('k', pData);
-    placeData<char>('e', pData);
-    PCLink.sendReport(2, hidData);
+    const auto UsbSendInterval = std::chrono::milliseconds(10);
+    if(sendTimer.elapsed_time() > UsbSendInterval)
+    {
+        //send USB HID report 2
+        std::vector<uint8_t> hidData;
+        const size_t HidDataSize = 63;
+        hidData.resize(HidDataSize);
+        uint8_t* pData = hidData.data();
+        placeData<float>(simData.yokeXposition , pData);
+        placeData<char>('y', pData);
+        placeData<char>('o', pData);
+        placeData<char>('k', pData);
+        placeData<char>('e', pData);
+        PCLink.sendReport(2, hidData);
+        sendTimer.reset();
+    }
 }
 
 /*
