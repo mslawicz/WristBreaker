@@ -241,9 +241,6 @@ void HapticDevice::handler()
         default:
             break;
     }
-
-    //request of the encoder readout (to be used in the next pass)
-    pEncoder->readRequest();
 }
 
 //drives the motor according to target position error and motor speed

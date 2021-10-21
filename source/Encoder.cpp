@@ -140,7 +140,7 @@ void AS5048A::displayStatus()    //display status of the encoder chip
 }
 
 //send 16-bit data to encoder / receive previously requested data
-void AS5048A::transmit(uint16_t data, Access access, bool async)
+void AS5048A::transmit(uint16_t data, Access access)
 {
     const uint8_t AccessPosition = 14U;
     data |= static_cast<uint16_t>(static_cast<uint16_t>(access) << AccessPosition);
@@ -148,42 +148,27 @@ void AS5048A::transmit(uint16_t data, Access access, bool async)
     data |= static_cast<uint16_t>(getParityBit<uint16_t>(data) << ParityPosition);
     wrBuffer[0] = HI8(data);
     wrBuffer[1] = LO8(data);
-    if(async)
-    {
-        //initialize asynchronously data transfer / read data in callback function
-        interface.transfer<uint8_t>(reinterpret_cast<uint8_t*>(wrBuffer), DataSize, reinterpret_cast<uint8_t*>(rdBuffer), DataSize, callback(this, &AS5048A::onReceptionCallback));
-    }
-    else
-    {
-        //write data to encoder and read previously requested data
-        interface.write(reinterpret_cast<char*>(wrBuffer), DataSize, reinterpret_cast<char*>(rdBuffer), DataSize);
-    }
+    //write data to encoder and read previously requested data
+    interface.write(reinterpret_cast<char*>(wrBuffer), DataSize, reinterpret_cast<char*>(rdBuffer), DataSize);
 }
 
-//callback on asynchronous data reception
-void AS5048A::onReceptionCallback(int event)
-{
-    if(event == SPI_EVENT_COMPLETE)     //NOLINT(hicpp-signed-bitwise)
-    {
-        const uint8_t Byte = 8U;
-        uint16_t data = (rdBuffer[0] << Byte) + rdBuffer[1];
-        if(getParityBit<uint16_t>(data) == 0)
-        {
-            //parity bit OK
-            const uint16_t Mask14 = 0x3FFF;
-            data &= Mask14;
-            if(reverse)
-            {
-                data = Mask14 - data;
-            }
-            value = static_cast<float>(data) / static_cast<float>(Mask14 + 1U);     //range <0,1)
-        }
-    }
-}
-
-//request of asynchronous encoder readback
-void AS5048A::readRequest()
+//read angle from encoder chip and return last value 
+float AS5048A::getValue()
 {
     const uint16_t command = 0x3FFF;        //command: read angle value
-    transmit(command, Access::Read, true);  //asynchronous read
-}
+    transmit(command, Access::Read);        //send command and read the response of the previous command
+    const uint8_t Byte = 8U;
+    uint16_t data = (rdBuffer[0] << Byte) + rdBuffer[1];
+    if(getParityBit<uint16_t>(data) == 0)
+    {
+        //parity bit OK
+        const uint16_t Mask14 = 0x3FFF;
+        data &= Mask14;
+        if(reverse)
+        {
+            data = Mask14 - data;
+        }
+        value = static_cast<float>(data) / static_cast<float>(Mask14 + 1U);     //range <0,1)
+    }
+    return value;
+}    
