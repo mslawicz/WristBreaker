@@ -8,9 +8,11 @@
 #include "Haptic.h"
 #include "Convert.h"
 #include "Storage.h"
+#include <chrono>
 #include <cmath>
 #include <iostream>
 #include <ostream>
+#include <ratio>
 #include <utility>
 #include <cctype>
 
@@ -44,6 +46,7 @@ HapticDevice::HapticDevice
     pMotor->setEnablePin(1);
     positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());     //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     hapticDevices.push_back(this);
+    callTimer.start();
 }
 
 HapticDevice::~HapticDevice()
@@ -87,6 +90,8 @@ void HapticDevice::calibrationRequest(const CommandVector& cv)
 // to be called periodically
 void HapticDevice::handler()
 {
+    interval = std::chrono::duration<float>(callTimer.elapsed_time()).count();
+    callTimer.reset();
     const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 0.1F;
     encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
@@ -373,12 +378,14 @@ void HapticDevice::displayStatus()
     std::cout << getName() << ", ";
     if(isCalibrated)
     {
-        std::cout << "calibrated, ref phase=" << referencePhase << std::endl;
+        std::cout << "calibrated, ref phase=" << referencePhase;
     }
     else
     {
-        std::cout << "not calibrated" << std::endl;
+        std::cout << "not calibrated";
     }
+    const uint16_t Sec2Mill = 1000U;
+    std::cout << ", interval=" << interval * Sec2Mill << "ms" << std::endl;
     std::cout << "ref pos=" << referencePosition << ", rel pos=" << filteredPosition;
     std::cout << ", tar pos=" << targetPosition << ", oper range=" << -operationRange << "..." << operationRange  << std::endl;
     std::cout << "motor poles=" << std::dec << static_cast<int>(pMotor->getNoOfPoles()) << ", cur phase=" << currentPhase;

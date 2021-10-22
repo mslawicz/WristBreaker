@@ -13,6 +13,7 @@
 #include "Encoder.h"
 #include "Filter.h"
 #include "Console.h"
+#include <algorithm>
 #include <mbed.h>
 #include <string>
 #include <vector>
@@ -107,6 +108,8 @@ private:
     float vD{0};            //direct component of magnetic flux vector
     float speed{0};         //device speed
     bool isCalibrated{false};   //true if calibrated
+    Timer callTimer;        //timer for measuring handler call intervals
+    std::chrono::duration<float>::rep interval;  //interval time between handler calls
 };
 
 #endif /* HAPTIC_H_ */

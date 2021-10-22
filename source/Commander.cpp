@@ -55,7 +55,7 @@ Commander::Commander() :
 void Commander::handler()
 {
     // heart beat
-    const uint8_t HeartBeatPattern = 0xA0U;
+    const uint16_t HeartBeatPattern = 0x05U << 7U;
     heartBeatLed = static_cast<int>((handlerCallCounter++ & HeartBeatPattern) == HeartBeatPattern);
 
     // read USB HID report from PC and parse received simulation data
