@@ -55,7 +55,7 @@ private:
     void transmit(uint16_t data, Access access);
     SPI interface;   
     bool reverse;
-    static const int DataSize{2};
+    static constexpr int DataSize{2};
     uint8_t wrBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
     uint8_t rdBuffer[DataSize]{0};     //NOLINT(hicpp-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
     float value{0};        //normalized encoder value; range <0,1>

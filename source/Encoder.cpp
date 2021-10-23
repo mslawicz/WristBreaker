@@ -37,14 +37,14 @@ void AS5600::displayStatus()    //display status of the encoder chip
 // program the encoder AS5600 chip via I2C
 void AS5600::program(const CommandVector& /*cv*/)
 {
-    static const size_t BufferSize = 32; 
+    static constexpr size_t BufferSize = 32; 
 
     I2C i2c(PB_9, PB_8);    //XXX check ports!
-    const uint8_t DeviceAddress = 0x6C;
-    const char AddressZMCO = 0x00;
-    const char AddressZPOS = 0x01;
-    const char AddressMANG = 0x05;
-    const char AddressCONF = 0x07;
+    constexpr uint8_t DeviceAddress = 0x6C;
+    constexpr char AddressZMCO = 0x00;
+    constexpr char AddressZPOS = 0x01;
+    constexpr char AddressMANG = 0x05;
+    constexpr char AddressCONF = 0x07;
     char dataBuffer[BufferSize];       //NOLINT
     if(i2c.write(DeviceAddress, &AddressZMCO, 1, true) == 0)
     {
@@ -93,8 +93,8 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS, bool reve
     interface(MOSI, MISO, SCLK, CS, use_gpio_ssel),
     reverse(reverse)
 {
-    const int DataLength = 8;       //8-bit transmission
-    const int Mode = 1;             //Mode 1: POL=0, PHA=1
+    constexpr int DataLength = 8;       //8-bit transmission
+    constexpr int Mode = 1;             //Mode 1: POL=0, PHA=1
     interface.format(DataLength, Mode);
 }
 
@@ -106,24 +106,24 @@ void AS5048A::displayStatus()    //display status of the encoder chip
     transmit(0x3FFDU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     transmit(0x3FFEU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     //now the read buffer contains the response of 0x3FFD command
-    const uint8_t CompHighBit = 3U;
+    constexpr uint8_t CompHighBit = 3U;
     uint16_t compHigh = static_cast<uint16_t>(rdBuffer[0] >> CompHighBit) & 1U;
-    const uint8_t CompLowBit = 2U;
+    constexpr uint8_t CompLowBit = 2U;
     uint16_t compLow = static_cast<uint16_t>(rdBuffer[0] >> CompLowBit) & 1U;
-    const uint8_t COFBit = 1U;
+    constexpr uint8_t COFBit = 1U;
     uint16_t COF = static_cast<uint16_t>(rdBuffer[0] >> COFBit) & 1U;
-    const uint8_t OCFBit = 0U;
+    constexpr uint8_t OCFBit = 0U;
     uint16_t OCF = static_cast<uint16_t>(rdBuffer[0] >> OCFBit) & 1U;
     constexpr uint8_t Hundred = 100;
     constexpr uint8_t Word8Max = 0xFF;
     uint16_t AGCPct = Hundred * rdBuffer[1] / Word8Max;
     transmit(0x3FFFU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     //now the read buffer contains the response of 0x3FFE command
-    const uint8_t EightBits = 8U;
+    constexpr uint8_t EightBits = 8U;
     constexpr uint16_t Word14Max = 0x3FFFU;        //14-bit data mask
     uint16_t magnitude = static_cast<uint16_t>((rdBuffer[0] << EightBits) + rdBuffer[1]) & Word14Max;
     uint16_t magnitudePct = Hundred * magnitude / Word14Max;
-    const uint8_t ErrorFlagBit = 2U;
+    constexpr uint8_t ErrorFlagBit = 2U;
     uint16_t error = static_cast<uint16_t>(rdBuffer[0] >> ErrorFlagBit) & 1U;
     spiMutex.unlock();
 
@@ -141,9 +141,9 @@ void AS5048A::displayStatus()    //display status of the encoder chip
 //send 16-bit data to encoder / receive previously requested data
 void AS5048A::transmit(uint16_t data, Access access)
 {
-    const uint8_t AccessPosition = 14U;
+    constexpr uint8_t AccessPosition = 14U;
     data |= static_cast<uint16_t>(static_cast<uint16_t>(access) << AccessPosition);
-    const uint8_t ParityPosition = 15U;
+    constexpr uint8_t ParityPosition = 15U;
     data |= static_cast<uint16_t>(getParityBit<uint16_t>(data) << ParityPosition);
     wrBuffer[0] = HI8(data);
     wrBuffer[1] = LO8(data);
@@ -154,16 +154,16 @@ void AS5048A::transmit(uint16_t data, Access access)
 //read angle from encoder chip and return last value 
 float AS5048A::getValue()
 {
-    const uint16_t command = 0x3FFF;        //command: read angle value
+    constexpr uint16_t command = 0x3FFF;        //command: read angle value
     spiMutex.lock();
     transmit(command, Access::Read);        //send command and read the response of the previous command
-    const uint8_t Byte = 8U;
-    uint16_t data = (rdBuffer[0] << Byte) + rdBuffer[1];
+    constexpr uint8_t EightBits = 8U;
+    uint16_t data = (rdBuffer[0] << EightBits) + rdBuffer[1];
     spiMutex.unlock();
     if(getParityBit<uint16_t>(data) == 0)
     {
         //parity bit OK
-        const uint16_t Mask14 = 0x3FFF;
+        constexpr uint16_t Mask14 = 0x3FFF;
         data &= Mask14;
         if(reverse)
         {
