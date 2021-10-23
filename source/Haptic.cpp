@@ -95,7 +95,7 @@ void HapticDevice::handler()
     const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 20.0F * interval;
     encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
-    const float EncoderHalfRange = 0.5F;
+    constexpr float EncoderHalfRange = 0.5F;
     float relativePosition = encoderPosition - referencePosition;
     if(relativePosition < -EncoderHalfRange)
     {
@@ -252,7 +252,7 @@ void HapticDevice::handler()
 //returns current position error
 float HapticDevice::setActuator()
 {
-    const float Rad2Deg = 57.2957795F;
+    constexpr float Rad2Deg = 57.2957795F;
     if(hapticData.deltaPosLimit == 0)
     {
         //target position rate of change limit off
@@ -384,7 +384,7 @@ void HapticDevice::displayStatus()
     {
         std::cout << "not calibrated";
     }
-    const uint16_t Sec2Mill = 1000U;
+    constexpr uint16_t Sec2Mill = 1000U;
     std::cout << ", interval=" << interval * Sec2Mill << "ms" << std::endl;
     std::cout << "ref pos=" << referencePosition << ", rel pos=" << filteredPosition;
     std::cout << ", tar pos=" << targetPosition << ", oper range=" << -operationRange << "..." << operationRange  << std::endl;
