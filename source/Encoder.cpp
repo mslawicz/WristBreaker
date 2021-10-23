@@ -100,14 +100,6 @@ AS5048A::AS5048A(PinName MOSI, PinName MISO, PinName SCLK, PinName CS, bool reve
 
 void AS5048A::displayStatus()    //display status of the encoder chip
 { 
-    uint16_t compHigh{0};
-    uint16_t compLow{0};
-    uint16_t COF{0};
-    uint16_t OCF{0};
-    uint16_t AGC{0};
-    uint16_t magnitude{0};
-    uint16_t error{0};
-
     spiMutex.lock();
     transmit(0x0001U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     transmit(0x0000U, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
@@ -115,21 +107,24 @@ void AS5048A::displayStatus()    //display status of the encoder chip
     transmit(0x3FFEU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     //now the read buffer contains the response of 0x3FFD command
     const uint8_t CompHighBit = 3U;
-    compHigh = static_cast<uint16_t>(rdBuffer[0] >> CompHighBit) & 1U;
+    uint16_t compHigh = static_cast<uint16_t>(rdBuffer[0] >> CompHighBit) & 1U;
     const uint8_t CompLowBit = 2U;
-    compLow = static_cast<uint16_t>(rdBuffer[0] >> CompLowBit) & 1U;
+    uint16_t compLow = static_cast<uint16_t>(rdBuffer[0] >> CompLowBit) & 1U;
     const uint8_t COFBit = 1U;
-    COF = static_cast<uint16_t>(rdBuffer[0] >> COFBit) & 1U;
+    uint16_t COF = static_cast<uint16_t>(rdBuffer[0] >> COFBit) & 1U;
     const uint8_t OCFBit = 0U;
-    OCF = static_cast<uint16_t>(rdBuffer[0] >> OCFBit) & 1U;
-    AGC = static_cast<uint16_t>(rdBuffer[1]);
+    uint16_t OCF = static_cast<uint16_t>(rdBuffer[0] >> OCFBit) & 1U;
+    constexpr uint8_t Hundred = 100;
+    constexpr uint8_t Word8Max = 0xFF;
+    uint16_t AGCPct = Hundred * rdBuffer[1] / Word8Max;
     transmit(0x3FFFU, Access::Read);    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     //now the read buffer contains the response of 0x3FFE command
-    const uint8_t Byte = 8U;
-    const uint16_t DataMask = 0x3FFFU;        //14-bit data mask
-    magnitude = static_cast<uint16_t>((rdBuffer[0] << Byte) + rdBuffer[1]) & DataMask;
+    const uint8_t EightBits = 8U;
+    constexpr uint16_t Word14Max = 0x3FFFU;        //14-bit data mask
+    uint16_t magnitude = static_cast<uint16_t>((rdBuffer[0] << EightBits) + rdBuffer[1]) & Word14Max;
+    uint16_t magnitudePct = Hundred * magnitude / Word14Max;
     const uint8_t ErrorFlagBit = 2U;
-    error = static_cast<uint16_t>(rdBuffer[0] >> ErrorFlagBit) & 1U;
+    uint16_t error = static_cast<uint16_t>(rdBuffer[0] >> ErrorFlagBit) & 1U;
     spiMutex.unlock();
 
     std::cout << "encoder AS5048A";
@@ -139,8 +134,8 @@ void AS5048A::displayStatus()    //display status of the encoder chip
     std::cout << ", comp low=" << compLow;
     std::cout << ", COF=" << COF;
     std::cout << ", OCF=" << OCF;
-    std::cout << ", AGC=" << std::hex << "0x" << AGC; 
-    std::cout << ", mag=" << std::hex << "0x" << magnitude << std::endl;
+    std::cout << ", AGC=" << std::dec << AGCPct << "%"; 
+    std::cout << ", mag=" << std::dec << magnitudePct << "%" << std::endl;
 }
 
 //send 16-bit data to encoder / receive previously requested data
