@@ -25,7 +25,7 @@ private:
     FastPWM phaseB;
     FastPWM phaseC;
     DigitalOut enable;
-    static const size_t LutSize = 91;
+    static constexpr size_t LutSize = 91;
     //Space Vector Modulation Look Up Table for angles 0-90 degrees
     const std::array<float, LutSize> SvmLUT
     {

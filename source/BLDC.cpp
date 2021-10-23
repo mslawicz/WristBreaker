@@ -15,7 +15,7 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
     enable(enable),
     noOfPoles(noOfPoles)
 {
-    static const int PwmPeriodUs = 100;
+    static constexpr int PwmPeriodUs = 100;
     this->enable = 0;
     this->phaseA.period_us(PwmPeriodUs);
     this->phaseB.period_us(PwmPeriodUs);
@@ -26,9 +26,9 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
 // argument in degrees
 float MotorBLDC::getSvmValue(float argument)
 {
-    static const float FullCycle = 360.0F;
-    static const float HalfCycle = 180.0F;
-    static const float QuarterCycle = 90.0F;
+    static constexpr float FullCycle = 360.0F;
+    static constexpr float HalfCycle = 180.0F;
+    static constexpr float QuarterCycle = 90.0F;
     float sign = 1.0F;
 
     if (argument < 0)
@@ -69,7 +69,7 @@ float MotorBLDC::getSvmValue(float argument)
 // magnitude 0..1
 void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
 {
-    static const float OneThirdCycle = 120.0F;
+    static constexpr float OneThirdCycle = 120.0F;
     if(magnitude < 0)
     {
         magnitude = 0.0F;
@@ -80,7 +80,7 @@ void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
     }
 
     // calculate PWM duty for stator winding voltages
-    static const float halfDuty = 0.5F;
+    static constexpr float halfDuty = 0.5F;
     double pwmDutyA = halfDuty + halfDuty * magnitude * getSvmValue(electricAngle - OneThirdCycle);
     double pwmDutyB = halfDuty + halfDuty * magnitude * getSvmValue(electricAngle);
     double pwmDutyC = halfDuty + halfDuty * magnitude * getSvmValue(electricAngle + OneThirdCycle);
