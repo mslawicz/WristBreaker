@@ -55,7 +55,7 @@ Commander::Commander() :
 void Commander::handler()
 {
     // heart beat
-    const uint16_t HeartBeatPattern = 0x05U << 7U;
+    constexpr uint16_t HeartBeatPattern = 0x05U << 7U;
     heartBeatLed = static_cast<int>((handlerCallCounter++ & HeartBeatPattern) == HeartBeatPattern);
 
     // read USB HID report from PC and parse received simulation data
@@ -135,12 +135,12 @@ void Commander::handler()
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
-    const auto UsbSendInterval = std::chrono::milliseconds(10);
+    constexpr auto UsbSendInterval = std::chrono::milliseconds(10);
     if(sendTimer.elapsed_time() > UsbSendInterval)
     {
         //send USB HID report 2
         std::vector<uint8_t> hidData;
-        const size_t HidDataSize = 63;
+        constexpr size_t HidDataSize = 63;
         hidData.resize(HidDataSize);
         uint8_t* pData = hidData.data();
         placeData<float>(simData.yokeXposition , pData);
@@ -179,7 +179,7 @@ void Commander::parseReportData()
  */
 void Commander::displayIncomingReport(const CommandVector& /*cv*/)
 {
-    const uint8_t ItemsPerLine = 16;
+    constexpr uint8_t ItemsPerLine = 16;
     for(size_t index=0; index < receivedReport.size(); index++)
     {
         std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(receivedReport[index]) << " ";
