@@ -15,7 +15,7 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, u
     enable(enable),
     noOfPoles(noOfPoles)
 {
-    static constexpr int PwmPeriodUs = 100;
+    static constexpr int PwmPeriodUs = 50;
     this->enable = 0;
     this->phaseA.period_us(PwmPeriodUs);
     this->phaseB.period_us(PwmPeriodUs);

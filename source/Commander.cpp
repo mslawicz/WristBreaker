@@ -28,14 +28,14 @@ Commander::Commander() :
     ),
     throttleActuator
     (
-        new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 22),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+        new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 14),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
         new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
         "throttle actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
-        0.1F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
+        0.6F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
         0.1F,                   //NOLINT    limit of integral term
-        500                     //NOLINT    number of calibration steps
+        10000                   //NOLINT    number of calibration steps
     ),
     systemPushbutton(BUTTON1)
 {
@@ -113,7 +113,7 @@ void Commander::handler()
     rollActuatorData.targetPosition = zeroPositionX;   //zero torque position from simulator
     rollActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     rollActuatorData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
-    rollActuator.handler();
+    //XXX temporarily disabled rollActuator.handler();
 
     //serve throttle lever actuator
     HapticData& throttleActuatorData = throttleActuator.getHapticData();

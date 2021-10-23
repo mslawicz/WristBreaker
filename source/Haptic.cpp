@@ -17,7 +17,7 @@
 #include <cctype>
 
 //global array for STM Studio tests
-float g_value[10];  //XXX test
+float g_value[12];  //XXX test
 
 std::vector<HapticDevice*> HapticDevice::hapticDevices;     //NOLINT(fuchsia-statically-constructed-objects,cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -44,7 +44,7 @@ HapticDevice::HapticDevice
     hapticData{HapticMode::Spring, false, 0}
 {
     pMotor->setEnablePin(1);
-    positionPeriod = 2.0F / static_cast<float>(pMotor->getNoOfPoles());     //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
     hapticDevices.push_back(this);
     callTimer.start();
 }
@@ -92,7 +92,7 @@ void HapticDevice::handler()
 {
     interval = std::chrono::duration<float>(callTimer.elapsed_time()).count();
     callTimer.reset();
-    const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 20.0F * interval;
+    const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 50.0F * interval;
     encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
     constexpr float EncoderHalfRange = 0.5F;
@@ -161,14 +161,14 @@ void HapticDevice::handler()
         // calibration process
         case HapticState::Calibration:
         {
-            const float CalibrationRange = operationRange * 0.7F;
+            const float CalibrationRange = operationRange * 0.5F;
             if(isInRange<float>(filteredPosition, -CalibrationRange, CalibrationRange) &&
                 (magnitude >= maxCalMagnitude))
             {
                 referencePhase += currentPhase - FullCycle * filteredPosition / positionPeriod;
                 counter++;
-                g_value[5] = currentPhase - FullCycle * filteredPosition / positionPeriod;
             }
+            g_value[5] = currentPhase - FullCycle * filteredPosition / positionPeriod;  //XXX test
             //change direction of movement if out of calibration range
             if(filteredPosition > CalibrationRange)
             {
