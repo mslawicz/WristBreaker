@@ -91,7 +91,6 @@ private:
         HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
-    float positionDeviation{0};     //filtered position deviation
     float magnitude{0.0F};      // current magnitude of flux vector
     float maxCalMagnitude;      // maximum flux vector magnitude value during calibration phase
     float operationRange;    //the range of normal operation measured from reference position

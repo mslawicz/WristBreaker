@@ -140,7 +140,6 @@ void HapticDevice::handler()
                 state = HapticState::StartCalibration;
             }
 
-            positionDeviation = 1.0F;       //ensure the deviation is not close to 0 at start
             break;
         }
 
