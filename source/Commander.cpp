@@ -111,8 +111,8 @@ void Commander::handler()
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     rollActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
     rollActuatorData.targetPosition = zeroPositionX;   //zero torque position from simulator
-    rollActuatorData.integralTime = 0.035F;      //NOLINT    integral time (see classic PID formula; TI=1/Ti)
-    rollActuatorData.deltaPosLimit = 0.0025F;    //range 0.5 / 200 Hz / 1 sec = 0.0025
+    rollActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
+    rollActuatorData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
     rollActuator.handler();
 
     //serve throttle lever actuator
@@ -120,8 +120,8 @@ void Commander::handler()
     throttleActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     throttleActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
     throttleActuatorData.targetPosition = 0;   //zero torque position
-    throttleActuatorData.integralTime = 0.035F;      //NOLINT    integral time (see classic PID formula; TI=1/Ti)
-    throttleActuatorData.deltaPosLimit = 0.0025F;    //range 0.5 / 200 Hz / 1 sec = 0.0025
+    throttleActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
+    throttleActuatorData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
     throttleActuator.handler();    
 
     

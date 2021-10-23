@@ -92,7 +92,7 @@ void HapticDevice::handler()
 {
     interval = std::chrono::duration<float>(callTimer.elapsed_time()).count();
     callTimer.reset();
-    const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 0.1F;
+    const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 20.0F * interval;
     encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
     const float EncoderHalfRange = 0.5F;
@@ -181,7 +181,7 @@ void HapticDevice::handler()
             //move motor to next position
             currentPhase += phaseStep;
             //ramp of applied magnitude of flux vector
-            const float MagnitudeRise = 0.005F;     // 0.5% of magnitude rise at a time
+            const float MagnitudeRise = interval;     // target magnitude will be achieved in 1 second
             magnitude += maxCalMagnitude * MagnitudeRise;
             magnitude = limit<float>(magnitude, 0, maxCalMagnitude);
             //set magnetic flux vector
@@ -207,7 +207,7 @@ void HapticDevice::handler()
         // end the calibration process
         case HapticState::Mov2Ref:
         {
-            const float speedLimit = 0.0002F;   //slooow!
+            const float speedLimit = 0.04F * interval;   //slooow!
             hapticData.deltaPosLimit = speedLimit;
             hapticData.magnitudeLimit = maxCalMagnitude;
             hapticData.useIntegral = true;
@@ -272,7 +272,7 @@ float HapticDevice::setActuator()
 
     //calculate motor speed
     float deltaPosition = lastPosition - currentPosition;
-    const float SpeedSmooth = 0.1F;
+    const float SpeedSmooth = 20.0F * interval;
     filterEMA<float>(speed, deltaPosition, SpeedSmooth);
     lastPosition = currentPosition;
 
@@ -283,7 +283,7 @@ float HapticDevice::setActuator()
     float TI = hapticData.integralTime;       //integral time (see classic PID formula; TI=1/Ti)
     if(hapticData.useIntegral)
     {
-        iTerm = limit<float>(iTerm + KP * TI * error, -integralLimit, integralLimit);
+        iTerm = limit<float>(iTerm + KP * TI * error * interval, -integralLimit, integralLimit);
     }
     else
     {
@@ -296,8 +296,8 @@ float HapticDevice::setActuator()
     float KD = hapticData.directGain;       //gain of the flux vector direct component (damping)
     float currentVD =  KD * fabsf(speed);
     //envelope filter with fast rise and slow decay
-    const float RiseFactor = 0.1F;
-    const float DecayFactor = 0.005F;
+    const float RiseFactor = 20.0F * interval;
+    const float DecayFactor = interval;
     if(currentVD > vD)
     {
         filterEMA<float>(vD, currentVD, RiseFactor);

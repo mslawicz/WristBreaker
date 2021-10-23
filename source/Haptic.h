@@ -109,7 +109,7 @@ private:
     float speed{0};         //device speed
     bool isCalibrated{false};   //true if calibrated
     Timer callTimer;        //timer for measuring handler call intervals
-    std::chrono::duration<float>::rep interval;  //interval time between handler calls
+    std::chrono::duration<float>::rep interval{0};  //interval time between handler calls
 };
 
 #endif /* HAPTIC_H_ */
