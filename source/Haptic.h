@@ -29,7 +29,8 @@ struct HapticData       //NOLINT(altera-struct-pack-align)
 {
     HapticMode hapticMode;      // haptic mode for haptic action phase
     bool useIntegral;           // wether integral term must be used in torque calculations
-    float targetPosition;       // the requested target position of zero torque (relative to the reference position)
+    std::vector<float> targetPositions;     //vector of target positions in multiposition mode
+    float targetPosition;       // the current requested target position of zero torque (relative to the reference position)
     float torqueGain;           // gain of the flux vector quadrature component (torque)
     float integralTime;         // integral time (see classic PID formula; TI=1/Ti)
     float directGain;           // gain of the flux vector direct component (damping)
@@ -68,6 +69,7 @@ public:
     static void statusRequest(const CommandVector& cv);        //display status
 private:
     float setActuator();
+    uint8_t getMultipositionIndex();    //gets current position index in multiposition mode
     static constexpr float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     static constexpr float HalfCycle = 180.0F;    // 1/2 of electric cycle in degrees
     static constexpr float FullCycle = 360.0F;    // full electric cycle in degrees

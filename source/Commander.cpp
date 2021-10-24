@@ -113,18 +113,20 @@ void Commander::handler()
     rollActuatorData.targetPosition = zeroPositionX;   //zero torque position from simulator
     rollActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     rollActuatorData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
+    rollActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
     //XXX temporarily disabled rollActuator.handler();
 
-    //serve throttle lever actuator
+    //serve flaps lever actuator (ignore misleading name of the actuator)
     HapticData& throttleActuatorData = throttleActuator.getHapticData();
-    throttleActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 5.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
+    throttleActuatorData.hapticMode = HapticMode::MultiPosition;       //this actuator works in multiposition mode
+    static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); throttleActuatorData.integralTime = 10.0F * KLpot.read(); //XXX test
     static AnalogIn KDpot(PA_7); throttleActuatorData.directGain = 30.0F * KDpot.read(); //XXX test
     throttleActuatorData.useIntegral = (systemPushbutton.read() == 1);
-    throttleActuatorData.targetPosition = 0;   //zero torque position
+    throttleActuatorData.targetPositions.assign({-0.2F, 0.0F, 0.2F});   //list of target positions
     //throttleActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
-    throttleActuatorData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
+    throttleActuatorData.deltaPosLimit = 0.005F;    //range 0.5 / 1000 Hz / 0.1 sec = 0.005
+    throttleActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
     throttleActuator.handler();    
 
     //prepare data to be sent to simulator 

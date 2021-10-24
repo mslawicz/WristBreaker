@@ -41,7 +41,7 @@ HapticDevice::HapticDevice
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     integralLimit(integralLimit),
     noOfCalSteps(noOfCalSteps),
-    hapticData{HapticMode::Spring, false, 0}
+    hapticData{HapticMode::Spring, false, std::vector<float>(), 0}
 {
     pMotor->setEnablePin(1);
     constexpr float PolesInPair = 2.0F;
@@ -230,12 +230,25 @@ void HapticDevice::handler()
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    hapticData.magnitudeLimit = 1.0F;
                     setActuator();
                     break;
                 }
 
                 case HapticMode::MultiPosition:
+                {
+                    uint8_t index = getMultipositionIndex();
+                    if(index > hapticData.targetPositions.size())
+                    {
+                        hapticData.targetPosition = 0.0F;
+                    }
+                    else
+                    {
+                        hapticData.targetPosition = hapticData.targetPositions[index];
+                    }
+                    setActuator();
+                    break;
+                }
+
                 default:
                 {
                     break;
@@ -426,4 +439,36 @@ void HapticDevice::statusRequest(const CommandVector& cv)
     {
         std::cout << "error: missing device index" << std::endl;
     }
+}
+
+//gets current position index in multiposition mode
+uint8_t HapticDevice::getMultipositionIndex()
+{
+    constexpr uint8_t NotFound = 0xFF;
+    uint8_t shortestIndex{NotFound};
+    if(hapticData.targetPositions.empty())
+    {
+        return shortestIndex;
+    }
+
+    uint8_t index{0};
+    float shortestDistance{1.0F};
+    //find the shortest distance to current position
+    do
+    {
+        float distance = fabsf(hapticData.targetPositions[index] - filteredPosition);
+        if(distance < shortestDistance)
+        {
+            //new shortest distance found
+            shortestDistance = distance;
+            shortestIndex = index;
+        }
+        if(distance > shortestDistance)
+        {
+            //distance bigger than previous one - no need to continue
+            break;
+        }
+    } while(++index < hapticData.targetPositions.size());
+
+    return shortestIndex;
 }
