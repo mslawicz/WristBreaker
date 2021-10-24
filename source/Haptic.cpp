@@ -44,7 +44,8 @@ HapticDevice::HapticDevice
     hapticData{HapticMode::Spring, false, 0}
 {
     pMotor->setEnablePin(1);
-    positionPeriod = 1.0F / static_cast<float>(pMotor->getNoOfPoles());
+    constexpr float PolesInPair = 2.0F;
+    positionPeriod = PolesInPair / static_cast<float>(pMotor->getNoOfPoles());
     hapticDevices.push_back(this);
     callTimer.start();
 }
@@ -92,7 +93,7 @@ void HapticDevice::handler()
 {
     interval = std::chrono::duration<float>(callTimer.elapsed_time()).count();
     callTimer.reset();
-    const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 50.0F * interval;
+    const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 0.025F;
     encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
     constexpr float EncoderHalfRange = 0.5F;
@@ -167,7 +168,6 @@ void HapticDevice::handler()
                 referencePhase += currentPhase - FullCycle * filteredPosition / positionPeriod;
                 counter++;
             }
-            g_value[5] = currentPhase - FullCycle * filteredPosition / positionPeriod;  //XXX test
             //change direction of movement if out of calibration range
             if(filteredPosition > CalibrationRange)
             {
@@ -184,12 +184,14 @@ void HapticDevice::handler()
             magnitude += maxCalMagnitude * MagnitudeRise;
             magnitude = limit<float>(magnitude, 0, maxCalMagnitude);
             //set magnetic flux vector
-            pMotor->setFieldVector(currentPhase, magnitude);
+            pMotor->setFieldVector(currentPhase, magnitude);      
 
-            //XXX set global variables
-            g_value[0] = filteredPosition;
+            //XXX test
             g_value[4] = currentPhase;
-            g_value[9] = magnitude;            
+            g_value[5] = currentPhase - FullCycle * filteredPosition / positionPeriod;
+            g_value[8] = magnitude;
+            g_value[9] = interval * 100;
+            g_value[10] = PhaseStep; //XXX test
 
             if(counter >= noOfCalSteps)
             {
@@ -215,6 +217,7 @@ void HapticDevice::handler()
             if(fabsf(error) < AllowedError)
             {
                 state = HapticState::HapticAction;
+                std::cout << "moved to ref with error=" << error << std::endl; 
             }
             break;
         }              
@@ -343,12 +346,12 @@ float HapticDevice::setActuator()
     g_value[1] = hapticData.targetPosition;
     g_value[2] = error;
     g_value[3] = targetPosition;
-    g_value[4] = speed * 10000;
+    g_value[4] = currentPhase;
     g_value[5] = phaseShift;
     g_value[6] = vQ;
     g_value[7] = vD;
     g_value[8] = magnitude;
-    g_value[9] = 0;
+    g_value[9] = interval * 100;
 
     return hapticData.targetPosition - filteredPosition;
 }

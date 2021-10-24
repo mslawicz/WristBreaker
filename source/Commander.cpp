@@ -28,13 +28,13 @@ Commander::Commander() :
     ),
     throttleActuator
     (
-        new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 14),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+        new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 28),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
         new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
         "throttle actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.6F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
-        0.1F,                   //NOLINT    limit of integral term
+        0.3F,                   //NOLINT    limit of integral term
         10000                   //NOLINT    number of calibration steps
     ),
     systemPushbutton(BUTTON1)
@@ -118,16 +118,14 @@ void Commander::handler()
     //serve throttle lever actuator
     HapticData& throttleActuatorData = throttleActuator.getHapticData();
     throttleActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    throttleActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
+    static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 5.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
+    static AnalogIn KLpot(PA_6); throttleActuatorData.integralTime = 10.0F * KLpot.read(); //XXX test
+    static AnalogIn KDpot(PA_7); throttleActuatorData.directGain = 30.0F * KDpot.read(); //XXX test
+    throttleActuatorData.useIntegral = (systemPushbutton.read() == 1);
     throttleActuatorData.targetPosition = 0;   //zero torque position
-    throttleActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
+    //throttleActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     throttleActuatorData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
     throttleActuator.handler();    
-
-    
-    static AnalogIn KPpot(PA_5); rollActuatorData.torqueGain = 3.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
-    static AnalogIn KDpot(PA_7); rollActuatorData.directGain = 30.0F * KDpot.read(); //XXX test
-    static AnalogIn KLpot(PA_6); rollActuatorData.deltaPosLimit = 0.0025F * KLpot.read(); //XXX test
 
     //prepare data to be sent to simulator 
     // convert +-operationalRange deflection to <-1,1> range
