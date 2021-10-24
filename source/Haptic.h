@@ -115,5 +115,6 @@ private:
 
 /*
 recommended motor setup:
-57BLY12530 Spring: torqueGain = 1.0 (soft) ... 2.8 (hard); TI=0.035; KD=18;
+57BLY12530 Spring: torqueGain = 1.0 (soft) ... 2.8 (hard); TI=7; KD=18;
+HT4315 Spring: torqueGain = 5.0; TI=8.5; KD=0;
 */

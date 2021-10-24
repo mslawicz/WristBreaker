@@ -390,6 +390,8 @@ void HapticDevice::displayStatus()
     std::cout << ", interval=" << interval * Sec2Mill << "ms" << std::endl;
     std::cout << "ref pos=" << referencePosition << ", rel pos=" << filteredPosition;
     std::cout << ", tar pos=" << targetPosition << ", oper range=" << -operationRange << "..." << operationRange  << std::endl;
+    std::cout << "torque gain=" << hapticData.torqueGain << ", direct gain=" << hapticData.directGain << ", magn limit=" << hapticData.magnitudeLimit;
+    std::cout << ", use integral=" << hapticData.useIntegral << ", int time=" << hapticData.integralTime << ", int limit=" << integralLimit << std::endl;
     std::cout << "motor poles=" << std::dec << static_cast<int>(pMotor->getNoOfPoles()) << ", cur phase=" << currentPhase;
     std::cout << ", magn=" << magnitude << std::endl;
     pEncoder->displayStatus();
