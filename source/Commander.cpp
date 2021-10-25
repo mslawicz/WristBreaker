@@ -116,14 +116,13 @@ void Commander::handler()
     rollActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
     //XXX temporarily disabled rollActuator.handler();
 
-    //serve flaps lever actuator (ignore misleading name of the actuator)
+    //serve throttle lever
     HapticData& throttleActuatorData = throttleActuator.getHapticData();
-    throttleActuatorData.hapticMode = HapticMode::MultiPosition;       //this actuator works in multiposition mode
+    throttleActuatorData.hapticMode = HapticMode::Free;       //this actuator works in free mode
     static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); throttleActuatorData.integralTime = 10.0F * KLpot.read(); //XXX test
-    static AnalogIn KDpot(PA_7); throttleActuatorData.directGain = 30.0F * KDpot.read(); //XXX test
+    static AnalogIn KDpot(PA_7); throttleActuatorData.errorThresholt = 0.1F * KDpot.read(); //XXX test
     throttleActuatorData.useIntegral = (systemPushbutton.read() == 1);
-    throttleActuatorData.targetPositions.assign({-0.2F, 0.0F, 0.2F});   //list of target positions
     //throttleActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     throttleActuatorData.deltaPosLimit = 0.005F;    //range 0.5 / 1000 Hz / 0.1 sec = 0.005
     throttleActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase

@@ -22,7 +22,8 @@
 enum class HapticMode
 {
     Spring,
-    MultiPosition
+    MultiPosition,
+    Free
 };
 
 struct HapticData       //NOLINT(altera-struct-pack-align)
@@ -36,6 +37,7 @@ struct HapticData       //NOLINT(altera-struct-pack-align)
     float directGain;           // gain of the flux vector direct component (damping)
     float magnitudeLimit;       // current maximum magnitude of flux vector
     float deltaPosLimit;        // value of allowed position change; off when ==0
+    float errorThresholt;       // error threshold in free mode
 };
 
 class HapticDevice
@@ -118,5 +120,6 @@ private:
 /*
 recommended motor setup:
 57BLY12530 Spring: torqueGain = 1.0 (soft) ... 2.8 (hard); TI=7; KD=18;
-HT4315 Spring: torqueGain = 5.0; TI=8.5; KD=0;
+HT4315 Spring: torqueGain=5.0; TI=8.5; Ilim=0.3; KD=0;
+HT4315 Multiposition: torqueGain=6.5; TI=10; Ilim=0.3; KD=0;
 */

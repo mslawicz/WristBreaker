@@ -25,6 +25,9 @@
 
 int main() // NOLINT(modernize-use-trailing-return-type)
 {
+#ifdef MBED_DEBUG
+    HAL_DBGMCU_EnableDBGSleepMode();
+#endif
     std::cout << "WristBreaker v1\n";
 
     // create and start console thread

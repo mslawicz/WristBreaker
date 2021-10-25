@@ -249,6 +249,14 @@ void HapticDevice::handler()
                     break;
                 }
 
+                case HapticMode::Free:
+                {
+                    float error = setActuator();;
+                    auto positionShift = threshold<float>(-error, -hapticData.errorThresholt, hapticData.errorThresholt);
+                    hapticData.targetPosition = limit<float>(hapticData.targetPosition + positionShift, -operationRange, operationRange);
+                    break;
+                }
+
                 default:
                 {
                     break;
