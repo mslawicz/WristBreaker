@@ -7,14 +7,16 @@
 
 #include "Haptic.h"
 #include "Convert.h"
+#include "Logger.h"
 #include "Storage.h"
+#include <cctype>
 #include <chrono>
 #include <cmath>
 #include <iostream>
 #include <ostream>
 #include <ratio>
 #include <utility>
-#include <cctype>
+
 
 //global array for STM Studio tests
 float g_value[12];  //XXX test
@@ -67,23 +69,23 @@ void HapticDevice::calibrationRequest(const CommandVector& cv)
             int deviceIndex = stoi(cv[1]) - 1;
             if(deviceIndex < hapticDevices.size())
             {
-                std::cout << "calibrating haptic device " << deviceIndex + 1 << std::endl;
+                LOG_INFO("calibrating haptic device " << deviceIndex + 1);
                 hapticDevices[deviceIndex]->startCalibration();
             }
             else
             {
-                std::cout << "error: haptic device of index " << cv[1] << " not found" << std::endl;
+                LOG_ERROR("haptic device of index " << cv[1] << " not found");
             }
         }
         else
         {
-            std::cout << "error: invalid haptic device index " << cv[1] << std::endl;
+                LOG_ERROR("invalid haptic device index " << cv[1]);
         }
 
     }
     else
     {
-        std::cout << "error: missing device index" << std::endl;
+        LOG_ERROR("missing device index");
     }
 }
 
@@ -123,21 +125,21 @@ void HapticDevice::handler()
             {
                 if(isInRange<float>(referencePhase, 0.0F, FullCycle))
                 {
-                    std::cout << name << " reference phase restored " << referencePhase << std::endl;
+                    LOG_INFO(name << " reference phase restored " << referencePhase);
                     isCalibrated = true;
                     targetPosition = currentPosition;      //assures smooth movements to another position
                     state = HapticState::Mov2Ref;
                 }
                 else
                 {
-                    std::cout << name << " restored reference phase out of range (" << referencePhase << "); calibrating..." << std::endl;
+                    LOG_WARNING(name << " restored reference phase out of range (" << referencePhase << "); calibrating...");
                     state = HapticState::StartCalibration;
                 }
             }
             else
             {
                 //parameter not restored
-                std::cout << name << " reference phase not restored; calibrating..." << std::endl;
+                LOG_WARNING(name << " reference phase not restored; calibrating...");
                 state = HapticState::StartCalibration;
             }
 
@@ -147,7 +149,7 @@ void HapticDevice::handler()
         // start calibration process of this device
         case HapticState::StartCalibration:
         {
-            std::cout << "device " << name << " calibration started" << std::endl;  //XXX for test only
+            LOG_DEBUG("device " << name << " calibration started");
             currentPhase = 0.0F;
             magnitude = 0.0F;
             phaseStep = PhaseStep;
@@ -196,7 +198,7 @@ void HapticDevice::handler()
             if(counter >= noOfCalSteps)
             {
                 referencePhase = cropAngle(referencePhase / static_cast<float>(counter));
-                std::cout << "device " << name << " has been calibrated with reference phase " << referencePhase << std::endl;
+                LOG_INFO("device " << name << " has been calibrated with reference phase " << referencePhase);
                 KvStore::storeData(memParamRefPhase, &referencePhase, sizeof(referencePhase));
                 targetPosition = filteredPosition;      //assures smooth movements to another position
                 isCalibrated = true;
@@ -217,7 +219,7 @@ void HapticDevice::handler()
             if(fabsf(error) < AllowedError)
             {
                 state = HapticState::HapticAction;
-                std::cout << "moved to ref with error=" << error << std::endl; 
+                LOG_DEBUG("device " << name <<  " moved to ref with error=" << error);
             }
             break;
         }              

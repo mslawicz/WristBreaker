@@ -7,24 +7,26 @@
 
 #include "USB.h"
 #include "Convert.h"
+#include "Logger.h"
 #include "usb_phy_api.h"
-#include <iostream>
 #include <iomanip>
+#include <iostream>
+
 
 MultiHID::MultiHID(uint16_t vendorId, uint16_t productId, uint16_t productRelease, bool blocking) :
     USBHID(get_usb_phy(), 0, 0, vendorId, productId, productRelease)
 {
     if (blocking)
     {
-        std::cout << std::hex << setfill('0') << setw(4) << "Connecting USB HID joystick device (VID=0x" << vendorId << ", PID=0x" << productId;
-        std::cout << std::dec << ", VER=" << productRelease << ") in blocking mode\n";
+        LOG_INFO(std::hex << setfill('0') << setw(4) << "Connecting USB HID joystick device (VID=0x" << vendorId << ", PID=0x" << productId
+                << std::dec << ", VER=" << productRelease << ") in blocking mode");
         USBDevice::connect();
         wait_ready();
     }
     else
     {
-        std::cout << std::hex << setfill('0') << setw(4) << "Initializing USB HID joystick device (VID=0x" << vendorId << ", PID=0x" << productId;
-        std::cout << std::dec << ", VER=" << productRelease << ") in non-blocking mode\n";
+        LOG_INFO(std::hex << setfill('0') << setw(4) << "Initializing USB HID joystick device (VID=0x" << vendorId << ", PID=0x" << productId
+        << std::dec << ", VER=" << productRelease << ") in non-blocking mode");
         init();
     }
 }

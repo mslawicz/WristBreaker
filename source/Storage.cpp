@@ -1,4 +1,5 @@
 #include "Storage.h"
+#include "Logger.h"
 #include "fnet.h"
 #include <cstring>
 #include <cwchar>
@@ -65,15 +66,15 @@ size_t KvStore::restoreData(std::string& key, void* pData)
     int error = kv_get_info(key.c_str(), &info);
     if(0 != error)
     {
-        std::cout << "Parameter '" << key << "' info error " << MBED_GET_ERROR_CODE(error) << std::endl;        //NOLINT(hicpp-signed-bitwise)
+        LOG_ERROR("Parameter '" << key << "' info error " << MBED_GET_ERROR_CODE(error));   //NOLINT(hicpp-signed-bitwise)
         return 0;
     }
             
     size_t actualSize{0};
     error = kv_get(key.c_str(), pData, info.size, &actualSize);
     if(0 != error)
-    {
-        std::cout << "Parameter '" << key << "' restore error " << MBED_GET_ERROR_CODE(error) << std::endl;     //NOLINT(hicpp-signed-bitwise)
+    {     
+        LOG_ERROR("Parameter '" << key << "' restore error " << MBED_GET_ERROR_CODE(error));    //NOLINT(hicpp-signed-bitwise)
         return 0;
     }
     
@@ -88,8 +89,12 @@ int KvStore::storeData(std::string& key, const void* pData, size_t size)
 {
     int error = kv_set(key.c_str(), pData, size, 0);
     if(0 != error)
+    {      
+        LOG_ERROR("Parameter '" << key << "' store error " << MBED_GET_ERROR_CODE(error));  //NOLINT(hicpp-signed-bitwise)
+    }
+    else
     {
-        std::cout << "Parameter '" << key << "' store error " << MBED_GET_ERROR_CODE(error) << std::endl;       //NOLINT(hicpp-signed-bitwise)
+        LOG_INFO("Parameter '" << key << "' successfully stored"); 
     }
     return error;
 }

@@ -18,7 +18,7 @@
 void listThreads(const CommandVector&  /*cv*/)
 {
     auto* statsArray = new mbed_stats_thread_t[MAX_THREAD_STATS];    // NOLINT(cppcoreguidelines-owning-memory)
-    int numberOfThreads = mbed_stats_thread_get_each(statsArray, MAX_THREAD_STATS);
+    size_t numberOfThreads = mbed_stats_thread_get_each(statsArray, MAX_THREAD_STATS);
     std::vector<mbed_stats_thread_t> threads(statsArray, statsArray + numberOfThreads);  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
     std::cout << "ID,Name,State,Priority,Stack size, Stack space\r\n";

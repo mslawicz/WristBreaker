@@ -8,8 +8,8 @@
 #ifndef USB_H_
 #define USB_H_
 
-#include <mbed.h>
 #include "USBHID.h"
+#include <mbed.h>
 #include <vector>
 
 class MultiHID : public USBHID

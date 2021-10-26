@@ -33,6 +33,6 @@ void logMessage(LogLevel level, std::ostream& ostr);
 #define LOG_ERROR(message) logMessage(LogLevel::Error, std::ostringstream().flush() << message)     //NOLINT(cppcoreguidelines-macro-usage,bugprone-macro-parentheses)
 #define LOG_WARNING(message) logMessage(LogLevel::Warning, std::ostringstream().flush() << message) //NOLINT(cppcoreguidelines-macro-usage,bugprone-macro-parentheses)
 #define LOG_INFO(message) logMessage(LogLevel::Info, std::ostringstream().flush() << message)       //NOLINT(cppcoreguidelines-macro-usage,bugprone-macro-parentheses)
-#define LOG_DEBUG(message) logMessage(LogLevel::Info, std::ostringstream().flush() << message)      //NOLINT(cppcoreguidelines-macro-usage,bugprone-macro-parentheses)
+#define LOG_DEBUG(message) logMessage(LogLevel::Debug, std::ostringstream().flush() << message)      //NOLINT(cppcoreguidelines-macro-usage,bugprone-macro-parentheses)
  
 #endif /* LOGGER_H_ */
