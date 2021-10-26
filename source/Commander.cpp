@@ -2,6 +2,7 @@
 #include "BLDC.h"
 #include "Convert.h"
 #include "Encoder.h"
+#include "Logger.h"
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -39,7 +40,7 @@ Commander::Commander() :
     ),
     systemPushbutton(BUTTON1)
 {
-    std::cout << "Commander object created\n";
+    LOG_INFO("Commander object created");
 
     // connect USB HID device
     PCLink.connect();

@@ -16,19 +16,20 @@
 
 #include "Console.h"
 #include "Commander.h"
+#include "Logger.h"
 #include "Statistics.h"
 #include "Storage.h"
 #include <chrono>
 #include <iostream>
 #include <mbed.h>
 
-
 int main() // NOLINT(modernize-use-trailing-return-type)
 {
 #ifdef MBED_DEBUG
     HAL_DBGMCU_EnableDBGSleepMode();
 #endif
-    std::cout << "WristBreaker v1\n";
+    logTimer.start();        //start timer for log purposes
+    LOG_INFO("WristBreaker v1");
 
     // create and start console thread
     Thread consoleThread(osPriority_t::osPriorityLow4, OS_STACK_SIZE, nullptr, "console");
