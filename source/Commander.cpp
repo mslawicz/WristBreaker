@@ -130,8 +130,13 @@ void Commander::handler()
     throttleActuator.handler();    
 
     //prepare data to be sent to simulator 
-    // convert +-operationalRange deflection to <-1,1> range
+    // convert deflection +-operationalRange to <-1,1> range
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
+    // convert throttle +-operationalRange to <0,1> range
+    constexpr float Half = 0.5F;
+    float settledThrottle = Half * (simData.receivedThrottle +
+        scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), throttleActuatorData.targetPosition, 0.0F, 1.0F));
+    simData.commandedThrottle = limit<float>(settledThrottle, 0.0F, 1.0F);
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
@@ -144,6 +149,7 @@ void Commander::handler()
         hidData.resize(HidDataSize);
         uint8_t* pData = hidData.data();
         placeData<float>(simData.yokeXposition , pData);
+        placeData<float>(simData.commandedThrottle, pData);
         placeData<char>('y', pData);
         placeData<char>('o', pData);
         placeData<char>('k', pData);
@@ -172,6 +178,7 @@ void Commander::parseReportData()
     simData.flapsHandleIndex = parseData<uint8_t>(pData);
     simData.yokeXreference = parseData<float>(pData);
     simData.simFlags.allFields = parseData<typeof(SimFlags::allFields)>(pData);   //NOLINT(cppcoreguidelines-pro-type-union-access)
+    simData.receivedThrottle = parseData<float>(pData);
 }
 
 /*

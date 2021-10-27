@@ -54,6 +54,8 @@ private:
         float yokeXreference;       // yoke X reference position received from simulator (w/o vibrations)
         float yokeXposition;        // yoke X axis position sent to simulator
         SimFlags simFlags;          // bit flags received from simulator
+        float receivedThrottle;     // throttle value received from simulator
+        float commandedThrottle;    // throttle value sent to simulator
     };
     void parseReportData();                     // parse received report data
     DigitalOut heartBeatLed;                    // Commander heartbeat LED
