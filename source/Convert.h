@@ -99,4 +99,8 @@ template <typename T> unsigned char getParityBit(T data)
     return data & 1;
 }
 
+//fast arc tan function
+//input: tan<-inf, inf>; output: atan<-90,90>[degrees]
+float fastAtan(float tan);
+
 #endif /* CONVERT_H_ */

@@ -36,3 +36,33 @@ float angleDifference(float angle1, float angle2)
     }
     return dAngle;
 }
+
+//fast arc tan function
+//input: tan<-inf, inf>; output: atan<-90,90>[degrees]
+float fastAtan(float tan)
+{
+    const float rightAngle = 90.0F;
+    float sgn = 1.0F;
+    float atan{ 0.0F };
+    if (tan < 0)
+    {
+        tan = -tan;
+        sgn = -1.0F;
+    }
+
+    if (tan <= 4.0F)    //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    {
+        atan = (((-0.30269379F * tan + 4.2937098F) * tan - 23.6768389F) * tan + 64.3918945F) * tan;     //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    }
+    else
+    {
+        atan = ((((0.00002148232F * tan - 0.001763455F) * tan + 0.057272137F) * tan - 0.93504677F) * tan + 8.036428F) * tan + 55.625009F;      //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    }
+
+    if (atan > rightAngle)
+    {
+        atan = rightAngle;
+    }
+
+    return sgn * atan;
+}

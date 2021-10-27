@@ -11,7 +11,6 @@
 #include "Storage.h"
 #include <cctype>
 #include <chrono>
-#include <cmath>
 #include <iostream>
 #include <ostream>
 #include <ratio>
@@ -277,7 +276,6 @@ void HapticDevice::handler()
 //returns current position error
 float HapticDevice::setActuator()
 {
-    constexpr float Rad2Deg = 57.2957795F;
     if(hapticData.deltaPosLimit == 0)
     {
         //target position rate of change limit off
@@ -340,7 +338,7 @@ float HapticDevice::setActuator()
     }
     else
     {
-        phaseShift = Rad2Deg * atan2f(vQ, vD);
+        phaseShift = fastAtan(vQ / vD);
     }
     phaseShift = limit(phaseShift, -QuarterCycle, QuarterCycle);
 
