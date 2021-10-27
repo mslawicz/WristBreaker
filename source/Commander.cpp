@@ -15,6 +15,7 @@
 
 Commander::Commander() :
     heartBeatLed(LED2),
+    connectionLed(LED1),
     PCLink(USB_VID, USB_PID, USB_VER),
     rollActuator
     (
@@ -63,6 +64,10 @@ void Commander::handler()
     while(PCLink.readReport(receivedReport))
     {
         parseReportData();
+        pcLinkOn = true;
+        connectionLed = GPIO_PIN_SET;
+        constexpr std::chrono::milliseconds timeout(100);
+        connectionTimeout.attach(callback(this, &Commander::connectionOffIndicator), timeout);
     }
 
     //XXX test of joystick data
@@ -133,9 +138,12 @@ void Commander::handler()
     // convert deflection +-operationalRange to <-1,1> range
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
     // convert throttle +-operationalRange to <0,1> range
-    constexpr float Half = 0.5F;
-    float settledThrottle = Half * (simData.receivedThrottle +
-        scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), throttleActuatorData.targetPosition, 0.0F, 1.0F));
+    auto settledThrottle = scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), throttleActuatorData.targetPosition, 0.0F, 1.0F);
+    if(pcLinkOn)
+    {
+        constexpr float Half = 0.5F;
+        settledThrottle = Half * (settledThrottle + simData.receivedThrottle);
+    }
     simData.commandedThrottle = limit<float>(settledThrottle, 0.0F, 1.0F);
 
     //we do not send joystick reports in this version 

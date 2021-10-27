@@ -45,6 +45,7 @@ public:
     void displayIncomingReport(const CommandVector& /*cv*/);
     void handler();
 private:
+    void connectionOffIndicator() { pcLinkOn = false; connectionLed = GPIO_PIN_RESET; }
     struct SimData      //NOLINT(altera-struct-pack-align)
     {
         uint8_t flapsNumHandlePositions;    // flaps handle positions excluding retracted position
@@ -58,7 +59,8 @@ private:
         float commandedThrottle;    // throttle value sent to simulator
     };
     void parseReportData();                     // parse received report data
-    DigitalOut heartBeatLed;                    // Commander heartbeat LED
+    DigitalOut heartBeatLed;                    // Commander heartbeat LED (blue)
+    DigitalOut connectionLed;                   // active connection to SimConnect LED (green)
     uint32_t handlerCallCounter{0};             // counter of the handler calls 
     MultiHID PCLink;                            // USB link to PC
     JoystickData joystickData{0};               // structure of joystick data to be sent to PC
@@ -68,6 +70,8 @@ private:
     DigitalIn systemPushbutton;                 // Nucleo board blue button
     SimData simData{0};                         // data received and calculated from simConnect
     Timer sendTimer;                            // measures time between usb reports sending
+    Timeout connectionTimeout;                  // USB connection timeout object
+    bool pcLinkOn{false};                       // is connection to PC active?
 };
 
 #endif /* COMMANDER_H_ */
