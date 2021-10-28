@@ -129,7 +129,7 @@ void Commander::handler()
     static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); throttleActuatorData.integralTime = 10.0F * KLpot.read(); //XXX test
     static AnalogIn KDpot(PA_7); throttleActuatorData.errorThresholt = 0.05F * KDpot.read(); //XXX test
-    throttleActuatorData.useIntegral = (systemPushbutton.read() == 1);
+    throttleActuatorData.useIntegral = false;
     throttleActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     throttleActuatorData.deltaPosLimit = 0.005F;    //range 0.5 / 1000 Hz / 0.1 sec = 0.005
     throttleActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
@@ -140,7 +140,7 @@ void Commander::handler()
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
     // convert throttle +-operationalRange to <0,1> range
     auto settledThrottle = scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), throttleActuatorData.targetPosition, 0.0F, 1.0F);
-    if(pcLinkOn && (simData.simFlags.fields.validData != 0) && false)        //NOLINT(cppcoreguidelines-pro-type-union-access)
+    if(pcLinkOn && (simData.simFlags.fields.validData != 0) && (systemPushbutton.read() == 1))        //NOLINT(cppcoreguidelines-pro-type-union-access)
     {
         constexpr float Half = 0.5F;
         settledThrottle = Half * (settledThrottle + simData.receivedThrottle);
