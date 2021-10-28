@@ -139,7 +139,7 @@ void Commander::handler()
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
     // convert throttle +-operationalRange to <0,1> range
     auto settledThrottle = scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), throttleActuatorData.targetPosition, 0.0F, 1.0F);
-    if(pcLinkOn)
+    if(pcLinkOn && (simData.simFlags.fields.validData != 0))        //NOLINT(cppcoreguidelines-pro-type-union-access)
     {
         constexpr float Half = 0.5F;
         settledThrottle = Half * (settledThrottle + simData.receivedThrottle);

@@ -32,8 +32,9 @@ struct JoystickData     //NOLINT(altera-struct-pack-align)
 union SimFlags
 {
     uint32_t allFields;
-    struct Fields
+    struct Fields       //NOLINT(altera-struct-pack-align)
     {
+        uint8_t validData :1;
         uint8_t autopilot :1;
     } fields;
 };
