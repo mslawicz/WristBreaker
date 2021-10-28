@@ -52,6 +52,7 @@ Commander::Commander() :
     Console::getInstance().registerCommand("lhd", "list all registered haptic devices", callback(&HapticDevice::listHapticDevices));
     Console::getInstance().registerCommand("chd", "calibrate haptic device <index>", callback(&HapticDevice::calibrationRequest));
     Console::getInstance().registerCommand("dshd", "display status of haptic device <index>", callback(&HapticDevice::statusRequest));
+    Console::getInstance().registerCommand("dsd", "display received simulator data", callback(this, &Commander::displaySimData));
 }
 
 void Commander::handler()
@@ -139,7 +140,7 @@ void Commander::handler()
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
     // convert throttle +-operationalRange to <0,1> range
     auto settledThrottle = scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), throttleActuatorData.targetPosition, 0.0F, 1.0F);
-    if(pcLinkOn && (simData.simFlags.fields.validData != 0))        //NOLINT(cppcoreguidelines-pro-type-union-access)
+    if(pcLinkOn && (simData.simFlags.fields.validData != 0) && false)        //NOLINT(cppcoreguidelines-pro-type-union-access)
     {
         constexpr float Half = 0.5F;
         settledThrottle = Half * (settledThrottle + simData.receivedThrottle);
@@ -203,4 +204,17 @@ void Commander::displayIncomingReport(const CommandVector& /*cv*/)
             std::cout << std::endl;
         }
     }
+}
+
+/*
+ * display deta received and parsed from the simulator
+ */
+void Commander::displaySimData(const CommandVector& /*cv*/) const
+{
+    std::cout << "data valid=" << static_cast<int>(simData.simFlags.fields.validData) << std::endl;       //NOLINT(cppcoreguidelines-pro-type-union-access)
+    std::cout << "autopilot master=" << static_cast<int>(simData.simFlags.fields.autopilot) << std::endl;       //NOLINT(cppcoreguidelines-pro-type-union-access)
+    std::cout << "flaps positions=" << static_cast<int>(simData.flapsNumHandlePositions) << std::endl;
+    std::cout << "flaps index=" << static_cast<int>(simData.flapsHandleIndex) << std::endl;
+    std::cout << "yoke X ref=" << simData.yokeXreference << std::endl;
+    std::cout << "throttle lever=" << simData.receivedThrottle << std::endl;
 }

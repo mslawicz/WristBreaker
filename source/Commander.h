@@ -45,6 +45,7 @@ public:
     explicit Commander();
     void displayIncomingReport(const CommandVector& /*cv*/);
     void handler();
+    void displaySimData(const CommandVector& /*cv*/) const;
 private:
     void connectionOffIndicator() { pcLinkOn = false; connectionLed = GPIO_PIN_RESET; }
     struct SimData      //NOLINT(altera-struct-pack-align)
