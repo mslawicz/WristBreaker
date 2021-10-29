@@ -9,6 +9,7 @@
 #define COMMANDER_H_
 
 #include "mbed.h"
+#include "Arbiter.h"
 #include "Console.h"
 #include "Haptic.h"
 #include "USB.h"
@@ -74,6 +75,7 @@ private:
     Timer sendTimer;                            // measures time between usb reports sending
     Timeout connectionTimeout;                  // USB connection timeout object
     bool pcLinkOn{false};                       // is connection to PC active?
+    Arbiter<float> throttleArbiter;             // throttle setting arbiter
 };
 
 #endif /* COMMANDER_H_ */

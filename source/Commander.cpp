@@ -126,6 +126,13 @@ void Commander::handler()
     //serve throttle lever
     HapticData& throttleActuatorData = throttleActuator.getHapticData();
     throttleActuatorData.hapticMode = HapticMode::Free;       //this actuator works in free mode
+    auto leverPositionFromSim = scale<float, float>(0.0F, 1.0F, simData.receivedThrottle, -throttleActuator.getOperationRange(), throttleActuator.getOperationRange());
+    constexpr uint16_t ThrottleCntLoad = 100U;
+    if((throttleArbiter.setRequested(leverPositionFromSim, throttleActuatorData.targetPosition, ThrottleCntLoad)) && (simData.simFlags.fields.validData != 0))  //NOLINT(cppcoreguidelines-pro-type-union-access)
+    {
+        // received throttle lever position value has been changed
+        throttleActuatorData.targetPosition = leverPositionFromSim;
+    }
     static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); throttleActuatorData.integralTime = 10.0F * KLpot.read(); //XXX test
     static AnalogIn KDpot(PA_7); throttleActuatorData.errorThresholt = 0.05F * KDpot.read(); //XXX test
@@ -139,13 +146,7 @@ void Commander::handler()
     // convert deflection +-operationalRange to <-1,1> range
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
     // convert throttle +-operationalRange to <0,1> range
-    auto settledThrottle = scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), throttleActuatorData.targetPosition, 0.0F, 1.0F);
-    if(pcLinkOn && (simData.simFlags.fields.validData != 0) && (systemPushbutton.read() == 1))        //NOLINT(cppcoreguidelines-pro-type-union-access)
-    {
-        constexpr float Half = 0.5F;
-        settledThrottle = Half * (settledThrottle + simData.receivedThrottle);
-    }
-    simData.commandedThrottle = limit<float>(settledThrottle, 0.0F, 1.0F);
+    simData.commandedThrottle = scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), throttleActuatorData.targetPosition, 0.0F, 1.0F);
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
