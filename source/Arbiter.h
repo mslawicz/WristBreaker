@@ -9,12 +9,13 @@
 #define ARBITER_H_
 
 #include <stdint.h>
+#include <utility>
 
 template <class T>
 class Arbiter
 {
 public:
-    bool setRequested(T remote, T local, uint16_t counterLoad);
+    std::pair<bool,bool> valueChanged(T remote, T local, uint16_t counterLoad);
 private:
     T lastRemote{0};
     T lastLocal{0};
@@ -24,14 +25,11 @@ private:
 };
 
 template <class T>
-bool Arbiter<T>::setRequested(T remote, T local, uint16_t counterLoad)
+std::pair<bool,bool> Arbiter<T>::valueChanged(T remote, T local, uint16_t counterLoad)
 {
-    bool setRequest{ false };
-
     if ((remote != lastRemote) && (0 == localCounter))
     {
         remoteCounter = counterLoad;
-        setRequest = true;
     }
 
     if ((local != lastLocal) && (0 == remoteCounter))
@@ -52,7 +50,7 @@ bool Arbiter<T>::setRequested(T remote, T local, uint16_t counterLoad)
         localCounter--;
     }
 
-    return setRequest;
+    return std::pair<bool,bool>{remoteCounter != 0, localCounter !=0};
 }
 
 #endif /*ARBITER_H_*/

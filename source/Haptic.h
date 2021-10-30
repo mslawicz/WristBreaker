@@ -22,8 +22,7 @@
 enum class HapticMode
 {
     Spring,
-    MultiPosition,
-    Free
+    MultiPosition
 };
 
 struct HapticData       //NOLINT(altera-struct-pack-align)
@@ -37,7 +36,7 @@ struct HapticData       //NOLINT(altera-struct-pack-align)
     float directGain;           // gain of the flux vector direct component (damping)
     float magnitudeLimit;       // current maximum magnitude of flux vector
     float deltaPosLimit;        // value of allowed position change; off when ==0
-    float errorThresholt;       // error threshold in free mode
+    float positionError;        // error from target position
 };
 
 class HapticDevice

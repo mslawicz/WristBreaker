@@ -231,7 +231,7 @@ void HapticDevice::handler()
                 //spring action with variable zero position
                 case HapticMode::Spring:
                 {
-                    setActuator();
+                    hapticData.positionError = setActuator();
                     break;
                 }
 
@@ -247,14 +247,6 @@ void HapticDevice::handler()
                         hapticData.targetPosition = hapticData.targetPositions[index];
                     }
                     setActuator();
-                    break;
-                }
-
-                case HapticMode::Free:
-                {
-                    float error = setActuator();;
-                    auto positionShift = threshold<float>(-error, -hapticData.errorThresholt, hapticData.errorThresholt);
-                    hapticData.targetPosition = limit<float>(hapticData.targetPosition + positionShift, -operationRange, operationRange);
                     break;
                 }
 
@@ -418,12 +410,8 @@ void HapticDevice::displayStatus()
         std::cout << ", int time=" << hapticData.integralTime << ", int limit=" << integralLimit;
     }
     std::cout << std::endl;
-    const std::vector<std::string> ModeName{"spring", "multiposition", "free"};
+    const std::vector<std::string> ModeName{"spring", "multiposition"};
     std::cout << "mode=" << ModeName[static_cast<size_t>(hapticData.hapticMode)];
-    if(hapticData.hapticMode == HapticMode::Free)
-    {
-        std::cout << ", errThr=" << hapticData.errorThresholt;
-    }
     std::cout << std::endl;
     std::cout << "motor poles=" << std::dec << static_cast<int>(pMotor->getNoOfPoles()) << ", cur phase=" << currentPhase;
     std::cout << ", magn=" << magnitude << std::endl;
