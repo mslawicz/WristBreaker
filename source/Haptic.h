@@ -121,5 +121,5 @@ recommended motor setup:
 57BLY12530 Spring: torqueGain = 1.0 (soft) ... 2.8 (hard); TI=7; KD=18;
 HT4315 Spring: torqueGain=5.0; TI=8.5; Ilim=0.3; KD=0;
 HT4315 Multiposition: torqueGain=6.5; TI=10; Ilim=0.3; KD=0;
-HT4315 Free: torqueGain=11.5; KD=0; errThr=0.024; (friction torque ~0.3)
+HT4315 Spring(throttle): torqueGain=13; KD=0; no integral; ErrorThreshold=0.025; throttleActuatorData.deltaPosLimit=0.002
 */
