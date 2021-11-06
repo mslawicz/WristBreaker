@@ -13,6 +13,7 @@
 #include "Console.h"
 #include "Haptic.h"
 #include "USB.h"
+#include "BDC.h"
 #include <chrono>
 #include <vector>
 
@@ -76,6 +77,9 @@ private:
     Timeout connectionTimeout;                  // USB connection timeout object
     bool pcLinkOn{false};                       // is connection to PC active?
     Arbiter<float> throttleArbiter;             // throttle setting arbiter
+    MotorDC motorDC;                            // XXX test of DC motor
+    InterruptIn encoderInt;                     // XXX interrupt signal of incremental encoder
+    void encoderIntHandler();                   // XXX incremental encoder interrupt handler
 };
 
 #endif /* COMMANDER_H_ */

@@ -1,6 +1,5 @@
 #include "Commander.h"
 #include "BLDC.h"
-#include "BDC.h"
 #include "Convert.h"
 #include "Encoder.h"
 #include "Logger.h"
@@ -43,7 +42,9 @@ Commander::Commander() :
         0.3F,                   //NOLINT    limit of integral term
         10000                   //NOLINT    number of calibration steps
     ),
-    systemPushbutton(BUTTON1)
+    systemPushbutton(BUTTON1),
+    motorDC(PC_8, PC_9),
+    encoderInt(PB_10)
 {
     LOG_INFO("Commander object created");
 
@@ -57,6 +58,8 @@ Commander::Commander() :
     Console::getInstance().registerCommand("chd", "calibrate haptic device <index>", callback(&HapticDevice::calibrationRequest));
     Console::getInstance().registerCommand("dshd", "display status of haptic device <index>", callback(&HapticDevice::statusRequest));
     Console::getInstance().registerCommand("dsd", "display received simulator data", callback(this, &Commander::displaySimData));
+
+    encoderInt.rise(callback(this, &Commander::encoderIntHandler)); //XXX
 }
 
 void Commander::handler()
@@ -143,9 +146,6 @@ void Commander::handler()
 
     //test of DC motor
     static AnalogIn speedPot(PA_7); float speed = speedPot.read() - 0.5F; //XXX test
-    static DigitalOut testPin(PC_6);
-    static MotorDC motorDC(PC_8, PC_9);
-    testPin.write(handlerCallCounter & 1);
     motorDC.setSpeed(speed);
     if(handlerCallCounter % 500 == 0)
     {
@@ -248,3 +248,11 @@ void Commander::displaySimData(const CommandVector& /*cv*/) const
     std::cout << "yoke X ref=" << simData.yokeXreference << std::endl;
     std::cout << "throttle lever=" << simData.receivedThrottle << std::endl;
 }
+
+/*
+ * incremental encoder interrupt handler
+ */
+ void Commander::encoderIntHandler()
+ {
+
+ }
