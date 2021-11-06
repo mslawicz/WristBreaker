@@ -103,4 +103,18 @@ template <typename T> unsigned char getParityBit(T data)
 //input: tan<-inf, inf>; output: atan<-90,90>[degrees]
 float fastAtan(float tan);
 
+//shifts input value with a constant shift value
+template<typename T> T shift(T value, T shiftConst)
+{
+    if(value > 0)
+    {
+        value += shiftConst;
+    }
+    else if(value < 0)
+    {
+        value -= shiftConst;
+    }
+    return value;
+}
+
 #endif /* CONVERT_H_ */

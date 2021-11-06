@@ -1,5 +1,6 @@
 #include "Commander.h"
 #include "BLDC.h"
+#include "BDC.h"
 #include "Convert.h"
 #include "Encoder.h"
 #include "Logger.h"
@@ -22,7 +23,7 @@ Commander::Commander() :
     PCLink(USB_VID, USB_PID, USB_VER),
     rollActuator
     (
-        new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINT(readability-magic-numbers)
+        new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINT(readability-magic-numbers) PWM4
         new AS5600(PC_4),
         "roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
@@ -33,7 +34,7 @@ Commander::Commander() :
     ),
     throttleActuator
     (
-        new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 28),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+        new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 28),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers) PWM1
         new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
         "throttle actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
@@ -135,11 +136,21 @@ void Commander::handler()
     g_comm[0] = throttleActuatorData.targetPosition; //XXX test
     static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); throttleActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
-    //static AnalogIn KDpot(PA_7); float errorThresholt = 0.05F * KDpot.read(); //XXX test
     throttleActuatorData.useIntegral = false;
     throttleActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
     throttleActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
     throttleActuator.handler();    
+
+    //test of DC motor
+    static AnalogIn speedPot(PA_7); float speed = speedPot.read() - 0.5F; //XXX test
+    static DigitalOut testPin(PC_6);
+    static MotorDC motorDC(PC_8, PC_9);
+    testPin.write(handlerCallCounter & 1);
+    motorDC.setSpeed(speed);
+    if(handlerCallCounter % 500 == 0)
+    {
+        std::cout << "speed=" << speed << std::endl;
+    }
 
     //prepare data to be sent to simulator 
     // convert deflection +-operationalRange to <-1,1> range

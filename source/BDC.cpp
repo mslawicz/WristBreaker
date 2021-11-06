@@ -7,7 +7,6 @@
 
 #include "BDC.h"
 #include "Convert.h"
-#include <cstdint>
 
 MotorDC::MotorDC(PinName outA, PinName outB) :
     phaseA(outA, 1, true),  //PWM center aligned
@@ -22,8 +21,10 @@ MotorDC::MotorDC(PinName outA, PinName outB) :
 void MotorDC::setSpeed(float speed)
 {
     constexpr float SpeedLimit = 0.5F;  //XXX only for tests with a 6V motor
-    limit<float>(speed, -SpeedLimit, SpeedLimit);
+    constexpr float SpeedShift = 0.18F;     //motor is not spinning below this value
+    speed = shift<float>(speed, SpeedShift);
+    speed = limit<float>(speed, -SpeedLimit, SpeedLimit);
 
     phaseA.write(speed > 0 ? speed : 0.0F);
-    phaseB.write(speed < 0 ? speed : 0.0F);
+    phaseB.write(speed < 0 ? -speed : 0.0F);
 }
