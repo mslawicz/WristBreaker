@@ -44,7 +44,8 @@ Commander::Commander() :
     ),
     systemPushbutton(BUTTON1),
     motorDC(PC_8, PC_9),
-    encoderInt(PB_10)
+    encoderInt(PB_10),
+    encoderDir(PB_11)
 {
     LOG_INFO("Commander object created");
 
@@ -149,7 +150,7 @@ void Commander::handler()
     motorDC.setSpeed(speed);
     if(handlerCallCounter % 500 == 0)
     {
-        std::cout << "speed=" << speed << std::endl;
+        std::cout << "speed=" << speed << ", enc=" << encoderValue << std::endl;
     }
 
     //prepare data to be sent to simulator 
@@ -254,5 +255,5 @@ void Commander::displaySimData(const CommandVector& /*cv*/) const
  */
  void Commander::encoderIntHandler()
  {
-
+     encoderValue += (encoderDir.read() == 0) ? 1 : -1;
  }

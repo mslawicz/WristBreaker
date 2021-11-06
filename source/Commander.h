@@ -80,6 +80,8 @@ private:
     MotorDC motorDC;                            // XXX test of DC motor
     InterruptIn encoderInt;                     // XXX interrupt signal of incremental encoder
     void encoderIntHandler();                   // XXX incremental encoder interrupt handler
+    int encoderValue{0};                        // XXX encoder pulse counter
+    DigitalIn encoderDir;                       // XXX encoder direction signal
 };
 
 #endif /* COMMANDER_H_ */
