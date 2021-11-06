@@ -15,6 +15,7 @@ class MotorDC
 {
 public:
     MotorDC(PinName outA, PinName outB);
+    void setSpeed(float speed);
 private:
     FastPWM phaseA;
     FastPWM phaseB;

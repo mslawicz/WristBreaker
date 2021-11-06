@@ -6,6 +6,7 @@
  */
 
 #include "BDC.h"
+#include "Convert.h"
 #include <cstdint>
 
 MotorDC::MotorDC(PinName outA, PinName outB) :
@@ -15,4 +16,14 @@ MotorDC::MotorDC(PinName outA, PinName outB) :
     static constexpr int PwmPeriodUs = 50;
     this->phaseA.period_us(PwmPeriodUs);
     this->phaseB.period_us(PwmPeriodUs);
+}
+
+//set speed of the motor
+void MotorDC::setSpeed(float speed)
+{
+    constexpr float SpeedLimit = 0.5F;  //XXX only for tests with a 6V motor
+    limit<float>(speed, -SpeedLimit, SpeedLimit);
+
+    phaseA.write(speed > 0 ? speed : 0.0F);
+    phaseB.write(speed < 0 ? speed : 0.0F);
 }
