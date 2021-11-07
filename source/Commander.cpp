@@ -135,10 +135,8 @@ void Commander::handler()
     //serve throttle lever
     HapticData& throttleActuatorData = throttleActuator.getHapticData();
     throttleActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    g_comm[6] = simData.receivedThrottle; //XXX test
     //scale simulator throotle value <0,1> to target position <-operationalRange,operationalRange>
     throttleActuatorData.targetPosition = scale<float, float>(0.0F, 1.0F, simData.receivedThrottle, -throttleActuator.getOperationRange(), throttleActuator.getOperationRange());
-    g_comm[0] = throttleActuatorData.targetPosition; //XXX test
     static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); throttleActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
     throttleActuatorData.useIntegral = false;
@@ -154,6 +152,8 @@ void Commander::handler()
     {
         speed = 0.0F;
     }
+    g_comm[0] = encoderValue;
+    g_comm[1] = tensometer.getValue();
 
     motorDC.setSpeed(speed);
     if(handlerCallCounter % 500 == 0)
@@ -171,10 +171,6 @@ void Commander::handler()
     //check whether the remote or local change is in action
     constexpr uint16_t ThrottleChangeGuard = 500U;  // 500 loop executions ~ 500ms
     auto changeFlags = throttleArbiter.valueChanged(simData.receivedThrottle, simData.commandedThrottle, ThrottleChangeGuard);
-    g_comm[1] = changeFlags.first; //XXX test
-    g_comm[7] = changeFlags.second; //XXX test
-    g_comm[4] = -throttleActuatorData.positionError; //XXX test
-    g_comm[2] = positionShift; //XXX test
     //if the change was not initiated by simulator
     if((positionShift !=0) && !changeFlags.first)
     {
@@ -182,9 +178,7 @@ void Commander::handler()
         float newThrottlePosition = throttleActuatorData.targetPosition + positionShift;
         // convert throttle lever position <-operationalRange,operationalRange> to <0,1> range
         simData.commandedThrottle = scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), newThrottlePosition, 0.0F, 1.0F);
-        g_comm[5] = newThrottlePosition; //XXX test
     }
-    g_comm[3] = simData.commandedThrottle; //XXX test
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
