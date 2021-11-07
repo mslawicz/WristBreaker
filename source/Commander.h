@@ -14,6 +14,7 @@
 #include "Haptic.h"
 #include "USB.h"
 #include "BDC.h"
+#include "HX711.h"
 #include <chrono>
 #include <vector>
 
@@ -82,6 +83,7 @@ private:
     void encoderIntHandler();                   // XXX incremental encoder interrupt handler
     int encoderValue{0};                        // XXX encoder pulse counter
     DigitalIn encoderDir;                       // XXX encoder direction signal
+    HX711 tensometer;                           // XXX force sensor
 };
 
 #endif /* COMMANDER_H_ */

@@ -45,7 +45,8 @@ Commander::Commander() :
     systemPushbutton(BUTTON1),
     motorDC(PC_8, PC_9),
     encoderInt(PB_10),
-    encoderDir(PB_11)
+    encoderDir(PB_11),
+    tensometer(PE_0, PE_15)
 {
     LOG_INFO("Commander object created");
 
@@ -147,10 +148,17 @@ void Commander::handler()
 
     //test of DC motor
     static AnalogIn speedPot(PA_7); float speed = speedPot.read() - 0.5F; //XXX test
+    constexpr int EncoderLimit = 100;
+    if(((speed > 0) && (encoderValue > EncoderLimit)) ||
+       ((speed < 0) && (encoderValue < -EncoderLimit)))
+    {
+        speed = 0.0F;
+    }
+
     motorDC.setSpeed(speed);
     if(handlerCallCounter % 500 == 0)
     {
-        std::cout << "speed=" << speed << ", enc=" << encoderValue << std::endl;
+        std::cout << "speed=" << speed << std::dec << ", enc=" << encoderValue << ", tv=" << std::hex << tensometer.getDataRegister() << ", force=" << tensometer.getValue() << std::endl;
     }
 
     //prepare data to be sent to simulator 
