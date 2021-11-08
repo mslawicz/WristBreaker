@@ -137,7 +137,6 @@ void Commander::handler()
     throttleActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     //scale simulator throotle value <0,1> to target position <-operationalRange,operationalRange>
     throttleActuatorData.targetPosition = scale<float, float>(0.0F, 1.0F, simData.receivedThrottle, -throttleActuator.getOperationRange(), throttleActuator.getOperationRange());
-    static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); throttleActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
     throttleActuatorData.useIntegral = false;
     throttleActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
@@ -145,20 +144,29 @@ void Commander::handler()
     throttleActuator.handler();    
 
     //test of DC motor
-    static AnalogIn speedPot(PA_7); float speed = speedPot.read() - 0.5F; //XXX test
+    static AnalogIn speedPot(PA_7); float speed = 0; //speedPot.read() - 0.5F; //XXX test
     constexpr int EncoderLimit = 100;
+    float targetEncoderValue = tensometer.getValue() * EncoderLimit;
+    float positionError = (targetEncoderValue - static_cast<float>(encoderValue)) / EncoderLimit;
+    static AnalogIn KPpot(PA_5); float gain = 2.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
+    speed = gain * positionError;
     if(((speed > 0) && (encoderValue > EncoderLimit)) ||
        ((speed < 0) && (encoderValue < -EncoderLimit)))
     {
         speed = 0.0F;
     }
+
     g_comm[0] = encoderValue;
     g_comm[1] = tensometer.getValue();
+    g_comm[2] = targetEncoderValue;
+    g_comm[3] = positionError;
+    g_comm[4] = speed;
 
     motorDC.setSpeed(speed);
     if(handlerCallCounter % 500 == 0)
     {
-        std::cout << "speed=" << speed << std::dec << ", enc=" << encoderValue << ", tv=" << std::hex << tensometer.getDataRegister() << ", force=" << tensometer.getValue() << std::endl;
+        std::cout << "speed=" << speed << std::dec << ", enc=" << encoderValue << ", force=" << tensometer.getValue();
+        std::cout << ", tarEnc=" << targetEncoderValue << ", err=" << positionError << std::endl;
     }
 
     //prepare data to be sent to simulator 
