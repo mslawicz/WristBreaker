@@ -31,11 +31,11 @@ Commander::Commander() :
         0.1F,                   //NOLINT    limit of integral term
         500                     //NOLINT    number of calibration steps
     ),
-    throttleActuator
+    rudderActuator
     (
         new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 28),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
         new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
-        "throttle actuator",
+        "rudder actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.6F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
@@ -126,45 +126,40 @@ void Commander::handler()
     rollActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
     //XXX temporarily disabled rollActuator.handler();
 
-    //serve throttle lever
-    HapticData& throttleActuatorData = throttleActuator.getHapticData();
-    throttleActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    g_comm[6] = simData.receivedThrottle; //XXX test
-    //scale simulator throotle value <0,1> to target position <-operationalRange,operationalRange>
-    throttleActuatorData.targetPosition = scale<float, float>(0.0F, 1.0F, simData.receivedThrottle, -throttleActuator.getOperationRange(), throttleActuator.getOperationRange());
-    g_comm[0] = throttleActuatorData.targetPosition; //XXX test
-    static AnalogIn KPpot(PA_5); throttleActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
-    static AnalogIn KLpot(PA_6); throttleActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
+    //serve joystick rudder twist actuator
+    HapticData& rudderActuatorData = rudderActuator.getHapticData();
+    rudderActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
+    //scale simulator rudder value <0,1> to target position <-operationalRange,operationalRange>
+    //rudderActuatorData.targetPosition = scale<float, float>(0.0F, 1.0F, simData.receivedThrottle, -rudderActuator.getOperationRange(), rudderActuator.getOperationRange());
+    g_comm[0] = rudderActuatorData.targetPosition; //XXX test
+    static AnalogIn KPpot(PA_5); rudderActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
+    static AnalogIn KLpot(PA_6); rudderActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
     //static AnalogIn KDpot(PA_7); float errorThresholt = 0.05F * KDpot.read(); //XXX test
-    throttleActuatorData.useIntegral = false;
-    throttleActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
-    throttleActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
-    throttleActuator.handler();    
+    rudderActuatorData.useIntegral = false;
+    rudderActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
+    rudderActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
+    rudderActuator.handler();    
 
     //prepare data to be sent to simulator 
     // convert deflection +-operationalRange to <-1,1> range
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
 
-    // apply threshold to throttle lever deflection
+    // apply threshold to rudder lever deflection
     constexpr float ErrorThreshold = 0.025F;
-    auto positionShift = threshold<float>(-throttleActuatorData.positionError, -ErrorThreshold, ErrorThreshold);
+    auto positionShift = threshold<float>(-rudderActuatorData.positionError, -ErrorThreshold, ErrorThreshold);
     //check whether the remote or local change is in action
-    constexpr uint16_t ThrottleChangeGuard = 500U;  // 500 loop executions ~ 500ms
-    auto changeFlags = throttleArbiter.valueChanged(simData.receivedThrottle, simData.commandedThrottle, ThrottleChangeGuard);
-    g_comm[1] = changeFlags.first; //XXX test
-    g_comm[7] = changeFlags.second; //XXX test
-    g_comm[4] = -throttleActuatorData.positionError; //XXX test
+    constexpr uint16_t RudderChangeGuard = 500U;  // 500 loop executions ~ 500ms
+    g_comm[4] = -rudderActuatorData.positionError; //XXX test
     g_comm[2] = positionShift; //XXX test
     //if the change was not initiated by simulator
-    if((positionShift !=0) && !changeFlags.first)
+    if(true /*(positionShift !=0) && !changeFlags.first*/)
     {
         // change the lever position by deflection
-        float newThrottlePosition = throttleActuatorData.targetPosition + positionShift;
-        // convert throttle lever position <-operationalRange,operationalRange> to <0,1> range
-        simData.commandedThrottle = scale<float, float>(-throttleActuator.getOperationRange(), throttleActuator.getOperationRange(), newThrottlePosition, 0.0F, 1.0F);
-        g_comm[5] = newThrottlePosition; //XXX test
+        float newRudderPosition = rudderActuatorData.targetPosition + positionShift;
+        // convert rudder position <-operationalRange,operationalRange> to <0,1> range
+        //simData.commandedRudder = scale<float, float>(-rudderActuator.getOperationRange(), rudderActuator.getOperationRange(), newRudderPosition, 0.0F, 1.0F);
+        g_comm[5] = newRudderPosition; //XXX test
     }
-    g_comm[3] = simData.commandedThrottle; //XXX test
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
@@ -177,7 +172,7 @@ void Commander::handler()
         hidData.resize(HidDataSize);
         uint8_t* pData = hidData.data();
         placeData<float>(simData.yokeXposition , pData);
-        placeData<float>(simData.commandedThrottle, pData);
+        placeData<float>(0 /*simData.commandedThrottle*/, pData);
         placeData<char>('y', pData);
         placeData<char>('o', pData);
         placeData<char>('k', pData);
@@ -206,7 +201,7 @@ void Commander::parseReportData()
     simData.flapsHandleIndex = parseData<uint8_t>(pData);
     simData.yokeXreference = parseData<float>(pData);
     simData.simFlags.allFields = parseData<typeof(SimFlags::allFields)>(pData);   //NOLINT(cppcoreguidelines-pro-type-union-access)
-    simData.receivedThrottle = parseData<float>(pData);
+    //simData.receivedThrottle = parseData<float>(pData);
 }
 
 /*
@@ -235,5 +230,4 @@ void Commander::displaySimData(const CommandVector& /*cv*/) const
     std::cout << "flaps positions=" << static_cast<int>(simData.flapsNumHandlePositions) << std::endl;
     std::cout << "flaps index=" << static_cast<int>(simData.flapsHandleIndex) << std::endl;
     std::cout << "yoke X ref=" << simData.yokeXreference << std::endl;
-    std::cout << "throttle lever=" << simData.receivedThrottle << std::endl;
 }

@@ -58,8 +58,6 @@ private:
         float yokeXreference;       // yoke X reference position received from simulator (w/o vibrations)
         float yokeXposition;        // yoke X axis position sent to simulator
         SimFlags simFlags;          // bit flags received from simulator
-        float receivedThrottle;     // throttle value received from simulator
-        float commandedThrottle;    // throttle value sent to simulator
     };
     void parseReportData();                     // parse received report data
     DigitalOut heartBeatLed;                    // Commander heartbeat LED (blue)
@@ -69,13 +67,12 @@ private:
     JoystickData joystickData{0};               // structure of joystick data to be sent to PC
     std::vector<uint8_t> receivedReport;        // received report data from PC
     HapticDevice rollActuator;                  // yoke roll axis actuator
-    HapticDevice throttleActuator;              // throttle lever actuator
+    HapticDevice rudderActuator;                // rudder handle actuator
     DigitalIn systemPushbutton;                 // Nucleo board blue button
     SimData simData{0};                         // data received and calculated from simConnect
     Timer sendTimer;                            // measures time between usb reports sending
     Timeout connectionTimeout;                  // USB connection timeout object
     bool pcLinkOn{false};                       // is connection to PC active?
-    Arbiter<float> throttleArbiter;             // throttle setting arbiter
 };
 
 #endif /* COMMANDER_H_ */
