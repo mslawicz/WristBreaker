@@ -29,7 +29,7 @@ int main() // NOLINT(modernize-use-trailing-return-type)
     HAL_DBGMCU_EnableDBGSleepMode();
 #endif
     logTimer.start();        //start timer for log purposes
-    LOG_INFO("WristBreaker v1");
+    LOG_ALWAYS("WristBreaker v1");
 
     // create and start console thread
     Thread consoleThread(osPriority_t::osPriorityLow4, OS_STACK_SIZE, nullptr, "console");
