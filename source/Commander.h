@@ -69,7 +69,7 @@ private:
     JoystickData joystickData{0};               // structure of joystick data to be sent to PC
     std::vector<uint8_t> receivedReport;        // received report data from PC
     HapticDevice rollActuator;                  // yoke roll axis actuator
-    HapticDevice rudderActuator;                // rudder handle actuator
+    HapticDevice yawActuator;                   // yoke yaw (rudder) handle actuator
     DigitalIn systemPushbutton;                 // Nucleo board blue button
     SimData simData{0};                         // data received and calculated from simConnect
     Timer sendTimer;                            // measures time between usb reports sending

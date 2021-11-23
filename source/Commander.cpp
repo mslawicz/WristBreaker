@@ -32,7 +32,7 @@ Commander::Commander() :
         0.1F,                   //NOLINT    limit of integral term
         500                     //NOLINT    number of calibration steps
     ),
-    rudderActuator
+    yawActuator
     (
         new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 28),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
         new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
@@ -116,8 +116,8 @@ void Commander::handler()
     float currentPositionX = rollActuator.getCurrentPosition();     // current poition X of the yoke
     float zeroPositionX = rollActuator.getOperationRange() * limit<float>(simData.yokeXreference, -1.0F, 1.0F);   // requested zero torque position from simulator
 
-    float currentPositionZ = rudderActuator.getCurrentPosition();     // current poition Z of the yoke
-    float zeroPositionZ = rudderActuator.getOperationRange() * limit<float>(simData.yokeZreference, -1.0F, 1.0F);   // requested zero torque position from simulator
+    float currentPositionZ = yawActuator.getCurrentPosition();     // current poition Z of the yoke
+    float zeroPositionZ = yawActuator.getOperationRange() * limit<float>(simData.yokeZreference, -1.0F, 1.0F);   // requested zero torque position from simulator
 
     //serve yoke roll actuator
     HapticData& rollActuatorData = rollActuator.getHapticData();
@@ -129,24 +129,24 @@ void Commander::handler()
     rollActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
     //XXX temporarily disabled rollActuator.handler();
 
-    //serve joystick rudder twist actuator
-    HapticData& rudderActuatorData = rudderActuator.getHapticData();
-    rudderActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    rudderActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
+    //serve joystick yaw (rudder) twist actuator
+    HapticData& yawActuatorData = yawActuator.getHapticData();
+    yawActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
+    yawActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
     //scale simulator rudder value <0,1> to target position <-operationalRange,operationalRange>
-    rudderActuatorData.targetPosition = zeroPositionZ;   //zero torque position from simulator
-    g_comm[0] = rudderActuatorData.targetPosition; //XXX test
-    static AnalogIn KPpot(PA_5); rudderActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
-    static AnalogIn KLpot(PA_6); rudderActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
+    yawActuatorData.targetPosition = zeroPositionZ;   //zero torque position from simulator
+    g_comm[0] = yawActuatorData.targetPosition; //XXX test
+    static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
+    static AnalogIn KLpot(PA_6); yawActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
     //static AnalogIn KDpot(PA_7); float errorThresholt = 0.05F * KDpot.read(); //XXX test
-    rudderActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
-    rudderActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
-    rudderActuator.handler();    
+    yawActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
+    yawActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
+    yawActuator.handler();    
 
     //prepare data to be sent to simulator 
     // convert deflection +-operationalRange to <-1,1> range
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), currentPositionX, -1.0F, 1.0F);
-    simData.yokeZposition = scale<float, float>(-rudderActuator.getOperationRange(), rudderActuator.getOperationRange(), currentPositionZ, -1.0F, 1.0F);
+    simData.yokeZposition = scale<float, float>(-yawActuator.getOperationRange(), yawActuator.getOperationRange(), currentPositionZ, -1.0F, 1.0F);
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
