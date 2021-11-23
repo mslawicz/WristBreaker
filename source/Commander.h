@@ -57,6 +57,8 @@ private:
         bool flapsHandleSetRequest;
         float yokeXreference;       // yoke X reference position received from simulator (w/o vibrations)
         float yokeXposition;        // yoke X axis position sent to simulator
+        float yokeZreference;       // yoke Z reference position received from simulator (w/o vibrations)
+        float yokeZposition;        // yoke Z axis position sent to simulator        
         SimFlags simFlags;          // bit flags received from simulator
     };
     void parseReportData();                     // parse received report data

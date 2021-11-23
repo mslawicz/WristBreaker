@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <ostream>
 #include <ratio>
 
 
@@ -114,7 +115,9 @@ void Commander::handler()
     //calculate pilot's yoke input
     float currentPositionX = rollActuator.getCurrentPosition();     // current poition X of the yoke
     float zeroPositionX = rollActuator.getOperationRange() * limit<float>(simData.yokeXreference, -1.0F, 1.0F);   // requested zero torque position from simulator
-    float pilotInputX = currentPositionX - zeroPositionX;   //pilot's X deflection from zero position
+
+    float currentPositionZ = rudderActuator.getCurrentPosition();     // current poition Z of the yoke
+    float zeroPositionZ = rudderActuator.getOperationRange() * limit<float>(simData.yokeZreference, -1.0F, 1.0F);   // requested zero torque position from simulator
 
     //serve yoke roll actuator
     HapticData& rollActuatorData = rollActuator.getHapticData();
@@ -129,42 +132,26 @@ void Commander::handler()
     //serve joystick rudder twist actuator
     HapticData& rudderActuatorData = rudderActuator.getHapticData();
     rudderActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
+    rudderActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
     //scale simulator rudder value <0,1> to target position <-operationalRange,operationalRange>
-    //rudderActuatorData.targetPosition = scale<float, float>(0.0F, 1.0F, simData.receivedThrottle, -rudderActuator.getOperationRange(), rudderActuator.getOperationRange());
+    rudderActuatorData.targetPosition = zeroPositionZ;   //zero torque position from simulator
     g_comm[0] = rudderActuatorData.targetPosition; //XXX test
     static AnalogIn KPpot(PA_5); rudderActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); rudderActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
     //static AnalogIn KDpot(PA_7); float errorThresholt = 0.05F * KDpot.read(); //XXX test
-    rudderActuatorData.useIntegral = false;
     rudderActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
     rudderActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
     rudderActuator.handler();    
 
     //prepare data to be sent to simulator 
     // convert deflection +-operationalRange to <-1,1> range
-    simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), pilotInputX, -1.0F, 1.0F);
-
-    // apply threshold to rudder lever deflection
-    constexpr float ErrorThreshold = 0.025F;
-    auto positionShift = threshold<float>(-rudderActuatorData.positionError, -ErrorThreshold, ErrorThreshold);
-    //check whether the remote or local change is in action
-    constexpr uint16_t RudderChangeGuard = 500U;  // 500 loop executions ~ 500ms
-    g_comm[4] = -rudderActuatorData.positionError; //XXX test
-    g_comm[2] = positionShift; //XXX test
-    //if the change was not initiated by simulator
-    if(true /*(positionShift !=0) && !changeFlags.first*/)
-    {
-        // change the lever position by deflection
-        float newRudderPosition = rudderActuatorData.targetPosition + positionShift;
-        // convert rudder position <-operationalRange,operationalRange> to <0,1> range
-        //simData.commandedRudder = scale<float, float>(-rudderActuator.getOperationRange(), rudderActuator.getOperationRange(), newRudderPosition, 0.0F, 1.0F);
-        g_comm[5] = newRudderPosition; //XXX test
-    }
+    simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), currentPositionX, -1.0F, 1.0F);
+    simData.yokeZposition = scale<float, float>(-rudderActuator.getOperationRange(), rudderActuator.getOperationRange(), currentPositionZ, -1.0F, 1.0F);
 
     //we do not send joystick reports in this version 
     //PCLink.sendReport(1, joystickReportData);
     constexpr auto UsbSendInterval = std::chrono::milliseconds(10);
-    if(sendTimer.elapsed_time() > UsbSendInterval)
+    if(sendTimer.elapsed_time() >= UsbSendInterval)
     {
         //send USB HID report 2
         std::vector<uint8_t> hidData;
@@ -172,7 +159,8 @@ void Commander::handler()
         hidData.resize(HidDataSize);
         uint8_t* pData = hidData.data();
         placeData<float>(simData.yokeXposition , pData);
-        placeData<float>(0 /*simData.commandedThrottle*/, pData);
+        placeData<float>(0.0F, pData);  //reserved for yokeYposition
+        placeData<float>(simData.yokeZposition , pData);
         placeData<char>('y', pData);
         placeData<char>('o', pData);
         placeData<char>('k', pData);
