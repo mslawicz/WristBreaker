@@ -153,6 +153,35 @@ void Commander::handler()
     constexpr auto UsbSendInterval = std::chrono::milliseconds(10);
     if(sendTimer.elapsed_time() >= UsbSendInterval)
     {
+        //send USB HID report 1 (HID joystick data)
+        std::vector<uint8_t> joyData;
+        int16_t i16 = static_cast<int16_t>((handlerCallCounter << 3) & 0xFFFF);
+        joyData.push_back(LO8(i16));    // joystick X
+        joyData.push_back(HI8(i16));
+        joyData.push_back(LO8(i16));    // joystick Y
+        joyData.push_back(HI8(i16));
+        joyData.push_back(LO8(i16));    // joystick Z
+        joyData.push_back(HI8(i16));
+        joyData.push_back(LO8(i16));    // joystick Rx
+        joyData.push_back(HI8(i16));
+        i16 = static_cast<int16_t>((handlerCallCounter << 2) & 0x7FFF);
+        joyData.push_back(LO8(i16));    // joystick Rx
+        joyData.push_back(HI8(i16));
+        joyData.push_back(LO8(i16));    // joystick Ry
+        joyData.push_back(HI8(i16));
+        joyData.push_back(LO8(i16));    // joystick slider
+        joyData.push_back(HI8(i16));
+        joyData.push_back(LO8(i16));    // joystick dial
+        joyData.push_back(HI8(i16));                   
+        uint8_t hat = static_cast<uint8_t>((handlerCallCounter >> 6) % 9);
+        joyData.push_back(hat);         // joystick HAT
+        uint32_t buttons = static_cast<uint32_t>((handlerCallCounter >> 4) | (handlerCallCounter << 14));
+        joyData.push_back(buttons & 0xFF);      // joystick buttons
+        joyData.push_back((buttons >> 8) & 0xFF);
+        joyData.push_back((buttons >> 16) & 0xFF);
+        joyData.push_back((buttons >> 24) & 0xFF);
+        PCLink.sendReport(1, joyData);
+
         //send USB HID report 2
         std::vector<uint8_t> hidData;
         constexpr size_t HidDataSize = 63;
@@ -166,6 +195,7 @@ void Commander::handler()
         placeData<char>('k', pData);
         placeData<char>('e', pData);
         PCLink.sendReport(2, hidData);
+
         sendTimer.reset();
     }
 }
