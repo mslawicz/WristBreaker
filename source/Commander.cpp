@@ -155,24 +155,25 @@ void Commander::handler()
     {
         //send USB HID report 1 (HID joystick data)
         std::vector<uint8_t> joyData;
-        int16_t i16 = static_cast<int16_t>((handlerCallCounter << 3) & 0xFFFF);
-        joyData.push_back(LO8(i16));    // joystick X
+        float fx = sin(handlerCallCounter * 0.00628F);
+        int16_t i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, -32767, 32767);
+        joyData.push_back(LO8(i16));    // joystick X (aileron)
         joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick Y
+        joyData.push_back(LO8(i16));    // joystick Y (elevator)
         joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick Z
+        joyData.push_back(LO8(i16));    // joystick Z (throttle)
         joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick Rx
+        joyData.push_back(LO8(i16));    // joystick Rx (rudder)
         joyData.push_back(HI8(i16));
-        i16 = static_cast<int16_t>((handlerCallCounter << 2) & 0x7FFF);
-        joyData.push_back(LO8(i16));    // joystick Rx
+        i16 = i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, 0, 32767);
+        joyData.push_back(LO8(i16));    // joystick Rx (brake L)
         joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick Ry
+        joyData.push_back(LO8(i16));    // joystick Ry (brake R)
         joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick slider
+        joyData.push_back(LO8(i16));    // joystick slider (mixture)
         joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick dial
-        joyData.push_back(HI8(i16));                   
+        joyData.push_back(LO8(i16));    // joystick dial (propeller)
+        joyData.push_back(HI8(i16));                           
         uint8_t hat = static_cast<uint8_t>((handlerCallCounter >> 6) % 9);
         joyData.push_back(hat);         // joystick HAT
         uint32_t buttons = static_cast<uint32_t>((handlerCallCounter >> 4) | (handlerCallCounter << 14));
@@ -182,19 +183,19 @@ void Commander::handler()
         joyData.push_back((buttons >> 24) & 0xFF);
         PCLink.sendReport(1, joyData);
 
-        //send USB HID report 2
-        std::vector<uint8_t> hidData;
-        constexpr size_t HidDataSize = 63;
-        hidData.resize(HidDataSize);
-        uint8_t* pData = hidData.data();
-        placeData<float>(simData.yokeXposition , pData);
-        placeData<float>(0.0F, pData);  //reserved for yokeYposition
-        placeData<float>(simData.yokeZposition , pData);
-        placeData<char>('y', pData);
-        placeData<char>('o', pData);
-        placeData<char>('k', pData);
-        placeData<char>('e', pData);
-        PCLink.sendReport(2, hidData);
+        //don't send USB HID report 2 periodically
+        // std::vector<uint8_t> hidData;
+        // constexpr size_t HidDataSize = 63;
+        // hidData.resize(HidDataSize);
+        // uint8_t* pData = hidData.data();
+        // placeData<float>(simData.yokeXposition , pData);
+        // placeData<float>(0.0F, pData);  //reserved for yokeYposition
+        // placeData<float>(simData.yokeZposition , pData);
+        // placeData<char>('y', pData);
+        // placeData<char>('o', pData);
+        // placeData<char>('k', pData);
+        // placeData<char>('e', pData);
+        // PCLink.sendReport(2, hidData);
 
         sendTimer.reset();
     }
