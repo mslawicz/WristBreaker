@@ -206,21 +206,12 @@ void Commander::handler()
 */
 void Commander::parseReportData()
 {
-    // if((receivedReport[1] > 0) &&       // flaps handle positions > 0
-    //    (receivedReport[2] != simData.flapsHandleIndex) &&    // flaps index has been changed
-    //    (receivedReport[2] <= receivedReport[1]))     // handle index <= number of positions excluding position 0
-    // {
-    //     simData.requestedFlapsHandleIndex = receivedReport[2];
-    //     simData.flapsHandleSetRequest = true;
-    //     std::cout << "flaps handle position change request " << static_cast<int>(simData.flapsHandleIndex) << "->" << static_cast<int>(receivedReport[2]) << std::endl;
-    // }
     uint8_t* pData = receivedReport.data();
     parseData<uint8_t>(pData);      //omit reportID
     simData.flapsNumHandlePositions = parseData<uint8_t>(pData);
     simData.flapsHandleIndex = parseData<uint8_t>(pData);
     simData.yokeXreference = parseData<float>(pData);
     simData.simFlags.allFields = parseData<typeof(SimFlags::allFields)>(pData);   //NOLINT(cppcoreguidelines-pro-type-union-access)
-    //simData.receivedThrottle = parseData<float>(pData);
 }
 
 /*
