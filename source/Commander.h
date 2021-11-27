@@ -62,6 +62,7 @@ private:
     void parseReportData();                     // parse received report data
     void sendJoystickData();                    // send joystick data to USB (HID joystick report 1)
     void testJoystickData();                    // fill joystick data for testing
+    void sendHidData();                         // send HID buffer data to USB (HID buffer report 2)
     DigitalOut heartBeatLed;                    // Commander heartbeat LED (blue)
     DigitalOut connectionLed;                   // active connection to SimConnect LED (green)
     uint32_t handlerCallCounter{0};             // counter of the handler calls 
@@ -75,6 +76,7 @@ private:
     Timer sendTimer;                            // measures time between usb reports sending
     Timeout connectionTimeout;                  // USB connection timeout object
     bool pcLinkOn{false};                       // is connection to PC active?
+    static constexpr int16_t Max15bit = 0x7FFF; // max 15-bit number
 };
 
 #endif /* COMMANDER_H_ */

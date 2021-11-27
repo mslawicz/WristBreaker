@@ -71,7 +71,7 @@ void Commander::handler()
         parseReportData();
         pcLinkOn = true;
         connectionLed = GPIO_PIN_SET;
-        constexpr std::chrono::milliseconds timeout(100);
+        constexpr std::chrono::milliseconds timeout(1200);
         connectionTimeout.attach(callback(this, &Commander::connectionOffIndicator), timeout);
     }
 
@@ -86,7 +86,7 @@ void Commander::handler()
     HapticData& rollActuatorData = rollActuator.getHapticData();
     rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     rollActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
-    rollActuatorData.targetPosition = zeroPositionX;   //zero torque position from simulator
+    rollActuatorData.targetPosition = zeroPositionX;   //zero torque position from simulator <-1,1>
     rollActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     rollActuatorData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
     rollActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
@@ -95,9 +95,9 @@ void Commander::handler()
     //serve joystick yaw (rudder) twist actuator
     HapticData& yawActuatorData = yawActuator.getHapticData();
     yawActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    yawActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
+    yawActuatorData.useIntegral = pcLinkOn && (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
     //scale simulator rudder value <0,1> to target position <-operationalRange,operationalRange>
-    yawActuatorData.targetPosition = zeroPositionZ;   //zero torque position from simulator
+    yawActuatorData.targetPosition = zeroPositionZ;   //zero torque position from simulator <-1,1>
     g_comm[0] = yawActuatorData.targetPosition; //XXX test
     static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); yawActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
@@ -109,31 +109,14 @@ void Commander::handler()
     //prepare data to be sent to simulator 
     // convert deflection +-operationalRange to <-1,1> range
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), currentPositionX, -1.0F, 1.0F);
-    simData.yokeZposition = scale<float, float>(-yawActuator.getOperationRange(), yawActuator.getOperationRange(), currentPositionZ, -1.0F, 1.0F);
+    simData.yokeZposition = scale<float, float>(-yawActuator.getOperationRange(), yawActuator.getOperationRange(), currentPositionZ - zeroPositionZ, -1.0F, 1.0F);
+    joystickData.Rz = scale<float, int16_t>(-1.0F, 1.0F, simData.yokeZposition, -Max15bit, Max15bit);
 
-    //we do not send joystick reports in this version 
-    //PCLink.sendReport(1, joystickReportData);
     constexpr auto UsbSendInterval = std::chrono::milliseconds(10);
     if(sendTimer.elapsed_time() >= UsbSendInterval)
     {
         //send USB HID report 1 (HID joystick data)
-        testJoystickData(); //XXX temporarily for testing report 1
         sendJoystickData();
-
-        //don't send USB HID report 2 periodically
-        // std::vector<uint8_t> hidData;
-        // constexpr size_t HidDataSize = 63;
-        // hidData.resize(HidDataSize);
-        // uint8_t* pData = hidData.data();
-        // placeData<float>(simData.yokeXposition , pData);
-        // placeData<float>(0.0F, pData);  //reserved for yokeYposition
-        // placeData<float>(simData.yokeZposition , pData);
-        // placeData<char>('y', pData);
-        // placeData<char>('o', pData);
-        // placeData<char>('k', pData);
-        // placeData<char>('e', pData);
-        // PCLink.sendReport(2, hidData);
-
         sendTimer.reset();
     }
 }
@@ -218,16 +201,35 @@ void Commander::displaySimData(const CommandVector& /*cv*/) const
  void Commander::testJoystickData()
  {
     float fx = sin(handlerCallCounter * 0.00628F);  //NOLINT
-    int16_t i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, -32767, 32767);  //NOLINT
+    int16_t i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, -Max15bit, Max15bit);
     joystickData.X = i16;
     joystickData.Y = i16;
     joystickData.Z = i16;
     joystickData.Rz = i16;
-    i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, 0, 32767);  //NOLINT
+    i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, 0, Max15bit);
     joystickData.Rx = i16;
     joystickData.Ry = i16;
     joystickData.slider = i16;    
     joystickData.dial = i16;
     joystickData.hat = static_cast<uint8_t>((handlerCallCounter >> 6) % 9);  //NOLINT
     joystickData.buttons = static_cast<uint32_t>((handlerCallCounter >> 4) | (handlerCallCounter << 16));  //NOLINT
+ }
+
+/*
+ * send HID buffer data to USB (HID buffer report 2)
+ */
+ void Commander::sendHidData()
+ {
+    std::vector<uint8_t> hidData;
+    constexpr size_t HidDataSize = 63;
+    hidData.resize(HidDataSize);
+    uint8_t* pData = hidData.data();
+    placeData<float>(simData.yokeXposition , pData);
+    placeData<float>(0.0F, pData);  //reserved for yokeYposition
+    placeData<float>(simData.yokeZposition , pData);
+    placeData<char>('y', pData);
+    placeData<char>('o', pData);
+    placeData<char>('k', pData);
+    placeData<char>('e', pData);
+    PCLink.sendReport(2, hidData);
  }
