@@ -36,7 +36,7 @@ Commander::Commander() :
     (
         new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 28),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
         new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
-        "rudder actuator",
+        "yaw actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.6F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
         0.25F,                  //NOLINT    range of normal operation calculated from reference position
@@ -75,43 +75,6 @@ void Commander::handler()
         connectionTimeout.attach(callback(this, &Commander::connectionOffIndicator), timeout);
     }
 
-    //XXX test of joystick data
-    int16_t testVal = (handlerCallCounter << 6) & 0xFFFF; // NOLINT
-    joystickData.X = testVal;
-    joystickData.Y = testVal;
-    testVal = (handlerCallCounter << 4) & 0x7FFF; // NOLINT
-    joystickData.dial = testVal;
-    joystickData.slider = testVal;
-    testVal = (handlerCallCounter >> 4) % 9; // NOLINT
-    joystickData.hat = testVal;
-    testVal = (handlerCallCounter >> 4) & 0xFFFF; // NOLINT
-    joystickData.buttons = testVal | (testVal << 16U); // NOLINT
-
-    std::vector<uint8_t> joystickReportData
-    {
-        LO8(joystickData.X),
-        HI8(joystickData.X),
-        LO8(joystickData.Y),
-        HI8(joystickData.Y),
-        LO8(joystickData.Z),
-        HI8(joystickData.Z),
-        LO8(joystickData.Rz),
-        HI8(joystickData.Rz),
-        LO8(joystickData.Rx),
-        HI8(joystickData.Rx),
-        LO8(joystickData.Ry),
-        HI8(joystickData.Ry),
-        LO8(joystickData.slider),
-        HI8(joystickData.slider),
-        LO8(joystickData.dial),
-        HI8(joystickData.dial),
-        joystickData.hat,
-        static_cast<uint8_t>(joystickData.buttons & 0xFF),   // NOLINT
-        static_cast<uint8_t>((joystickData.buttons >> 8) & 0xFF),   // NOLINT
-        static_cast<uint8_t>((joystickData.buttons >> 16) & 0xFF),   // NOLINT
-        static_cast<uint8_t>((joystickData.buttons >> 24) & 0xFF)    // NOLINT
-    };
-
     //calculate pilot's yoke input
     float currentPositionX = rollActuator.getCurrentPosition();     // current poition X of the yoke
     float zeroPositionX = rollActuator.getOperationRange() * limit<float>(simData.yokeXreference, -1.0F, 1.0F);   // requested zero torque position from simulator
@@ -136,7 +99,7 @@ void Commander::handler()
     //scale simulator rudder value <0,1> to target position <-operationalRange,operationalRange>
     yawActuatorData.targetPosition = zeroPositionZ;   //zero torque position from simulator
     g_comm[0] = yawActuatorData.targetPosition; //XXX test
-    static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 20.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
+    static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); yawActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
     //static AnalogIn KDpot(PA_7); float errorThresholt = 0.05F * KDpot.read(); //XXX test
     yawActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
@@ -154,34 +117,8 @@ void Commander::handler()
     if(sendTimer.elapsed_time() >= UsbSendInterval)
     {
         //send USB HID report 1 (HID joystick data)
-        std::vector<uint8_t> joyData;
-        float fx = sin(handlerCallCounter * 0.00628F);
-        int16_t i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, -32767, 32767);
-        joyData.push_back(LO8(i16));    // joystick X (aileron)
-        joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick Y (elevator)
-        joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick Z (throttle)
-        joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick Rx (rudder)
-        joyData.push_back(HI8(i16));
-        i16 = i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, 0, 32767);
-        joyData.push_back(LO8(i16));    // joystick Rx (brake L)
-        joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick Ry (brake R)
-        joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick slider (mixture)
-        joyData.push_back(HI8(i16));
-        joyData.push_back(LO8(i16));    // joystick dial (propeller)
-        joyData.push_back(HI8(i16));                           
-        uint8_t hat = static_cast<uint8_t>((handlerCallCounter >> 6) % 9);
-        joyData.push_back(hat);         // joystick HAT
-        uint32_t buttons = static_cast<uint32_t>((handlerCallCounter >> 4) | (handlerCallCounter << 14));
-        joyData.push_back(buttons & 0xFF);      // joystick buttons
-        joyData.push_back((buttons >> 8) & 0xFF);
-        joyData.push_back((buttons >> 16) & 0xFF);
-        joyData.push_back((buttons >> 24) & 0xFF);
-        PCLink.sendReport(1, joyData);
+        testJoystickData(); //XXX temporarily for testing report 1
+        sendJoystickData();
 
         //don't send USB HID report 2 periodically
         // std::vector<uint8_t> hidData;
@@ -241,3 +178,56 @@ void Commander::displaySimData(const CommandVector& /*cv*/) const
     std::cout << "flaps index=" << static_cast<int>(simData.flapsHandleIndex) << std::endl;
     std::cout << "yoke X ref=" << simData.yokeXreference << std::endl;
 }
+
+/*
+ * send joystick data to USB (HID joystick report 1)
+ */
+ void Commander::sendJoystickData()
+ {
+    std::vector<uint8_t> joystickReportData
+    {
+        LO8(joystickData.X),
+        HI8(joystickData.X),
+        LO8(joystickData.Y),
+        HI8(joystickData.Y),
+        LO8(joystickData.Z),
+        HI8(joystickData.Z),
+        LO8(joystickData.Rz),
+        HI8(joystickData.Rz),
+        LO8(joystickData.Rx),
+        HI8(joystickData.Rx),
+        LO8(joystickData.Ry),
+        HI8(joystickData.Ry),
+        LO8(joystickData.slider),
+        HI8(joystickData.slider),
+        LO8(joystickData.dial),
+        HI8(joystickData.dial),
+        joystickData.hat,
+        static_cast<uint8_t>(joystickData.buttons & 0xFF),   // NOLINT
+        static_cast<uint8_t>((joystickData.buttons >> 8) & 0xFF),   // NOLINT
+        static_cast<uint8_t>((joystickData.buttons >> 16) & 0xFF),   // NOLINT
+        static_cast<uint8_t>((joystickData.buttons >> 24) & 0xFF)    // NOLINT
+    };
+
+    PCLink.sendReport(1, joystickReportData);
+ }
+
+ /*
+ * fill joystick data for report data testing
+ */
+ void Commander::testJoystickData()
+ {
+    float fx = sin(handlerCallCounter * 0.00628F);  //NOLINT
+    int16_t i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, -32767, 32767);  //NOLINT
+    joystickData.X = i16;
+    joystickData.Y = i16;
+    joystickData.Z = i16;
+    joystickData.Rz = i16;
+    i16 = scale<float, int16_t>(-1.0F, 1.0F, fx, 0, 32767);  //NOLINT
+    joystickData.Rx = i16;
+    joystickData.Ry = i16;
+    joystickData.slider = i16;    
+    joystickData.dial = i16;
+    joystickData.hat = static_cast<uint8_t>((handlerCallCounter >> 6) % 9);  //NOLINT
+    joystickData.buttons = static_cast<uint32_t>((handlerCallCounter >> 4) | (handlerCallCounter << 16));  //NOLINT
+ }

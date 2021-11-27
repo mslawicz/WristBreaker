@@ -53,8 +53,6 @@ private:
     {
         uint8_t flapsNumHandlePositions;    // flaps handle positions excluding retracted position
         uint8_t flapsHandleIndex;
-        uint8_t requestedFlapsHandleIndex;
-        bool flapsHandleSetRequest;
         float yokeXreference;       // yoke X reference position received from simulator (w/o vibrations)
         float yokeXposition;        // yoke X axis position sent to simulator
         float yokeZreference;       // yoke Z reference position received from simulator (w/o vibrations)
@@ -62,6 +60,8 @@ private:
         SimFlags simFlags;          // bit flags received from simulator
     };
     void parseReportData();                     // parse received report data
+    void sendJoystickData();                    // send joystick data to USB (HID joystick report 1)
+    void testJoystickData();                    // fill joystick data for testing
     DigitalOut heartBeatLed;                    // Commander heartbeat LED (blue)
     DigitalOut connectionLed;                   // active connection to SimConnect LED (green)
     uint32_t handlerCallCounter{0};             // counter of the handler calls 
