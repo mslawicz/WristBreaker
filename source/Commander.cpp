@@ -97,11 +97,11 @@ void Commander::handler()
     yawActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
     yawActuatorData.useIntegral = pcLinkOn && (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
     //scale simulator rudder value <0,1> to target position <-operationalRange,operationalRange>
-    yawActuatorData.targetPosition = zeroPositionZ;   //zero torque position from simulator <-1,1>
+    static AnalogIn KVpot(PA_7); float vib = 0.2F * KVpot.read(); //XXX test
+    yawActuatorData.targetPosition = zeroPositionZ - vib * simData.yokeZvibrations;   //zero torque position from simulator <-1,1>
     g_comm[0] = yawActuatorData.targetPosition; //XXX test
     static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); yawActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
-    //static AnalogIn KDpot(PA_7); float errorThresholt = 0.05F * KDpot.read(); //XXX test
     yawActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
     yawActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
     yawActuator.handler();    
@@ -109,7 +109,7 @@ void Commander::handler()
     //prepare data to be sent to simulator 
     // convert deflection +-operationalRange to <-1,1> range
     simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), currentPositionX, -1.0F, 1.0F);
-    simData.yokeZposition = scale<float, float>(-yawActuator.getOperationRange(), yawActuator.getOperationRange(), currentPositionZ - zeroPositionZ, -1.0F, 1.0F);
+    simData.yokeZposition = scale<float, float>(-yawActuator.getOperationRange(), yawActuator.getOperationRange(), currentPositionZ - yawActuatorData.targetPosition, -1.0F, 1.0F);
     joystickData.Rz = scale<float, int16_t>(-1.0F, 1.0F, simData.yokeZposition, -Max15bit, Max15bit);
 
     constexpr auto UsbSendInterval = std::chrono::milliseconds(10);
@@ -132,6 +132,8 @@ void Commander::parseReportData()
     simData.flapsHandleIndex = parseData<uint8_t>(pData);
     simData.yokeXreference = parseData<float>(pData);
     simData.simFlags.allFields = parseData<typeof(SimFlags::allFields)>(pData);   //NOLINT(cppcoreguidelines-pro-type-union-access)
+    simData.normalizedSpeed = parseData<float>(pData);  // normalized speed
+    simData.yokeZvibrations = parseData<float>(pData);  // vibrations of Z axis (rudder)
 }
 
 /*
