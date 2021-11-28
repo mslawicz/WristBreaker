@@ -98,13 +98,17 @@ void Commander::handler()
     yawActuatorData.useIntegral = pcLinkOn && (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
     //scale simulator rudder value <0,1> to target position <-operationalRange,operationalRange>
     static AnalogIn KVpot(PA_7); float vib = 0.2F * KVpot.read(); //XXX test
-    yawActuatorData.targetPosition = zeroPositionZ - vib * simData.yokeZvibrations;   //zero torque position from simulator <-1,1>
-    g_comm[0] = yawActuatorData.targetPosition; //XXX test
+    yawActuatorData.targetPosition = zeroPositionZ/* - vib * simData.yokeZvibrations*/;   //zero torque position from simulator <-1,1>
     static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     static AnalogIn KLpot(PA_6); yawActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
     yawActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
     yawActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
-    yawActuator.handler();    
+    yawActuator.handler();   
+    g_comm[0] = simData.accelerationBodyX; //XXX test 
+    g_comm[1] = simData.accelerationBodyY; //XXX test 
+    g_comm[2] = simData.rotationAccBodyX; //XXX test 
+    g_comm[3] = simData.rotationAccBodyY; //XXX test
+    g_comm[4] = simData.rotationAccBodyZ; //XXX test
 
     //prepare data to be sent to simulator 
     // convert deflection +-operationalRange to <-1,1> range
@@ -133,7 +137,11 @@ void Commander::parseReportData()
     simData.yokeXreference = parseData<float>(pData);
     simData.simFlags.allFields = parseData<typeof(SimFlags::allFields)>(pData);   //NOLINT(cppcoreguidelines-pro-type-union-access)
     simData.normalizedSpeed = parseData<float>(pData);  // normalized speed
-    simData.yokeZvibrations = parseData<float>(pData);  // vibrations of Z axis (rudder)
+    simData.rotationAccBodyX = parseData<float>(pData);  // rotation acceleration body X
+    simData.rotationAccBodyY = parseData<float>(pData);  // rotation acceleration body Y
+    simData.rotationAccBodyZ = parseData<float>(pData);  // rotation acceleration body Z
+    simData.accelerationBodyX = parseData<float>(pData);  // acceleration body X
+    simData.accelerationBodyY = parseData<float>(pData);  // acceleration body Y
 }
 
 /*

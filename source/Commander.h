@@ -59,7 +59,11 @@ private:
         float yokeZposition;        // yoke Z axis position sent to simulator        
         SimFlags simFlags;          // bit flags received from simulator
         float normalizedSpeed;      // indicated speed referenced to cruise speed
-        float yokeZvibrations;      // vibrations from aircraft movement in Z axis (rudder)
+        float rotationAccBodyX;        // rotation acceleration body X
+        float rotationAccBodyY;        // rotation acceleration body Y
+        float rotationAccBodyZ;        // rotation acceleration body Z
+        float accelerationBodyX;       // acceleration in X axis
+        float accelerationBodyY;       // acceleration in Y axis
     };
     void parseReportData();                     // parse received report data
     void sendJoystickData();                    // send joystick data to USB (HID joystick report 1)
