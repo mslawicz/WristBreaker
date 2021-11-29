@@ -62,8 +62,6 @@ private:
         float rotationAccBodyX;        // rotation acceleration body X
         float rotationAccBodyY;        // rotation acceleration body Y
         float rotationAccBodyZ;        // rotation acceleration body Z
-        float accelerationBodyX;       // acceleration in X axis
-        float accelerationBodyY;       // acceleration in Y axis
     };
     void parseReportData();                     // parse received report data
     void sendJoystickData();                    // send joystick data to USB (HID joystick report 1)
