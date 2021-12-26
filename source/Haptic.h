@@ -9,7 +9,7 @@
 #define HAPTIC_H_
 
 #include "Convert.h"
-#include "BLDC.h"
+#include "Motor.h"
 #include "Encoder.h"
 #include "Filter.h"
 #include "Console.h"
@@ -44,7 +44,7 @@ class HapticDevice
 public:
     HapticDevice        //NOLINT(altera-struct-pack-align)
     (
-        MotorBLDC* pMotor,      // pointer to BLDC motor object
+        Motor* pMotor,          // pointer to motor object
         Encoder* pEncoder,      // pointer to motor position encoder object
         std::string name,       // name of the device
         float referencePosition,    // encoder reference (middle) position of the device
@@ -74,7 +74,7 @@ private:
     static constexpr float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     static constexpr float HalfCycle = 180.0F;    // 1/2 of electric cycle in degrees
     static constexpr float FullCycle = 360.0F;    // full electric cycle in degrees
-    MotorBLDC* pMotor;      // BLDC motor
+    Motor* pMotor;          // pointer to motor object
     Encoder* pEncoder;      // motor position encoder
     float referencePosition;    // encoder reference (middle) position of the device
     float encoderPosition{0};   // motor position read from encoder

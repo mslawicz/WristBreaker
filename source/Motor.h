@@ -10,7 +10,8 @@
 
 class Motor
 {
-
+public:
+    virtual void enable(bool state) {};
 };
 
 #endif /* MOTOR_H_ */

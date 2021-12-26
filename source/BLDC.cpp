@@ -8,15 +8,15 @@
 #include "BLDC.h"
 #include <cstdint>
 
-MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, uint8_t noOfPoles) :
+MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin, uint8_t noOfPoles) :
     phaseA(outA, 1, true),  //PWM center aligned
     phaseB(outB, 1, true),  //PWM center aligned
     phaseC(outC, 1, true),  //PWM center aligned
-    enable(enable),
+    enablePin(enablePin),
     noOfPoles(noOfPoles)
 {
     static constexpr int PwmPeriodUs = 50;
-    this->enable = 0;
+    this->enablePin = 0;
     this->phaseA.period_us(PwmPeriodUs);
     this->phaseB.period_us(PwmPeriodUs);
     this->phaseC.period_us(PwmPeriodUs);

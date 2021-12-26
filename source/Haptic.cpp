@@ -24,7 +24,7 @@ std::vector<HapticDevice*> HapticDevice::hapticDevices;     //NOLINT(fuchsia-sta
 
 HapticDevice::HapticDevice
 (
-    MotorBLDC* pMotor,      // pointer to BLDC motor object
+    Motor* pMotor,          // pointer to motor object
     Encoder* pEncoder,      // pointer to motor position encoder object
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
@@ -44,9 +44,9 @@ HapticDevice::HapticDevice
     noOfCalSteps(noOfCalSteps),
     hapticData{HapticMode::Spring, false, std::vector<float>(), 0}
 {
-    pMotor->setEnablePin(1);
+    pMotor->enable(true);
     constexpr float PolesInPair = 2.0F;
-    positionPeriod = PolesInPair / static_cast<float>(pMotor->getNoOfPoles());
+    positionPeriod = 0.1F; //PolesInPair / static_cast<float>(pMotor->getNoOfPoles());
     hapticDevices.push_back(this);
     callTimer.start();
 }
@@ -94,7 +94,7 @@ void HapticDevice::handler()
 {
     interval = std::chrono::duration<float>(callTimer.elapsed_time()).count();
     callTimer.reset();
-    const float PhaseStep = operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 0.025F;
+    const float PhaseStep = 0.1F; //operationRange * static_cast<float>(pMotor->getNoOfPoles()) * 0.025F;
     encoderPosition = pEncoder->getValue();
     // calculate shaft position relative to reference position <-0.5...0.5>
     constexpr float EncoderHalfRange = 0.5F;
@@ -185,7 +185,7 @@ void HapticDevice::handler()
             magnitude += maxCalMagnitude * MagnitudeRise;
             magnitude = limit<float>(magnitude, 0, maxCalMagnitude);
             //set magnetic flux vector
-            pMotor->setFieldVector(currentPhase, magnitude);      
+            //pMotor->setFieldVector(currentPhase, magnitude);      
 
             //XXX test
             g_value[4] = currentPhase;
@@ -338,7 +338,7 @@ float HapticDevice::setActuator()
     magnitude = limit<float>(sqrtf(vD * vD + vQ * vQ), 0.0F, hapticData.magnitudeLimit);
 
     //apply calculated flux vector
-    pMotor->setFieldVector(currentPhase + phaseShift, magnitude);
+    //pMotor->setFieldVector(currentPhase + phaseShift, magnitude);
 
     //XXX test
     // static int cnt = 0;
@@ -413,7 +413,7 @@ void HapticDevice::displayStatus()
     const std::vector<std::string> ModeName{"spring", "multiposition"};
     std::cout << "mode=" << ModeName[static_cast<size_t>(hapticData.hapticMode)];
     std::cout << std::endl;
-    std::cout << "motor poles=" << std::dec << static_cast<int>(pMotor->getNoOfPoles()) << ", cur phase=" << currentPhase;
+    std::cout << "motor poles=" /*<< std::dec << static_cast<int>(pMotor->getNoOfPoles()) <<*/ ", cur phase=" << currentPhase;
     std::cout << ", magn=" << magnitude << std::endl;
     pEncoder->displayStatus();
 }

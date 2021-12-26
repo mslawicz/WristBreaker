@@ -8,23 +8,24 @@
 #ifndef BLDC_H_
 #define BLDC_H_
 
+#include "Motor.h"
 #include <mbed.h>
 #include <array>
 #include "FastPWM.h"
 
-class MotorBLDC
+class MotorBLDC : public Motor
 {
 public:
-    MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enable, uint8_t noOfPoles);
+    MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin, uint8_t noOfPoles);
     void setFieldVector(float electricAngle, float magnitude);
-    void setEnablePin(int state) { enable = state; }
+    void enable(bool state) override { enablePin = state ? 1 : 0; }
     uint8_t getNoOfPoles() const { return noOfPoles; }
 private:
     float getSvmValue(float argument);
     FastPWM phaseA;
     FastPWM phaseB;
     FastPWM phaseC;
-    DigitalOut enable;
+    DigitalOut enablePin;
     static constexpr size_t LutSize = 91;
     //Space Vector Modulation Look Up Table for angles 0-90 degrees
     const std::array<float, LutSize> SvmLUT
