@@ -27,7 +27,6 @@ Commander::Commander() :
         new AS5600(PC_4),
         "roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
-        0.2F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
         0.25F                   //NOLINT    range of normal operation calculated from reference position
     ),
     yawActuator
@@ -36,7 +35,6 @@ Commander::Commander() :
         new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
         "yaw actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
-        0.6F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
         0.25F                   //NOLINT    range of normal operation calculated from reference position
     ),
     systemPushbutton(BUTTON1)

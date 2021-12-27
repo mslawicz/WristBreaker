@@ -48,7 +48,6 @@ public:
         Encoder* pEncoder,      // pointer to position encoder object
         std::string name,       // name of the device
         float referencePosition,    // encoder reference (middle) position of the device
-        float maxCalMagnitude,   // maximum flux vector magnitude value in calibration phase
         float operationRange     // the range of normal operation from reference position
     );
     ~HapticDevice();
@@ -79,8 +78,6 @@ private:
     float currentPosition{0};   // current position of the device relative to reference position (not filtered)
     float filteredPosition{0};  // current position of the device relative to reference position (filtered)
     float lastPosition{0};      // last position used for derivative calculations (not filtered)
-    float currentPhase{0};  // current electric phase of the motor
-    float referencePhase{0};    // measured electric phase of the motor in the reference position; stored in flash
     std::string name;       // the name of this haptic device
     enum class HapticState
     {
@@ -91,8 +88,6 @@ private:
         HapticAction
     };
     HapticState state{HapticState::Start};  // state of this haptic device state machine
-    float magnitude{0.0F};      // current magnitude of flux vector
-    float maxCalMagnitude;      // maximum flux vector magnitude value during calibration phase
     float operationRange;    //the range of normal operation measured from reference position
     MedianFilter positionFilter;    //filters current position
     float targetPosition{0};    //target position used in torque calculations
@@ -102,10 +97,8 @@ private:
     float integralLimit;      //limit of integral term
     static std::vector<HapticDevice*> hapticDevices;        //NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
     float phaseStep{0};        //phase change during calibration process
-    uint16_t counter{0};         //counter for calibration process
     float vD{0};            //direct component of magnetic flux vector
     float speed{0};         //device speed
-    bool isCalibrated{false};   //true if calibrated
     Timer callTimer;        //timer for measuring handler call intervals
     std::chrono::duration<float>::rep interval{0};  //interval time between handler calls
 };
