@@ -29,9 +29,7 @@ HapticDevice::HapticDevice
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
     float maxCalMagnitude,      // maximum magnitude of flux vector value in calibration phase
-    float operationRange,    // the range of normal operation from reference position
-    float integralLimit,     //limit of integral term
-    uint16_t noOfCalSteps    //number of calibration steps
+    float operationRange     // the range of normal operation from reference positions
 ) :
     pActuator(pActuator),
     pEncoder(pEncoder),
@@ -40,13 +38,9 @@ HapticDevice::HapticDevice
     maxCalMagnitude(maxCalMagnitude),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    integralLimit(integralLimit),
-    noOfCalSteps(noOfCalSteps),
     hapticData{HapticMode::Spring, false, std::vector<float>(), 0}
 {
     pActuator->enable(true);
-    constexpr float PolesInPair = 2.0F;
-    positionPeriod = 0.1F; //PolesInPair / static_cast<float>(pMotor->getNoOfPoles());
     hapticDevices.push_back(this);
     callTimer.start();
 }
@@ -166,7 +160,7 @@ void HapticDevice::handler()
             if(isInRange<float>(filteredPosition, -CalibrationRange, CalibrationRange) &&
                 (magnitude >= maxCalMagnitude))
             {
-                referencePhase += currentPhase - FullCycle * filteredPosition / positionPeriod;
+                referencePhase += currentPhase - FullCycle * filteredPosition; // / positionPeriod;
                 counter++;
             }
             //change direction of movement if out of calibration range
@@ -189,12 +183,12 @@ void HapticDevice::handler()
 
             //XXX test
             g_value[4] = currentPhase;
-            g_value[5] = currentPhase - FullCycle * filteredPosition / positionPeriod;
+            g_value[5] = 0;
             g_value[8] = magnitude;
             g_value[9] = interval * 100;
             g_value[10] = PhaseStep; //XXX test
 
-            if(counter >= noOfCalSteps)
+            if(counter >= 1 /*noOfCalSteps*/)
             {
                 referencePhase = cropAngle(referencePhase / static_cast<float>(counter));
                 LOG_INFO("device " << name << " has been calibrated with reference phase " << referencePhase);
@@ -280,7 +274,7 @@ float HapticDevice::setActuator()
     }
 
     //calculate the current motor electric phase
-    currentPhase = cropAngle(referencePhase + FullCycle * filteredPosition / positionPeriod);
+    currentPhase = cropAngle(referencePhase + FullCycle * filteredPosition /* / positionPeriod*/);
 
     //calculate error from the target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;

@@ -28,9 +28,7 @@ Commander::Commander() :
         "roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.2F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
-        0.25F,                  //NOLINT    range of normal operation calculated from reference position
-        0.1F,                   //NOLINT    limit of integral term
-        500                     //NOLINT    number of calibration steps
+        0.25F                   //NOLINT    range of normal operation calculated from reference position
     ),
     yawActuator
     (
@@ -39,9 +37,7 @@ Commander::Commander() :
         "yaw actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.6F,                   //NOLINT    maximum magnitude of flux vector in calibration phase
-        0.25F,                  //NOLINT    range of normal operation calculated from reference position
-        0.3F,                   //NOLINT    limit of integral term
-        10000                   //NOLINT    number of calibration steps
+        0.25F                   //NOLINT    range of normal operation calculated from reference position
     ),
     systemPushbutton(BUTTON1)
 {
