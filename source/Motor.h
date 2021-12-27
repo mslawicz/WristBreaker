@@ -8,10 +8,11 @@
 #ifndef MOTOR_H_
 #define MOTOR_H_
 
-class Motor
+#include "Actuator.h"
+
+class Motor : public Actuator
 {
-public:
-    virtual void enable(bool state) {};
+
 };
 
 #endif /* MOTOR_H_ */

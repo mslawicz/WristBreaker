@@ -9,7 +9,7 @@
 #define HAPTIC_H_
 
 #include "Convert.h"
-#include "Motor.h"
+#include "Actuator.h"
 #include "Encoder.h"
 #include "Filter.h"
 #include "Console.h"
@@ -44,8 +44,8 @@ class HapticDevice
 public:
     HapticDevice        //NOLINT(altera-struct-pack-align)
     (
-        Motor* pMotor,          // pointer to motor object
-        Encoder* pEncoder,      // pointer to motor position encoder object
+        Actuator* pActuator,    // pointer to actuator object
+        Encoder* pEncoder,      // pointer to position encoder object
         std::string name,       // name of the device
         float referencePosition,    // encoder reference (middle) position of the device
         float maxCalMagnitude,   // maximum flux vector magnitude value in calibration phase
@@ -74,10 +74,10 @@ private:
     static constexpr float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
     static constexpr float HalfCycle = 180.0F;    // 1/2 of electric cycle in degrees
     static constexpr float FullCycle = 360.0F;    // full electric cycle in degrees
-    Motor* pMotor;          // pointer to motor object
-    Encoder* pEncoder;      // motor position encoder
+    Actuator* pActuator;        // pointer to actuator object
+    Encoder* pEncoder;          // actuator position encoder
     float referencePosition;    // encoder reference (middle) position of the device
-    float encoderPosition{0};   // motor position read from encoder
+    float encoderPosition{0};   // actuator position read from encoder
     float currentPosition{0};   // current position of the device relative to reference position (not filtered)
     float filteredPosition{0};  // current position of the device relative to reference position (filtered)
     float lastPosition{0};      // last position used for derivative calculations (not filtered)

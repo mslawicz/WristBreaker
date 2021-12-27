@@ -24,8 +24,8 @@ std::vector<HapticDevice*> HapticDevice::hapticDevices;     //NOLINT(fuchsia-sta
 
 HapticDevice::HapticDevice
 (
-    Motor* pMotor,          // pointer to motor object
-    Encoder* pEncoder,      // pointer to motor position encoder object
+    Actuator* pActuator,    // pointer to actuator object
+    Encoder* pEncoder,      // pointer to actuator position encoder object
     std::string name,       // name of the device
     float referencePosition,    // encoder reference (middle) position of the device
     float maxCalMagnitude,      // maximum magnitude of flux vector value in calibration phase
@@ -33,7 +33,7 @@ HapticDevice::HapticDevice
     float integralLimit,     //limit of integral term
     uint16_t noOfCalSteps    //number of calibration steps
 ) :
-    pMotor(pMotor),
+    pActuator(pActuator),
     pEncoder(pEncoder),
     name(std::move(name)),
     referencePosition(referencePosition),
@@ -44,7 +44,7 @@ HapticDevice::HapticDevice
     noOfCalSteps(noOfCalSteps),
     hapticData{HapticMode::Spring, false, std::vector<float>(), 0}
 {
-    pMotor->enable(true);
+    pActuator->enable(true);
     constexpr float PolesInPair = 2.0F;
     positionPeriod = 0.1F; //PolesInPair / static_cast<float>(pMotor->getNoOfPoles());
     hapticDevices.push_back(this);
@@ -54,7 +54,7 @@ HapticDevice::HapticDevice
 HapticDevice::~HapticDevice()
 {
     delete pEncoder;
-    delete pMotor;
+    delete pActuator;
 }
 
 // request calibration process
