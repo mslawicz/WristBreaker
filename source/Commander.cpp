@@ -1,5 +1,5 @@
 #include "Commander.h"
-#include "BLDC.h"
+#include "Stepper.h"
 #include "Convert.h"
 #include "Encoder.h"
 #include "Logger.h"
@@ -21,19 +21,11 @@ Commander::Commander() :
     heartBeatLed(LED2),
     connectionLed(LED1),
     PCLink(USB_VID, USB_PID, USB_VER),
-    rollActuator
+    rollDevice
     (
-        new MotorBLDC(PD_12, PD_13, PD_14, PE_7, 4),     //NOLINT(readability-magic-numbers)
+        new Stepper(PE_9, PE_11, PE_13, PE_14, PE_0, 200U),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
         new AS5600(PC_4),
         "roll actuator",
-        0.75F,                  //NOLINT    device reference position (encoder value)
-        0.25F                   //NOLINT    range of normal operation calculated from reference position
-    ),
-    yawActuator
-    (
-        new MotorBLDC(PE_9, PE_11, PE_13, PF_13, 28),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
-        new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
-        "yaw actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.25F                   //NOLINT    range of normal operation calculated from reference position
     ),
@@ -70,42 +62,29 @@ void Commander::handler()
     }
 
     //calculate pilot's yoke input
-    float currentPositionX = rollActuator.getCurrentPosition();     // current poition X of the yoke
-    float zeroPositionX = rollActuator.getOperationRange() * limit<float>(simData.yokeXreference, -1.0F, 1.0F);   // requested zero torque position from simulator
+    float currentPositionX = rollDevice.getCurrentPosition();     // current poition X of the yoke
+    float zeroPositionX = rollDevice.getOperationRange() * limit<float>(simData.yokeXreference, -1.0F, 1.0F);   // requested zero torque position from simulator
 
-    float currentPositionZ = yawActuator.getCurrentPosition();     // current poition Z of the yoke
-    float zeroPositionZ = yawActuator.getOperationRange() * limit<float>(simData.yokeZreference, -1.0F, 1.0F);   // requested zero torque position from simulator
 
     //serve yoke roll actuator
-    HapticData& rollActuatorData = rollActuator.getHapticData();
-    rollActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    rollActuatorData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
-    rollActuatorData.targetPosition = zeroPositionX;   //zero torque position from simulator <-1,1>
-    rollActuatorData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
-    rollActuatorData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
-    rollActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
-    //XXX temporarily disabled rollActuator.handler();
+    HapticData& rollDeviceData = rollDevice.getHapticData();
+    rollDeviceData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
+    rollDeviceData.useIntegral = (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
+    rollDeviceData.targetPosition = zeroPositionX;   //zero torque position from simulator <-1,1>
+    rollDeviceData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
+    rollDeviceData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
+    rollDeviceData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
+    //XXX temporarily disabled rollDevice.handler();
 
-    //serve joystick yaw (rudder) twist actuator
-    HapticData& yawActuatorData = yawActuator.getHapticData();
-    yawActuatorData.hapticMode = HapticMode::Spring;       //this actuator works in spring mode
-    yawActuatorData.useIntegral = pcLinkOn && (simData.simFlags.fields.autopilot != 0);  //NOLINT(cppcoreguidelines-pro-type-union-access)  use integral when autopilot is on
-    //scale simulator rudder value <0,1> to target position <-operationalRange,operationalRange>
-    static AnalogIn KVpot(PA_7); float vib = 0.1F * KVpot.read(); //XXX test
-    yawActuatorData.targetPosition = zeroPositionZ + vib * simData.rotationAccBodyY;   //zero torque position from simulator <-1,1>
-    static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
-    static AnalogIn KLpot(PA_6); yawActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
-    yawActuatorData.deltaPosLimit = 0.002F;    //range 0.5 / 1000 Hz / 0.25 sec = 0.002
-    yawActuatorData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
-    yawActuator.handler();   
+    //static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
+    //static AnalogIn KLpot(PA_6); yawActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
     g_comm[2] = simData.rotationAccBodyX; //XXX test 
     g_comm[3] = simData.rotationAccBodyY; //XXX test
     g_comm[4] = simData.rotationAccBodyZ; //XXX test
 
     //prepare data to be sent to simulator 
     // convert deflection +-operationalRange to <-1,1> range
-    simData.yokeXposition = scale<float, float>(-rollActuator.getOperationRange(), rollActuator.getOperationRange(), currentPositionX, -1.0F, 1.0F);
-    simData.yokeZposition = scale<float, float>(-yawActuator.getOperationRange(), yawActuator.getOperationRange(), currentPositionZ - yawActuatorData.targetPosition, -1.0F, 1.0F);
+    simData.yokeXposition = scale<float, float>(-rollDevice.getOperationRange(), rollDevice.getOperationRange(), currentPositionX, -1.0F, 1.0F);
     joystickData.Rz = scale<float, int16_t>(-1.0F, 1.0F, simData.yokeZposition, -Max15bit, Max15bit);
 
     constexpr auto UsbSendInterval = std::chrono::milliseconds(10);

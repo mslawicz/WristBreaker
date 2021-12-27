@@ -9,9 +9,10 @@
 #define BLDC_H_
 
 #include "Motor.h"
-#include <mbed.h>
-#include <array>
 #include "FastPWM.h"
+#include <array>
+#include <mbed.h>
+
 
 class MotorBLDC : public Motor
 {
