@@ -225,10 +225,6 @@ void HapticDevice::displayStatus()
     std::cout << ", tar pos=" << targetPosition << ", oper range=" << -operationRange << "..." << operationRange  << std::endl;
     std::cout << "torque gain=" << hapticData.torqueGain << ", direct gain=" << hapticData.directGain << ", magn limit=" << hapticData.magnitudeLimit;
     std::cout << ", use integral=" << hapticData.useIntegral;
-    if(hapticData.useIntegral)
-    {
-        std::cout << ", int time=" << hapticData.integralTime << ", int limit=" << integralLimit;
-    }
     std::cout << std::endl;
     const std::vector<std::string> ModeName{"spring", "multiposition"};
     std::cout << "mode=" << ModeName[static_cast<size_t>(hapticData.hapticMode)];

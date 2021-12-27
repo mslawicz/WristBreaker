@@ -68,16 +68,12 @@ public:
 private:
     float setActuator();
     uint8_t getMultipositionIndex();    //gets current position index in multiposition mode
-    static constexpr float QuarterCycle = 90.0F;    // 1/4 of electric cycle in degrees
-    static constexpr float HalfCycle = 180.0F;    // 1/2 of electric cycle in degrees
-    static constexpr float FullCycle = 360.0F;    // full electric cycle in degrees
     Actuator* pActuator;        // pointer to actuator object
     Encoder* pEncoder;          // actuator position encoder
     float referencePosition;    // encoder reference (middle) position of the device
     float encoderPosition{0};   // actuator position read from encoder
     float currentPosition{0};   // current position of the device relative to reference position (not filtered)
     float filteredPosition{0};  // current position of the device relative to reference position (filtered)
-    float lastPosition{0};      // last position used for derivative calculations (not filtered)
     std::string name;       // the name of this haptic device
     enum class HapticState
     {
@@ -92,13 +88,7 @@ private:
     MedianFilter positionFilter;    //filters current position
     float targetPosition{0};    //target position used in torque calculations
     HapticData hapticData;      //haptic dynamic parameters of this device
-    std::string memParamRefPhase;     //name of parameter in flash memory (referencePhase)
-    float iTerm{0};         //integral term of torque
-    float integralLimit;      //limit of integral term
     static std::vector<HapticDevice*> hapticDevices;        //NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-    float phaseStep{0};        //phase change during calibration process
-    float vD{0};            //direct component of magnetic flux vector
-    float speed{0};         //device speed
     Timer callTimer;        //timer for measuring handler call intervals
     std::chrono::duration<float>::rep interval{0};  //interval time between handler calls
 };
