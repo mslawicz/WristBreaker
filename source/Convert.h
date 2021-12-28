@@ -14,6 +14,10 @@
 #define LO8(x)  static_cast<uint8_t>((x)&0xFFU) // NOLINT(hicpp-signed-bitwise)
 #define HI8(x)  static_cast<uint8_t>(((x)&0xFF00U)>>8U) // NOLINT(hicpp-signed-bitwise)
 
+constexpr float FullCycle = 360.0F;
+constexpr float HalfCycle = 180.0F;
+constexpr float QuarterCycle = 90.0F;  
+
 //crops float type angle to the range 0...360 degrees
 float cropAngle(float angle);
 
@@ -102,5 +106,9 @@ template <typename T> unsigned char getParityBit(T data)
 //fast arc tan function
 //input: tan<-inf, inf>; output: atan<-90,90>[degrees]
 float fastAtan(float tan);
+
+//fast sine function
+//input: angle[degrees]; output: sine value <-1,1>
+float fastSine(float angle);
 
 #endif /* CONVERT_H_ */

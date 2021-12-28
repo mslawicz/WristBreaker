@@ -15,14 +15,15 @@
 class Stepper : public Motor
 {
 public:
-    Stepper(PinName A1, PinName A2, PinName B1, PinName B2, PinName enablePin, uint8_t noOfSteps); 
+    Stepper(PinName A1, PinName A2, PinName B1, PinName B2, PinName enablePin, uint8_t noOfPolePairs);
+    void setFieldVector(float electricAngle, float magnitude);
 private:
     FastPWM phaseA1;
     FastPWM phaseA2;
     FastPWM phaseB1;
     FastPWM phaseB2;
     DigitalOut enablePin;
-    uint8_t noOfSteps;  // number of steps (divide by 4 to get electric revolutions)
+    uint8_t noOfPolePairs;  // motor number of electric pole pairs (electric to mechanical revolution ratio)
 };
 
 #endif /* STEPPER_H_ */

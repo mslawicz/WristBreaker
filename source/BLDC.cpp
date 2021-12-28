@@ -6,14 +6,15 @@
  */
 
 #include "BLDC.h"
+#include "Convert.h"
 #include <cstdint>
 
-MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin, uint8_t noOfPoles) :
+MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin, uint8_t noOfPolePairs) :
     phaseA(outA, 1, true),  //PWM center aligned
     phaseB(outB, 1, true),  //PWM center aligned
     phaseC(outC, 1, true),  //PWM center aligned
     enablePin(enablePin),
-    noOfPoles(noOfPoles)
+    noOfPolePairs(noOfPolePairs)
 {
     static constexpr int PwmPeriodUs = 50;
     this->enablePin = 0;
@@ -26,9 +27,6 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin
 // argument in degrees
 float MotorBLDC::getSvmValue(float argument)
 {
-    static constexpr float FullCycle = 360.0F;
-    static constexpr float HalfCycle = 180.0F;
-    static constexpr float QuarterCycle = 90.0F;
     float sign = 1.0F;
 
     if (argument < 0)

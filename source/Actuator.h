@@ -11,7 +11,7 @@
 class Actuator
 {
 public:
-    virtual void enable(bool state) {};
+    virtual void enable(bool state) {};  
 };
 
 #endif /* ACTUATOR_H_ */

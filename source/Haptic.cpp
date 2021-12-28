@@ -229,7 +229,7 @@ void HapticDevice::displayStatus()
     const std::vector<std::string> ModeName{"spring", "multiposition"};
     std::cout << "mode=" << ModeName[static_cast<size_t>(hapticData.hapticMode)];
     std::cout << std::endl;
-    std::cout << "motor poles=" /*<< std::dec << static_cast<int>(pMotor->getNoOfPoles()) <<*/ ;
+    std::cout << "motor poles=" /*<< std::dec << static_cast<int>(pMotor->getNoOfPolePairs()) <<*/ ;
     std::cout << std::endl;
     pEncoder->displayStatus();
 }

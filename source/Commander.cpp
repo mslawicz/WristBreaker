@@ -74,7 +74,7 @@ void Commander::handler()
     rollDeviceData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     rollDeviceData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
     rollDeviceData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
-    //XXX temporarily disabled rollDevice.handler();
+    rollDevice.handler();
 
     //static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7
     //static AnalogIn KLpot(PA_6); yawActuatorData.integralTime = 20.0F * KLpot.read(); //XXX test
