@@ -10,9 +10,9 @@
 
 #include "Convert.h"
 #include "Actuator.h"
+#include "Console.h"
 #include "Encoder.h"
 #include "Filter.h"
-#include "Console.h"
 #include <algorithm>
 #include <mbed.h>
 #include <string>

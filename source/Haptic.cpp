@@ -192,11 +192,22 @@ float HapticDevice::setActuator()
 
     //XXX test
     static float angle = 0.0F;
-    pActuator->setFieldVector(angle, 0.5F);
-    angle += 45.0F;
-    if(angle >= FullCycle)
+    static AnalogIn tPot(PA_5); float torque = tPot.read(); //XXX test; also use PA_6 and PA_7
+    pActuator->setFieldVector(angle, torque);
+    static AnalogIn aPot(PA_6); float dAngle = HalfCycle * aPot.read() - QuarterCycle; //XXX test; also use PA_6 and PA_7
+    angle += dAngle;
+    if(angle > FullCycle)
     {
-        angle = 0.0F;
+        angle -= FullCycle;
+    }
+    if(angle < -FullCycle)
+    {
+        angle += FullCycle;
+    }    
+    static uint32_t cnt = 0;
+    if((cnt++ % 1000) == 0)
+    {
+        std::cout << "t=" << torque << "  angle=" << angle << "  dA=" << dAngle << std::endl;
     }
 
     //calculate error from the target position; positive error for CCW deflection
