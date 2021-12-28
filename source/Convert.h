@@ -16,7 +16,8 @@
 
 constexpr float FullCycle = 360.0F;
 constexpr float HalfCycle = 180.0F;
-constexpr float QuarterCycle = 90.0F;  
+constexpr float QuarterCycle = 90.0F;
+constexpr float PI = 3.14159265359F;
 
 //crops float type angle to the range 0...360 degrees
 float cropAngle(float angle);

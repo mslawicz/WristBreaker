@@ -190,6 +190,15 @@ float HapticDevice::setActuator()
         targetPosition += limit<float>(hapticData.targetPosition - targetPosition, -hapticData.deltaPosLimit, hapticData.deltaPosLimit);
     }
 
+    //XXX test
+    static float angle = 0.0F;
+    pActuator->setFieldVector(angle, 0.5F);
+    angle += 45.0F;
+    if(angle >= FullCycle)
+    {
+        angle = 0.0F;
+    }
+
     //calculate error from the target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
 

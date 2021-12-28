@@ -16,7 +16,7 @@ class Stepper : public Motor
 {
 public:
     Stepper(PinName A1, PinName A2, PinName B1, PinName B2, PinName enablePin, uint8_t noOfPolePairs);
-    void setFieldVector(float electricAngle, float magnitude);
+    void setFieldVector(float electricAngle, float magnitude) override;
 private:
     FastPWM phaseA1;
     FastPWM phaseA2;

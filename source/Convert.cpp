@@ -69,5 +69,5 @@ float fastAtan(float tan)
 float fastSine(float angle)
 {
     // TODO(marci): change calculations to LUT
-    return sin(angle);
+    return sin(angle * PI / HalfCycle);
 }

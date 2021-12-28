@@ -11,7 +11,8 @@
 class Actuator
 {
 public:
-    virtual void enable(bool state) {};  
+    virtual void enable(bool state) {};
+    virtual void setFieldVector(float electricAngle, float magnitude) {};   //XXX temporarily for testing  
 };
 
 #endif /* ACTUATOR_H_ */

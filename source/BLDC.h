@@ -18,7 +18,7 @@ class MotorBLDC : public Motor
 {
 public:
     MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin, uint8_t noOfPolePairs);
-    void setFieldVector(float electricAngle, float magnitude);
+    void setFieldVector(float electricAngle, float magnitude) override;
     void enable(bool state) override { enablePin = state ? 1 : 0; }
     uint8_t getNoOfPolePairs() const { return noOfPolePairs; }
 private:

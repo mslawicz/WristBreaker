@@ -23,7 +23,7 @@ Commander::Commander() :
     PCLink(USB_VID, USB_PID, USB_VER),
     rollDevice
     (
-        new Stepper(PE_9, PE_11, PE_13, PE_14, PE_0, 200U),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+        new Stepper(PE_9, PE_11, PE_13, PE_14, PE_0, 50U),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
         new AS5600(PC_4),
         "roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)

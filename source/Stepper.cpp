@@ -21,7 +21,7 @@ Stepper::Stepper(PinName A1, PinName A2, PinName B1, PinName B2, PinName enableP
     this->phaseA1.period_us(PwmPeriodUs);
     this->phaseA2.period_us(PwmPeriodUs);
     this->phaseB1.period_us(PwmPeriodUs);
-    this->phaseA2.period_us(PwmPeriodUs);
+    this->phaseB2.period_us(PwmPeriodUs);
 }
 
 // set motor stator magnetic field vector
@@ -41,11 +41,11 @@ void Stepper::setFieldVector(float electricAngle, float magnitude)
     // calculate PWM duty for stator winding voltages
     double pwmDuty = magnitude * fastSine(electricAngle);
     double pwmDutyA1 = (pwmDuty > 0) ? pwmDuty : 0;
-    double pwmDutyA2 = (pwmDuty < 0) ? pwmDuty : 0;
+    double pwmDutyA2 = (pwmDuty < 0) ? -pwmDuty : 0;
 
     pwmDuty = magnitude * fastSine(electricAngle + QuarterCycle);
     double pwmDutyB1 = (pwmDuty > 0) ? pwmDuty : 0;
-    double pwmDutyB2 = (pwmDuty < 0) ? pwmDuty : 0;
+    double pwmDutyB2 = (pwmDuty < 0) ? -pwmDuty : 0;
 
     // drive PWM outputs with sine PWM duties
     phaseA1.write(pwmDutyA1);
