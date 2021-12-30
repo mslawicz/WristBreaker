@@ -1,5 +1,5 @@
 #include "Commander.h"
-#include "Stepper.h"
+#include "BLDC.h"
 #include "Convert.h"
 #include "Encoder.h"
 #include "Logger.h"
@@ -23,7 +23,7 @@ Commander::Commander() :
     PCLink(USB_VID, USB_PID, USB_VER),
     rollDevice
     (
-        new Stepper(PE_9, PE_11, PE_13, PE_14, PE_0, 50U),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+        new MotorBLDC(PE_9, PE_11, PE_13, PE_0, 11U),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
         new AS5600(PC_4),
         "roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
@@ -74,6 +74,7 @@ void Commander::handler()
     rollDeviceData.integralTime = 7.0F;        //NOLINT    integral time (see classic PID formula; TI=1/Ti)
     rollDeviceData.deltaPosLimit = 0.0005F;    //range 0.5 / 1000 Hz / 1 sec = 0.0005
     rollDeviceData.magnitudeLimit = 1.0F;      //magnitude limit in action phase
+    rollDeviceData.buttonPressed = (systemPushbutton.read() == 1);
     rollDevice.handler();
 
     //static AnalogIn KPpot(PA_5); yawActuatorData.torqueGain = 10.0F * KPpot.read(); //XXX test; also use PA_6 and PA_7

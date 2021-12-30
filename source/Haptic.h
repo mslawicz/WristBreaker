@@ -29,6 +29,7 @@ struct HapticData       //NOLINT(altera-struct-pack-align)
 {
     HapticMode hapticMode;      // haptic mode for haptic action phase
     bool useIntegral;           // wether integral term must be used in torque calculations
+    bool buttonPressed;         // true if system button pressed
     std::vector<float> targetPositions;     //vector of target positions in multiposition mode
     float targetPosition;       // the current requested target position of zero torque (relative to the reference position)
     float torqueGain;           // gain of the flux vector quadrature component (torque)

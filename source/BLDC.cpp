@@ -16,7 +16,7 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin
     enablePin(enablePin),
     noOfPolePairs(noOfPolePairs)
 {
-    static constexpr int PwmPeriodUs = 50;
+    static constexpr int PwmPeriodUs = 50;  //50 us -> PWM frequency 20 kHz
     this->enablePin = 0;
     this->phaseA.period_us(PwmPeriodUs);
     this->phaseB.period_us(PwmPeriodUs);
@@ -67,7 +67,6 @@ float MotorBLDC::getSvmValue(float argument)
 // magnitude 0..1
 void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
 {
-    static constexpr float OneThirdCycle = 120.0F;
     if(magnitude < 0)
     {
         magnitude = 0.0F;

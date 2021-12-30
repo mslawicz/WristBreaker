@@ -36,7 +36,7 @@ HapticDevice::HapticDevice
     referencePosition(referencePosition),
     operationRange(operationRange),
     positionFilter(5),   //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    hapticData{HapticMode::Spring, false, std::vector<float>(), 0}
+    hapticData{HapticMode::Spring, false, false, std::vector<float>(), 0}
 {
     pActuator->enable(true);
     hapticDevices.push_back(this);
@@ -196,6 +196,7 @@ float HapticDevice::setActuator()
     pActuator->setFieldVector(angle, torque);
     static AnalogIn aPot(PA_6); float dAngle = HalfCycle * aPot.read() - QuarterCycle; //XXX test; also use PA_6 and PA_7
     angle += dAngle;
+    
     if(angle > FullCycle)
     {
         angle -= FullCycle;
@@ -205,7 +206,7 @@ float HapticDevice::setActuator()
         angle += FullCycle;
     }    
     static uint32_t cnt = 0;
-    if((cnt++ % 1000) == 0)
+    if(((cnt++ % 1000) == 0) && hapticData.buttonPressed)
     {
         std::cout << "t=" << torque << "  angle=" << angle << "  dA=" << dAngle << std::endl;
     }
