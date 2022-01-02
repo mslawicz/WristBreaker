@@ -96,12 +96,12 @@ void Commander::handler()
         sendTimer.reset();
     }
 
-    static uint32_t cnt = 0;
-    if(++cnt % 1000 == 0)
-    {
-        std::cout << currentPositionX;
-        std::cout << std::endl;
-    }
+    // static uint32_t cnt = 0;
+    // if(++cnt % 1000 == 0)
+    // {
+    //     std::cout << currentPositionX;
+    //     std::cout << std::endl;
+    // }
 }
 
 /*

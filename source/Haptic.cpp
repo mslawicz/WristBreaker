@@ -123,7 +123,10 @@ void HapticDevice::handler()
         // calibration process
         case HapticState::Calibration:
         {
-            state = HapticState::Mov2Ref;
+            if(pActuator->calibrate(encoderPosition))
+            {
+                state = HapticState::Mov2Ref;
+            }
             break;
         }
 
@@ -193,10 +196,10 @@ float HapticDevice::setActuator()
     //XXX test
     static uint32_t cnt = 0;
     static float angle = 0.0F;
-    static AnalogIn tPot(PA_5); float torque = tPot.read(); //XXX test; also use PA_6 and PA_7
+    static AnalogIn tPot(PA_5); float torque = 0;//tPot.read(); //XXX test; also use PA_6 and PA_7
     pActuator->setFieldVector(angle, torque);
     static AnalogIn aPot(PA_6); float dAngle = HalfCycle * aPot.read() - QuarterCycle; //XXX test; also use PA_6 and PA_7
-    angle += dAngle * sin(cnt * 0.00628F);
+    angle += dAngle;
     
     if(angle > FullCycle)
     {
