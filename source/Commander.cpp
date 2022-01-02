@@ -24,7 +24,7 @@ Commander::Commander() :
     rollDevice
     (
         new Stepper(PE_9, PE_11, PE_13, PE_14, PE_0, 50U),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
-        new AS5600(PC_4),
+        new AS5048A(PE_6, PE_5, PE_2, PE_4),
         "roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.25F                   //NOLINT    range of normal operation calculated from reference position
@@ -94,6 +94,13 @@ void Commander::handler()
         //send USB HID report 1 (HID joystick data)
         sendJoystickData();
         sendTimer.reset();
+    }
+
+    static uint32_t cnt = 0;
+    if(++cnt % 1000 == 0)
+    {
+        std::cout << currentPositionX;
+        std::cout << std::endl;
     }
 }
 
