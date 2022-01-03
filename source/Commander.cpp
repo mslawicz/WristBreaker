@@ -1,5 +1,5 @@
 #include "Commander.h"
-#include "Stepper.h"
+#include "BLDC.h"
 #include "Convert.h"
 #include "Encoder.h"
 #include "Logger.h"
@@ -23,8 +23,8 @@ Commander::Commander() :
     PCLink(USB_VID, USB_PID, USB_VER),
     rollDevice
     (
-        new Stepper(PE_9, PE_11, PE_13, PE_14, PE_0, 50U),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
-        new AS5048A(PE_6, PE_5, PE_2, PE_4),
+        new MotorBLDC(PE_9, PE_11, PE_13, PE_0, 14U),     //NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+        new AS5048A(PE_6, PE_5, PE_2, PE_4, true),
         "roll actuator",
         0.75F,                  //NOLINT    device reference position (encoder value)
         0.25F                   //NOLINT    range of normal operation calculated from reference position

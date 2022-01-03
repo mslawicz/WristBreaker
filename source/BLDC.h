@@ -21,6 +21,7 @@ public:
     void setFieldVector(float electricAngle, float magnitude) override;
     void enable(bool state) override { enablePin = state ? 1 : 0; }
     uint8_t getNoOfPolePairs() const { return noOfPolePairs; }
+    bool calibrate(float encoderPosition) override;
 private:
     float getSvmValue(float argument);
     FastPWM phaseA;
@@ -52,6 +53,8 @@ private:
     0.865F
     };
     uint8_t noOfPolePairs;  // motor number of electric pole pairs (electric to mechanical revolution ratio)
+    float electricPeriod;   // electric period as part of the physical period ==1
+    float currentPhase{0.0F};   //current phase of the motor
 };
 
 #endif /* BLDC_H_ */

@@ -7,7 +7,11 @@
 
 #include "BLDC.h"
 #include "Convert.h"
+#include "Logger.h"
 #include <cstdint>
+
+//global variables for test
+float g_bldc[5];
 
 MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin, uint8_t noOfPolePairs) :
     phaseA(outA, 1, true),  //PWM center aligned
@@ -21,6 +25,7 @@ MotorBLDC::MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin
     this->phaseA.period_us(PwmPeriodUs);
     this->phaseB.period_us(PwmPeriodUs);
     this->phaseC.period_us(PwmPeriodUs);
+    electricPeriod = 1.0F / static_cast<float>(noOfPolePairs);
 }
 
 // returns space vector modulation value
@@ -86,4 +91,36 @@ void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
     phaseA.write(pwmDutyA);
     phaseB.write(pwmDutyB);
     phaseC.write(pwmDutyC);
+}
+
+//calibrate BLDC motor
+//to be called periodically until returns true
+//returns true when calibration is complete
+bool MotorBLDC::calibrate(float encoderPosition)
+{
+    float encoderPhase = FullCycle * static_cast<float>(noOfPolePairs) * fmodf(encoderPosition, electricPeriod);
+    float phaseShift = cropAngle(FullCycle + currentPhase - encoderPhase);
+
+    static uint32_t cnt = 0;
+    if(++cnt % 1000 == 0)
+    {
+        LOG_INFO("enc=" << encoderPosition << "  cPh=" << currentPhase << "  encPh=" << encoderPhase << "  dPh=" << phaseShift); 
+    }
+
+    currentPhase += 0.5F;
+    if(currentPhase > FullCycle)
+    {
+        currentPhase -= FullCycle;
+    }
+    static AnalogIn tPot(PA_5); float torque = tPot.read(); //XXX test; also use PA_6 and PA_7
+
+    g_bldc[0] = encoderPosition;
+    g_bldc[1] = fmodf(encoderPosition, electricPeriod);
+    g_bldc[2] = currentPhase;
+    g_bldc[3] = encoderPhase;
+    g_bldc[4] = phaseShift;
+
+    setFieldVector(currentPhase, torque);
+
+    return false;
 }
