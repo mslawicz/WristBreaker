@@ -66,6 +66,7 @@ public:
     void startCalibration() { state = HapticState::StartCalibration; }
     void displayStatus();   //display status of this haptic device
     static void statusRequest(const CommandVector& cv);        //display status
+    ActuatorData& getActuatorData() { return pActuator->getActuatorData(); }
 private:
     float setActuator();
     uint8_t getMultipositionIndex();    //gets current position index in multiposition mode

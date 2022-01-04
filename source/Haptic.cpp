@@ -115,7 +115,8 @@ void HapticDevice::handler()
         // start calibration process of this device
         case HapticState::StartCalibration:
         {
-            LOG_DEBUG("device " << name << " calibration started");        
+            LOG_DEBUG("device " << name << " calibration started");      
+            pActuator->calibrationSetup();  
             state = HapticState::Calibration;
             break;
         }

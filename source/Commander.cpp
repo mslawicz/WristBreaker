@@ -43,6 +43,8 @@ Commander::Commander() :
     Console::getInstance().registerCommand("chd", "calibrate haptic device <index>", callback(&HapticDevice::calibrationRequest));
     Console::getInstance().registerCommand("dshd", "display status of haptic device <index>", callback(&HapticDevice::statusRequest));
     Console::getInstance().registerCommand("dsd", "display received simulator data", callback(this, &Commander::displaySimData));
+
+    rollDevice.getActuatorData().calibrationMagnitude = 1.0F;
 }
 
 void Commander::handler()

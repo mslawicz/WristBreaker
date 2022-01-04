@@ -93,6 +93,14 @@ void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
     phaseC.write(pwmDutyC);
 }
 
+//calibration procedure setup
+//to be called before calling calibrate()
+void MotorBLDC::calibrationSetup()
+{
+    currentPhase = 0.0F;
+    magnitude = 0.0F;
+}
+
 //calibrate BLDC motor
 //to be called periodically until returns true
 //returns true when calibration is complete
@@ -113,6 +121,7 @@ bool MotorBLDC::calibrate()
         currentPhase -= FullCycle;
     }
     static AnalogIn tPot(PA_5); float torque = tPot.read(); //XXX test; also use PA_6 and PA_7
+    actuatorData.calibrationMagnitude = torque; //XXX test
 
     g_bldc[0] = actuatorData.encoderValue;
     g_bldc[1] = fmodf(actuatorData.encoderValue, electricPeriod);
@@ -120,7 +129,16 @@ bool MotorBLDC::calibrate()
     g_bldc[3] = encoderPhase;
     g_bldc[4] = phaseShift;
 
-    setFieldVector(currentPhase, torque);
+    setFieldVector(currentPhase, magnitude);
 
+    //gradually increase field vector magnitude
+    constexpr float MagnitudeStep = 0.001F;
+    magnitude += MagnitudeStep * actuatorData.calibrationMagnitude;    // 0.1% increase at a time
+    if(magnitude > actuatorData.calibrationMagnitude)
+    {
+        magnitude = actuatorData.calibrationMagnitude;
+    }
+
+    
     return false;
 }
