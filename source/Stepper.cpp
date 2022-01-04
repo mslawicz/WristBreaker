@@ -62,15 +62,15 @@ void Stepper::setFieldVector(float electricAngle, float magnitude)
 //calibrate stepper motor
 //to be called periodically until returns true
 //returns true when calibration is complete
-bool Stepper::calibrate(float encoderPosition)
+bool Stepper::calibrate()
 {
-    float encoderPhase = FullCycle * static_cast<float>(noOfPolePairs) * fmodf(encoderPosition, electricPeriod);
+    float encoderPhase = FullCycle * static_cast<float>(noOfPolePairs) * fmodf(actuatorData.encoderValue, electricPeriod);
     float phaseShift = cropAngle(FullCycle + currentPhase - encoderPhase);
 
     static uint32_t cnt = 0;
     if(++cnt % 1000 == 0)
     {
-        LOG_INFO("enc=" << encoderPosition << "  cPh=" << currentPhase << "  encPh=" << encoderPhase << "  dPh=" << phaseShift); 
+        LOG_INFO("enc=" << actuatorData.encoderValue << "  cPh=" << currentPhase << "  encPh=" << encoderPhase << "  dPh=" << phaseShift); 
     }
 
     currentPhase += 0.5F;
@@ -80,8 +80,8 @@ bool Stepper::calibrate(float encoderPosition)
     }
     static AnalogIn tPot(PA_5); float torque = tPot.read(); //XXX test; also use PA_6 and PA_7
 
-    g_stp[0] = encoderPosition;
-    g_stp[1] = fmodf(encoderPosition, electricPeriod);
+    g_stp[0] = actuatorData.encoderValue;
+    g_stp[1] = fmodf(actuatorData.encoderValue, electricPeriod);
     g_stp[2] = currentPhase;
     g_stp[3] = encoderPhase;
     g_stp[4] = phaseShift;

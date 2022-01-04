@@ -96,15 +96,15 @@ void MotorBLDC::setFieldVector(float electricAngle, float magnitude)
 //calibrate BLDC motor
 //to be called periodically until returns true
 //returns true when calibration is complete
-bool MotorBLDC::calibrate(float encoderPosition)
+bool MotorBLDC::calibrate()
 {
-    float encoderPhase = FullCycle * static_cast<float>(noOfPolePairs) * fmodf(encoderPosition, electricPeriod);
+    float encoderPhase = FullCycle * static_cast<float>(noOfPolePairs) * fmodf(actuatorData.encoderValue, electricPeriod);
     float phaseShift = cropAngle(FullCycle + currentPhase - encoderPhase);
 
     static uint32_t cnt = 0;
     if(++cnt % 1000 == 0)
     {
-        LOG_INFO("enc=" << encoderPosition << "  cPh=" << currentPhase << "  encPh=" << encoderPhase << "  dPh=" << phaseShift); 
+        LOG_INFO("enc=" << actuatorData.encoderValue << "  cPh=" << currentPhase << "  encPh=" << encoderPhase << "  dPh=" << phaseShift); 
     }
 
     currentPhase += 0.5F;
@@ -114,8 +114,8 @@ bool MotorBLDC::calibrate(float encoderPosition)
     }
     static AnalogIn tPot(PA_5); float torque = tPot.read(); //XXX test; also use PA_6 and PA_7
 
-    g_bldc[0] = encoderPosition;
-    g_bldc[1] = fmodf(encoderPosition, electricPeriod);
+    g_bldc[0] = actuatorData.encoderValue;
+    g_bldc[1] = fmodf(actuatorData.encoderValue, electricPeriod);
     g_bldc[2] = currentPhase;
     g_bldc[3] = encoderPhase;
     g_bldc[4] = phaseShift;

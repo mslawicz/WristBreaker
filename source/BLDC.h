@@ -21,7 +21,7 @@ public:
     void setFieldVector(float electricAngle, float magnitude) override;
     void enable(bool state) override { enablePin = state ? 1 : 0; }
     uint8_t getNoOfPolePairs() const { return noOfPolePairs; }
-    bool calibrate(float encoderPosition) override;
+    bool calibrate() override;
 private:
     float getSvmValue(float argument);
     FastPWM phaseA;

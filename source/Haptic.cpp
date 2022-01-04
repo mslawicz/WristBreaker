@@ -123,7 +123,8 @@ void HapticDevice::handler()
         // calibration process
         case HapticState::Calibration:
         {
-            if(pActuator->calibrate(encoderPosition))
+            pActuator->getActuatorData().encoderValue = encoderPosition;
+            if(pActuator->calibrate())
             {
                 state = HapticState::Mov2Ref;
             }
