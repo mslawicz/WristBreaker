@@ -45,6 +45,8 @@ Commander::Commander() :
     Console::getInstance().registerCommand("dsd", "display received simulator data", callback(this, &Commander::displaySimData));
 
     rollDevice.getActuatorData().calibrationMagnitude = 1.0F;
+    rollDevice.getActuatorData().calibrationRange = 0.2F;
+    rollDevice.getActuatorData().noOfCalibrationSteps = 4000U;
 }
 
 void Commander::handler()

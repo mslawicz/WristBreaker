@@ -87,6 +87,7 @@ void HapticDevice::handler()
     interval = std::chrono::duration<float>(callTimer.elapsed_time()).count();
     callTimer.reset();
     encoderPosition = pEncoder->getValue();
+    pActuator->getActuatorData().encoderValue = encoderPosition;
     // calculate shaft position relative to reference position <-0.5...0.5>
     constexpr float EncoderHalfRange = 0.5F;
     float relativePosition = encoderPosition - referencePosition;
@@ -101,6 +102,7 @@ void HapticDevice::handler()
     currentPosition = relativePosition;
     //filter current position
     filteredPosition = positionFilter.getMedian(currentPosition);
+    pActuator->getActuatorData().position = filteredPosition;
 
     //haptic device state machine
     switch(state)
@@ -124,7 +126,6 @@ void HapticDevice::handler()
         // calibration process
         case HapticState::Calibration:
         {
-            pActuator->getActuatorData().encoderValue = encoderPosition;
             if(pActuator->calibrate())
             {
                 state = HapticState::Mov2Ref;

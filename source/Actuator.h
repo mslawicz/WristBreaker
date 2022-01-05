@@ -8,10 +8,15 @@
 #ifndef ACTUATOR_H_
 #define ACTUATOR_H_
 
+#include <mbed.h>
+
 struct ActuatorData     //NOLINT(altera-struct-pack-align)
 {
     float encoderValue;
+    float position;
     float calibrationMagnitude;
+    float calibrationRange;
+    uint32_t noOfCalibrationSteps;
 };
 
 class Actuator
