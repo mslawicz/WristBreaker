@@ -128,6 +128,7 @@ void HapticDevice::handler()
         {
             if(pActuator->calibrate())
             {
+                LOG_INFO("device " << name << " calibrated with phase shift " << pActuator->getPhaseShift());
                 state = HapticState::Mov2Ref;
             }
             break;

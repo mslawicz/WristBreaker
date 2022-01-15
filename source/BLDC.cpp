@@ -99,8 +99,9 @@ void MotorBLDC::calibrationSetup()
 {
     currentPhase = 0.0F;
     magnitude = 0.0F;
-    calibrationPhaseStep = 2 * FullCycle * actuatorData.calibrationRange / electricPeriod / static_cast<float>(actuatorData.noOfCalibrationSteps);
-    dPhase = calibrationPhaseStep;
+    dPhase = actuatorData.calibrationPhaseStep;
+    stepCounter = 0;
+    phaseShift = 0.0F;
 }
 
 //calibrate BLDC motor
@@ -109,27 +110,40 @@ void MotorBLDC::calibrationSetup()
 bool MotorBLDC::calibrate()
 {
     float encoderPhase = FullCycle * static_cast<float>(noOfPolePairs) * fmodf(actuatorData.encoderValue, electricPeriod);
-    float phaseShift = cropAngle(FullCycle + currentPhase - encoderPhase);
-    //const float PhaseStep = electricPeriod * 10.0F;
+    float currentPhaseShift = cropAngle(FullCycle + currentPhase - encoderPhase);
 
-    static uint32_t cnt = 0;
-    if(++cnt % 1000 == 0)
+    //acumulate calibration value when calibration condition achieved
+    if(isInRange<float>(actuatorData.position, -actuatorData.calibrationRange, actuatorData.calibrationRange) &&
+        (magnitude >= actuatorData.calibrationMagnitude))
     {
-        LOG_INFO("pos=" << actuatorData.position << "  enc=" << actuatorData.encoderValue << "  cPh=" << currentPhase << "  encPh=" << encoderPhase << "  dPh=" << phaseShift); 
+        //calibration conditions achieved
+        phaseShift += currentPhaseShift;
+        stepCounter++;
     }
+
+    //end calibration when all steps done
+    if(stepCounter >= actuatorData.noOfCalibrationSteps)
+    {
+        phaseShift /= static_cast<float>(stepCounter);
+        return true;
+    } 
 
     if(actuatorData.position < -actuatorData.calibrationRange)
     {
-        dPhase = calibrationPhaseStep;
+        dPhase = actuatorData.calibrationPhaseStep;
     }
     if(actuatorData.position > actuatorData.calibrationRange)
     {
-        dPhase = -calibrationPhaseStep;
+        dPhase = -actuatorData.calibrationPhaseStep;
     }    
     currentPhase += dPhase;
     if(currentPhase > FullCycle)
     {
         currentPhase -= FullCycle;
+    }
+    else if(currentPhase < 0.0F)
+    {
+        currentPhase += FullCycle;
     }
     static AnalogIn tPot(PA_5); float torque = tPot.read(); //XXX test; also use PA_6 and PA_7
     actuatorData.calibrationMagnitude = torque; //XXX test
@@ -138,7 +152,7 @@ bool MotorBLDC::calibrate()
     g_bldc[1] = fmodf(actuatorData.encoderValue, electricPeriod);
     g_bldc[2] = currentPhase;
     g_bldc[3] = encoderPhase;
-    g_bldc[4] = phaseShift;
+    g_bldc[4] = currentPhaseShift;
 
     //gradually increase field vector magnitude
     constexpr float MagnitudeStep = 0.001F;

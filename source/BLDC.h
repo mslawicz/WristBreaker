@@ -23,6 +23,7 @@ public:
     uint8_t getNoOfPolePairs() const { return noOfPolePairs; }
     void calibrationSetup() override;
     bool calibrate() override;
+    float getPhaseShift() const override { return phaseShift; }
 private:
     float getSvmValue(float argument);
     FastPWM phaseA;
@@ -57,8 +58,9 @@ private:
     float electricPeriod;   // electric period as part of the physical period ==1
     float currentPhase{0.0F};   //current phase of the motor
     float magnitude{0.0F};      //current field vector magnitude
-    float calibrationPhaseStep{0.0F};   //phase step in calibration procedure
     float dPhase{0.0F};         //phase increment/decrement in calibration procedure
+    uint32_t stepCounter{0};    //counter of calibration steps
+    float phaseShift{0.0F};     //measured phase shift between encoder phase and electrical phase
 };
 
 #endif /* BLDC_H_ */
