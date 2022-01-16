@@ -48,6 +48,10 @@ Commander::Commander() :
     rollDevice.getActuatorData().calibrationRange = 0.2F;
     rollDevice.getActuatorData().noOfCalibrationSteps = 2000U;
     rollDevice.getActuatorData().calibrationPhaseStep = 0.5F;
+    rollDevice.getActuatorData().minMagnitude = 0.3F;
+    rollDevice.getActuatorData().maxMagnitude = 1.0F;
+    rollDevice.getActuatorData().forceGain = 2.0F;
+
 }
 
 void Commander::handler()

@@ -10,6 +10,7 @@
 
 #include "Motor.h"
 #include "FastPWM.h"
+#include "Convert.h"
 #include <array>
 #include <mbed.h>
 
@@ -18,14 +19,15 @@ class MotorBLDC : public Motor
 {
 public:
     MotorBLDC(PinName outA, PinName outB, PinName outC, PinName enablePin, uint8_t noOfPolePairs);
-    void setFieldVector(float electricAngle, float magnitude) override;
     void enable(bool state) override { enablePin = state ? 1 : 0; }
     uint8_t getNoOfPolePairs() const { return noOfPolePairs; }
     void calibrationSetup() override;
     bool calibrate() override;
-    float getPhaseShift() const override { return phaseShift; }
+    void setForce(float error) override;
 private:
     float getSvmValue(float argument);
+    void setFieldVector(float electricAngle, float magnitude);
+    float getEncoderPhase() const { return FullCycle * static_cast<float>(noOfPolePairs) * fmodf(actuatorData.encoderValue, electricPeriod); }
     FastPWM phaseA;
     FastPWM phaseB;
     FastPWM phaseC;

@@ -117,7 +117,7 @@ void HapticDevice::handler()
         // start calibration process of this device
         case HapticState::StartCalibration:
         {
-            LOG_DEBUG("device " << name << " calibration started");      
+            LOG_INFO("device " << name << " calibration started");      
             pActuator->calibrationSetup();  
             state = HapticState::Calibration;
             break;
@@ -128,7 +128,8 @@ void HapticDevice::handler()
         {
             if(pActuator->calibrate())
             {
-                LOG_INFO("device " << name << " calibrated with phase shift " << pActuator->getPhaseShift());
+                LOG_INFO("device " << name << " calibration complete");
+                targetPosition = filteredPosition;
                 state = HapticState::Mov2Ref;
             }
             break;
@@ -197,30 +198,13 @@ float HapticDevice::setActuator()
         targetPosition += limit<float>(hapticData.targetPosition - targetPosition, -hapticData.deltaPosLimit, hapticData.deltaPosLimit);
     }
 
-    //XXX test
-    static uint32_t cnt = 0;
-    static float angle = 0.0F;
-    static AnalogIn tPot(PA_5); float torque = 0;//tPot.read(); //XXX test; also use PA_6 and PA_7
-    pActuator->setFieldVector(angle, torque);
-    static AnalogIn aPot(PA_6); float dAngle = HalfCycle * aPot.read() - QuarterCycle; //XXX test; also use PA_6 and PA_7
-    angle += dAngle;
-    
-    if(angle > FullCycle)
-    {
-        angle -= FullCycle;
-    }
-    if(angle < -FullCycle)
-    {
-        angle += FullCycle;
-    }    
-    if(((cnt++ % 1000) == 0) && hapticData.buttonPressed)
-    {
-        std::cout << "t=" << torque << "  angle=" << angle << "  dA=" << dAngle << std::endl;
-    }
-
-    //calculate error from the target position; positive error for CCW deflection
+    //calculate error from current target position; positive error for CCW deflection
     float error = targetPosition - filteredPosition;
 
+    //set force in the actuator
+    pActuator->setForce(error);
+
+    //return error from requested target position
     return hapticData.targetPosition - filteredPosition;
 }
 

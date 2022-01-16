@@ -6,7 +6,6 @@
  */
 
 #include "BLDC.h"
-#include "Convert.h"
 #include "Logger.h"
 #include <cstdint>
 
@@ -109,7 +108,7 @@ void MotorBLDC::calibrationSetup()
 //returns true when calibration is complete
 bool MotorBLDC::calibrate()
 {
-    float encoderPhase = FullCycle * static_cast<float>(noOfPolePairs) * fmodf(actuatorData.encoderValue, electricPeriod);
+    float encoderPhase = getEncoderPhase();
     float currentPhaseShift = cropAngle(FullCycle + currentPhase - encoderPhase);
 
     //acumulate calibration value when calibration condition achieved
@@ -165,4 +164,28 @@ bool MotorBLDC::calibrate()
     setFieldVector(currentPhase, magnitude);
     
     return false;
+}
+
+//set force according to current error
+void MotorBLDC::setForce(float error)
+{
+    float encoderPhase = getEncoderPhase();
+    float currentPhase = encoderPhase + phaseShift;
+    //calculate amplitude of the magnitude
+    float magnitudeAmplitude = actuatorData.maxMagnitude - actuatorData.minMagnitude;
+    //calculate magnitude proportional to position error
+    magnitude = error * actuatorData.forceGain;
+    //limit magnitude to its amplitude value
+    magnitude = limit<float>(magnitude, -magnitudeAmplitude, magnitudeAmplitude);
+    //calculate motor delta phase proportional to magnitude
+    dPhase = scale<float, float>(-magnitudeAmplitude, magnitudeAmplitude, magnitude, -QuarterCycle, QuarterCycle);
+    //add minimum value to magnitude
+    magnitude += (error >= 0.0F) ? actuatorData.minMagnitude : -actuatorData.minMagnitude;
+    //set stator field vector from magnitude and phase
+    setFieldVector(currentPhase + dPhase, fabsf(magnitude));
+    static uint32_t cnt=0;
+    if(cnt++ % 500 == 0)
+    {
+        std::cout << "\r>>> err=" << error << "  magn=" << magnitude << "  cPh=" << currentPhase << "  encPh=" << encoderPhase << "  dPh=" << dPhase << "     _______";
+    }
 }
