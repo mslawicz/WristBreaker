@@ -171,6 +171,8 @@ void MotorBLDC::setForce(float error)
 {
     float encoderPhase = getEncoderPhase();
     float currentPhase = encoderPhase + phaseShift;
+    //XXX replace minMagnitude
+    static AnalogIn mPot(PA_6); actuatorData.minMagnitude = 0.5F * mPot.read(); //XXX test; also use PA_6 and PA_7
     //calculate amplitude of the magnitude
     float magnitudeAmplitude = actuatorData.maxMagnitude - actuatorData.minMagnitude;
     //calculate magnitude proportional to position error
@@ -178,7 +180,8 @@ void MotorBLDC::setForce(float error)
     //limit magnitude to its amplitude value
     magnitude = limit<float>(magnitude, -magnitudeAmplitude, magnitudeAmplitude);
     //calculate motor delta phase proportional to magnitude
-    dPhase = scale<float, float>(-magnitudeAmplitude, magnitudeAmplitude, magnitude, -QuarterCycle, QuarterCycle);
+    //dPhase = scale<float, float>(-magnitudeAmplitude, magnitudeAmplitude, magnitude, -QuarterCycle, QuarterCycle);
+    dPhase = (error >= 0) ? QuarterCycle : -QuarterCycle;
     //add minimum value to magnitude
     magnitude += (error >= 0.0F) ? actuatorData.minMagnitude : -actuatorData.minMagnitude;
     //set stator field vector from magnitude and phase
@@ -186,6 +189,6 @@ void MotorBLDC::setForce(float error)
     static uint32_t cnt=0;
     if(cnt++ % 500 == 0)
     {
-        std::cout << "\r>>> err=" << error << "  magn=" << magnitude << "  cPh=" << currentPhase << "  encPh=" << encoderPhase << "  dPh=" << dPhase << "     _______";
+        std::cout << "\r>>> err=" << error << "  magn=" << magnitude << "  cPh=" << currentPhase << "  encPh=" << encoderPhase << "  minM=" << actuatorData.minMagnitude << "     _______";
     }
 }
